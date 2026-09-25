@@ -6,7 +6,7 @@
     <string name="widget_open_app">Открыть Enterprise Shield</string>
     <string name="app_name">Enterprise Shield</string>
     <string name="notification_channel_vpn">Подключение Щита</string>
-    <string name="notification_title">Enterprise Shield</string>
+    <string name="notification_title">Щит</string>
     <string name="notification_starting">Подключение</string>
     <string name="notification_connected">Подключено</string>
     <string name="notification_connected_public">Подключение с использованием публичных серверов</string>

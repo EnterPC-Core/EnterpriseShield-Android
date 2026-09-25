@@ -270,7 +270,7 @@ class AppUpdateManager(context: Context) {
             val release = readRelease(json.getJSONObject("release").toString()) ?: return@let null
             val id = json.getLong("id")
             val digest = json.getString("sha256")
-            if (id <= 0 || !release.downloadable || !digest.matches(Regex("[a-f0-9]{64}"))) return@let null
+            if (id < 0 || !release.downloadable || !digest.matches(Regex("[a-f0-9]{64}"))) return@let null
             PendingDownload(id, release, digest, json.getBoolean("failed"))
         }
     } catch (_: Exception) {

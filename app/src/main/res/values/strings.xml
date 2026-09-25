@@ -5,7 +5,7 @@
     <string name="widget_open_app">Open Enterprise Shield</string>
     <string name="app_name">Enterprise Shield</string>
     <string name="notification_channel_vpn">Shield connection</string>
-    <string name="notification_title">Enterprise Shield</string>
+    <string name="notification_title">Shield</string>
     <string name="notification_starting">Connecting</string>
     <string name="notification_connected">Connected</string>
     <string name="notification_connected_public">Connected using public servers</string>
