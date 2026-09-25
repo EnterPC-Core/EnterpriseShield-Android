@@ -1,0 +1,312 @@
+# Enterprise Shield - Mihomo subscription
+# updated: 2026-09-25
+proxies:
+  - name: Enterprise 3
+    type: vless
+    server: ch3.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    flow: xtls-rprx-vision
+    servername: ch3.enterprise-shield.ru
+    client-fingerprint: qq
+    network: tcp
+    reality-opts:
+      public-key: 5klL9RHUDth_uDdaAYVQgyYmboqrd4upaL7HHhgmT3I
+      short-id: b04dd3564373ba03
+  - name: Enterprise 2
+    type: vless
+    server: ch2.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    servername: ch2.enterprise-shield.ru
+    client-fingerprint: chrome
+    network: grpc
+    grpc-opts:
+      grpc-service-name: grpc
+    reality-opts:
+      public-key: 2tesN19MYsNBCztMZTIar3PLC7C5zB8QgEwFNPw3Rlo
+  - name: Enterprise 5
+    type: hysteria2
+    server: ch5.enterprise-shield.ru
+    port: 443
+    password: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    sni: us.s-valley.24haze.online
+    alpn: [h3]
+    client-fingerprint: chrome
+  - name: Enterprise 1
+    type: hysteria2
+    server: ch1.enterprise-shield.ru
+    port: 443
+    password: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    sni: pl.node-verse.24haze.online
+    alpn: [h3]
+    client-fingerprint: qq
+  - name: Enterprise 12
+    type: vless
+    server: ch12.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    servername: cdn.arcadia-cloud.24haze.online
+    client-fingerprint: qq
+    alpn: [h2, http/1.1]
+    network: xhttp
+    xhttp-opts:
+      path: /api/v1/sync.php
+      mode: packet-up
+      host: cdn.arcadia-cloud.24haze.online
+      reuse-settings:
+        c-max-reuse-times: 128-256
+        max-connections: 2-4
+        h-max-request-times: 600-800
+        h-max-reusable-secs: 1800-2400
+        h-keep-alive-period: 0
+      x-padding-bytes: 100-128
+      x-padding-obfs-mode: true
+      x-padding-key: _dc
+      x-padding-placement: query
+      x-padding-method: tokenish
+      uplink-http-method: GET
+      session-placement: query
+      session-key: token
+      seq-placement: query
+      seq-key: offset
+      sc-max-each-post-bytes: 524288-1048576
+      sc-min-posts-interval-ms: 50-100
+  - name: Enterprise 7
+    type: vless
+    server: ch7.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    servername: ch7.enterprise-shield.ru
+    client-fingerprint: chrome
+    network: grpc
+    grpc-opts:
+      grpc-service-name: grpc
+    reality-opts:
+      public-key: 2tesN19MYsNBCztMZTIar3PLC7C5zB8QgEwFNPw3Rlo
+  - name: Enterprise 10
+    type: vless
+    server: ch10.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    servername: cdn.metrics.24haze.online
+    client-fingerprint: chrome
+    alpn: [h2, http/1.1]
+    network: xhttp
+    xhttp-opts:
+      path: /api/v1/sync.php
+      mode: packet-up
+      host: cdn.metrics.24haze.online
+      reuse-settings:
+        c-max-reuse-times: 128-256
+        max-connections: 2-4
+        h-max-request-times: 600-800
+        h-max-reusable-secs: 1800-2400
+        h-keep-alive-period: 0
+      x-padding-bytes: 100-128
+      x-padding-obfs-mode: true
+      x-padding-key: _dc
+      x-padding-placement: query
+      x-padding-method: tokenish
+      uplink-http-method: GET
+      session-placement: query
+      session-key: token
+      seq-placement: query
+      seq-key: offset
+      sc-max-each-post-bytes: 524288-1048576
+      sc-min-posts-interval-ms: 50-100
+  - name: Enterprise 13
+    type: vless
+    server: ch13.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    servername: cdn.safe-corp.24haze.online
+    client-fingerprint: chrome
+    alpn: [h2, http/1.1]
+    network: xhttp
+    xhttp-opts:
+      path: /api/v1/sync.php
+      mode: packet-up
+      host: cdn.safe-corp.24haze.online
+      reuse-settings:
+        c-max-reuse-times: 128-256
+        max-connections: 2-4
+        h-max-request-times: 600-800
+        h-max-reusable-secs: 1800-2400
+        h-keep-alive-period: 0
+      x-padding-bytes: 100-128
+      x-padding-obfs-mode: true
+      x-padding-key: _dc
+      x-padding-placement: query
+      x-padding-method: tokenish
+      uplink-http-method: GET
+      session-placement: query
+      session-key: token
+      seq-placement: query
+      seq-key: offset
+      sc-max-each-post-bytes: 524288-1048576
+      sc-min-posts-interval-ms: 50-100
+  - name: Enterprise 14
+    type: vless
+    server: ch14.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    servername: cdn.cause-dict.24haze.online
+    client-fingerprint: chrome
+    alpn: [h2, http/1.1]
+    network: xhttp
+    xhttp-opts:
+      path: /api/v1/sync.php
+      mode: packet-up
+      host: cdn.cause-dict.24haze.online
+      reuse-settings:
+        c-max-reuse-times: 128-256
+        max-connections: 2-4
+        h-max-request-times: 600-800
+        h-max-reusable-secs: 1800-2400
+        h-keep-alive-period: 0
+      x-padding-bytes: 100-128
+      x-padding-obfs-mode: true
+      x-padding-key: _dc
+      x-padding-placement: query
+      x-padding-method: tokenish
+      uplink-http-method: GET
+      session-placement: query
+      session-key: token
+      seq-placement: query
+      seq-key: offset
+      sc-max-each-post-bytes: 524288-1048576
+      sc-min-posts-interval-ms: 50-100
+  - name: Enterprise 9
+    type: vless
+    server: ch9.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    flow: xtls-rprx-vision
+    servername: ch9.enterprise-shield.ru
+    client-fingerprint: firefox
+    network: tcp
+    reality-opts:
+      public-key: XbvqMWDH402it1ceTFlXm1Ptc72YPv6Q3I-eDRmg51Y
+  - name: Enterprise 11
+    type: vless
+    server: ch11.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    servername: cdn.jet-offer.24haze.online
+    client-fingerprint: qq
+    alpn: [h2, http/1.1]
+    network: xhttp
+    xhttp-opts:
+      path: /api/v1/sync.php
+      mode: packet-up
+      host: cdn.jet-offer.24haze.online
+      reuse-settings:
+        c-max-reuse-times: 128-256
+        max-connections: 2-4
+        h-max-request-times: 600-800
+        h-max-reusable-secs: 1800-2400
+        h-keep-alive-period: 0
+      x-padding-bytes: 100-128
+      x-padding-obfs-mode: true
+      x-padding-key: _dc
+      x-padding-placement: query
+      x-padding-method: tokenish
+      uplink-http-method: GET
+      session-placement: query
+      session-key: token
+      seq-placement: query
+      seq-key: offset
+      sc-max-each-post-bytes: 524288-1048576
+      sc-min-posts-interval-ms: 50-100
+  - name: Enterprise 6
+    type: hysteria2
+    server: ch6.enterprise-shield.ru
+    port: 443
+    password: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    sni: h-ge.cloud-mods.24haze.online
+    alpn: [h3]
+    client-fingerprint: qq
+  - name: Enterprise 4
+    type: hysteria2
+    server: ch4.enterprise-shield.ru
+    port: 443
+    password: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    sni: nl.astra-cloud.24haze.online
+    alpn: [h3]
+    client-fingerprint: qq
+  - name: Enterprise 8
+    type: vless
+    server: ch8.enterprise-shield.ru
+    port: 443
+    uuid: 28857cfc-5701-4952-8330-d2640618f184
+    udp: true
+    tls: true
+    flow: xtls-rprx-vision
+    servername: ch8.enterprise-shield.ru
+    client-fingerprint: chrome
+    network: tcp
+    reality-opts:
+      public-key: k04yw3df-c7OQB3GnV7EIZTOt8fP4WIPQx0-m0Sdggg
+proxy-groups:
+  - name: 🚀 Proxy Select
+    type: select
+    proxies:
+      - ♻️ Auto Select
+      - Enterprise 3
+      - Enterprise 2
+      - Enterprise 5
+      - Enterprise 1
+      - Enterprise 12
+      - Enterprise 7
+      - Enterprise 10
+      - Enterprise 13
+      - Enterprise 14
+      - Enterprise 9
+      - Enterprise 11
+      - Enterprise 6
+      - Enterprise 4
+      - Enterprise 8
+  - name: ♻️ Auto Select
+    type: url-test
+    url: 'https://www.gstatic.com/generate_204'
+    interval: 300
+    proxies:
+      - Enterprise 3
+      - Enterprise 2
+      - Enterprise 5
+      - Enterprise 1
+      - Enterprise 12
+      - Enterprise 7
+      - Enterprise 10
+      - Enterprise 13
+      - Enterprise 14
+      - Enterprise 9
+      - Enterprise 11
+      - Enterprise 6
+      - Enterprise 4
+      - Enterprise 8
+rules:
+  - 'MATCH,🚀 Proxy Select'

@@ -268,7 +268,7 @@ class TlsIntegrityException(cause: Throwable) : IOException("TLS certificate val
 
 enum class RoutingMode(val wireName: String, val labelRes: Int, val detailRes: Int) {
     Subscription("subscription", R.string.routing_mode_subscription, R.string.routing_mode_subscription_detail),
-    IranBypass("iran", R.string.routing_mode_iran, R.string.routing_mode_iran_detail),
+    RussiaBypass("ru", R.string.routing_mode_russia, R.string.routing_mode_russia_detail),
     GlobalProxy("global", R.string.routing_mode_global, R.string.routing_mode_global_detail),
     ;
 
@@ -277,6 +277,37 @@ enum class RoutingMode(val wireName: String, val labelRes: Int, val detailRes: I
             return values().firstOrNull { it.wireName == value } ?: Subscription
         }
     }
+}
+
+object ShieldGuardPolicy {
+    const val PREFERENCES_NAME = "enterprise_shield_guard"
+    const val KEY_ENABLED = "enabled"
+
+    fun readEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+            .getBoolean(KEY_ENABLED, true)
+
+    fun saveEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_ENABLED, enabled).apply()
+    }
+
+    fun ruleLines(): List<String> = listOf(
+        "GEOSITE,category-ads-all,REJECT",
+        "GEOSITE,category-public-tracker,REJECT",
+        "GEOIP,tor,REJECT",
+        "DST-PORT,6881-6889,REJECT",
+        "DST-PORT,22,REJECT",
+        "DST-PORT,23,REJECT",
+        "DST-PORT,3389,REJECT",
+        "DST-PORT,5900-5906,REJECT",
+        "DST-PORT,6379,REJECT",
+        "DST-PORT,27017-27019,REJECT",
+        "DST-PORT,3306,REJECT",
+        "DST-PORT,5432,REJECT",
+        "DST-PORT,1433,REJECT",
+        "GEOIP,private,REJECT,no-resolve",
+    )
 }
 
 class RoutingModePreferenceStore(context: Context) {
@@ -564,6 +595,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                 dnsPrivacyMode = document.dns.mode,
                 dohUrl = document.dns.dohUrl,
                 dotEndpoint = document.dns.dotEndpoint,
+                shieldGuardEnabled = ShieldGuardPolicy.readEnabled(context),
             ),
         )
         patchFinal.writeText(
@@ -717,6 +749,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
             dnsPrivacyMode: DnsPrivacyMode = DnsPrivacyMode.Automatic,
             dohUrl: String = DnsPrivacyPolicy.DEFAULT_DOH_URL,
             dotEndpoint: String = DnsPrivacyPolicy.DEFAULT_DOT_ENDPOINT,
+            shieldGuardEnabled: Boolean = true,
         ): String {
             val routingTarget = routingTarget(rawYaml)
             val requiredRoutingTarget = if (routingMode == RoutingMode.Subscription) {
@@ -748,29 +781,32 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                 DnsPrivacyMode.DoT -> DOT_SERVERS
             }
             return buildString {
-                if (subscriptionYaml.isNotBlank()) {
-                    append(subscriptionYaml.trimEnd())
+                val guardOn = shieldGuardEnabled
+                val subYaml = if (guardOn && routingMode == RoutingMode.Subscription && routingTarget != null)
+                    subscriptionYaml.substringBefore("\nrules:") else subscriptionYaml
+                if (subYaml.isNotBlank()) {
+                    append(subYaml.trimEnd())
                     append("\n\n")
                 }
+                val guardRules = if (guardOn) ShieldGuardPolicy.ruleLines() else emptyList()
                 when (routingMode) {
-                    RoutingMode.Subscription -> Unit
-                    RoutingMode.IranBypass -> {
-                        append("rule-providers:\n")
-                        append("  whitedns-iran:\n")
-                        append("    type: http\n")
-                        append("    behavior: classical\n")
-                        append("    format: text\n")
-                        append("    url: $IRAN_RULESET_URL\n")
-                        append("    path: ./ruleset/whitedns-iran.txt\n")
-                        append("    interval: 86400\n")
-                        append("    proxy: ${yamlSingleQuoted(requiredRoutingTarget!!)}\n")
-                        append("    size-limit: 10485760\n")
+                    RoutingMode.Subscription -> {
+                        if (guardOn && routingTarget != null) {
+                            append("rules:\n")
+                            guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
+                            append("  - ${yamlSingleQuoted("MATCH,$routingTarget")}\n\n")
+                        }
+                    }
+                    RoutingMode.RussiaBypass -> {
                         append("rules:\n")
-                        append("  - 'RULE-SET,whitedns-iran,DIRECT'\n")
+                        guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
+                        append("  - 'GEOSITE,ru,DIRECT'\n")
+                        append("  - 'GEOIP,private,DIRECT,no-resolve'\n")
                         append("  - ${yamlSingleQuoted("MATCH,$requiredRoutingTarget")}\n\n")
                     }
                     RoutingMode.GlobalProxy -> {
                         append("rules:\n")
+                        guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                         append("  - ${yamlSingleQuoted("MATCH,$requiredRoutingTarget")}\n\n")
                     }
                 }

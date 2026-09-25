@@ -814,21 +814,14 @@ class MihomoRuntimeConfigBuilderTest {
                   - MATCH,DIRECT
             """.trimIndent(),
             secret = "secret-123",
-            routingMode = RoutingMode.IranBypass,
+            routingMode = RoutingMode.RussiaBypass,
         )
 
-        assertTrue(runtimeYaml.contains("url: https://github.com/ygbkm/clash-rules-iran/releases/latest/download/rules.txt"))
-        assertTrue(runtimeYaml.contains("behavior: classical"))
-        assertTrue(runtimeYaml.contains("format: text"))
-        assertTrue(runtimeYaml.contains("path: ./ruleset/whitedns-iran.txt"))
-        assertTrue(runtimeYaml.contains("interval: 86400"))
-        assertTrue(runtimeYaml.contains("size-limit: 10485760"))
-        assertTrue(runtimeYaml.contains("proxy: 'Node''s'"))
-        assertTrue(runtimeYaml.contains("- 'RULE-SET,whitedns-iran,DIRECT'"))
+        assertTrue(runtimeYaml.contains("- 'GEOSITE,ru,DIRECT'"))
         assertTrue(runtimeYaml.contains("- 'MATCH,Node''s'"))
         assertFalse(runtimeYaml.contains("old-provider"))
         assertFalse(runtimeYaml.contains("old-sub-rule"))
-        assertEquals(1, Regex("(?m)^rule-providers:").findAll(runtimeYaml).count())
+        assertFalse(runtimeYaml.contains("rule-providers"))
         assertEquals(1, Regex("(?m)^rules:").findAll(runtimeYaml).count())
     }
 
@@ -864,7 +857,8 @@ class MihomoRuntimeConfigBuilderTest {
         assertFalse(runtimeYaml.contains("rule-providers:"))
         assertFalse(runtimeYaml.contains("MATCH,DIRECT"))
         assertEquals(1, Regex("(?m)^rules:").findAll(runtimeYaml).count())
-        assertTrue(runtimeYaml.contains("rules:\n  - 'MATCH,WhiteDNS Proxy'"))
+        assertTrue(runtimeYaml.contains("  - 'MATCH,WhiteDNS Proxy'"))
+        assertTrue(runtimeYaml.contains("  - 'GEOSITE,category-ads-all,REJECT'"))
         assertTrue(runtimeYaml.contains("mode: rule"))
     }
 
@@ -887,7 +881,7 @@ class MihomoRuntimeConfigBuilderTest {
             routingMode = RoutingMode.GlobalProxy,
         )
 
-        assertTrue(runtimeYaml.contains("rules:\n  - 'MATCH,Main Proxy Select'"))
+        assertTrue(runtimeYaml.contains("  - 'MATCH,Main Proxy Select'"))
     }
 
     @Test

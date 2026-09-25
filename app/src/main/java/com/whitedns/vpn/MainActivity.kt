@@ -232,6 +232,7 @@ class MainActivity : Activity() {
     private lateinit var routingModeRow: LinearLayout
     private lateinit var routingModeValueText: TextView
     private lateinit var routingModeDetailText: TextView
+    private lateinit var shieldGuardCheckbox: MaterialSwitch
     private lateinit var dnsPrivacyRow: LinearLayout
     private lateinit var dnsPrivacyValueText: TextView
     private lateinit var dnsPrivacyDetailText: TextView
@@ -2585,6 +2586,20 @@ class MainActivity : Activity() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
             ),
+        )
+
+        shieldGuardCheckbox = MaterialSwitch(this).apply {
+            isChecked = ShieldGuardPolicy.readEnabled(this@MainActivity)
+            contentDescription = getString(R.string.shield_guard_title)
+            setOnClickListener { ShieldGuardPolicy.saveEnabled(this@MainActivity, isChecked) }
+        }
+        routingPanel.addView(
+            advancedToggleRow(
+                title = getString(R.string.shield_guard_title),
+                detail = getString(R.string.shield_guard_detail),
+                toggle = shieldGuardCheckbox,
+            ),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) },
         )
         connectionSettings.addView(
             advancedSectionLabel(getString(R.string.dns_privacy_section)),

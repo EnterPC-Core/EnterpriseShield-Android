@@ -1,7 +1,6 @@
 package com.whitedns.vpn
 
 import android.content.Context
-import com.google.firebase.analytics.FirebaseAnalytics
 
 object AnalyticsEvents {
     const val APP_OPENED = "app_opened"
@@ -14,7 +13,7 @@ object AnalyticsEvents {
 
     fun log(context: Context, eventName: String) {
         DiagnosticLogger.info(context, "analytics.event", "name=$eventName")
-        FirebaseAnalytics.getInstance(context.applicationContext).logEvent(eventName, null)
+        // Enterprise Shield: external analytics removed, local diagnostics only
     }
 }
 

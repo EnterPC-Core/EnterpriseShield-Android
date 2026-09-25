@@ -3,7 +3,6 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.android")
 }
 
@@ -70,14 +69,14 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.whitedns.vpn"
+        applicationId = "com.enterprise.shield.vpn"
         minSdk = 26
         targetSdk = 35
         versionCode = 84
         versionName = "1.6.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        resourceConfigurations += listOf("en", "fa")
+        resourceConfigurations += listOf("en", "ru")
 
         buildConfigField("String", "MIHOMO_SUBSCRIPTION_URL", buildConfigStringLiteral(mihomoSubscriptionUrl))
         buildConfigField(
@@ -164,8 +163,6 @@ android {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
-    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
-    implementation("com.google.firebase:firebase-analytics")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("org.json:json:20240303")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")

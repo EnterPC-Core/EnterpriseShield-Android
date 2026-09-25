@@ -75,7 +75,7 @@ class SessionPlanTest {
                 explicitProfile = null,
                 selectedAutomaticTypes = emptySet(),
                 lanSharing = lanSharing,
-                routingMode = RoutingMode.IranBypass,
+                routingMode = RoutingMode.RussiaBypass,
                 dns = dns,
                 connectionMode = ConnectionMode.Proxy,
                 dpiBypassEnabled = true,
@@ -88,7 +88,7 @@ class SessionPlanTest {
         assertEquals(snapshot, plan.snapshot)
         assertEquals(splitTunnelPlan, plan.splitTunnelPlan)
         assertEquals(lanSharing, plan.lanSharing)
-        assertEquals(RoutingMode.IranBypass, plan.routingMode)
+        assertEquals(RoutingMode.RussiaBypass, plan.routingMode)
         assertEquals(dns, plan.dns)
         assertEquals(MihomoConnectionOptions(), plan.connectionOptions)
         assertEquals(EffectiveDeviceAccess.TunnelAccess, plan.effectiveDeviceAccess)
@@ -113,7 +113,7 @@ class SessionPlanTest {
         assertEquals(plan.runtimeYaml, runtimeDocument.rawYaml)
         assertEquals(splitTunnelPlan, runtimeDocument.splitTunnelPlan)
         assertEquals(lanSharing, runtimeDocument.lanSharing)
-        assertEquals(RoutingMode.IranBypass, runtimeDocument.routingMode)
+        assertEquals(RoutingMode.RussiaBypass, runtimeDocument.routingMode)
         assertEquals(dns, runtimeDocument.dns)
         assertEquals(plan.selectedMap, runtimeDocument.selectedMap)
     }

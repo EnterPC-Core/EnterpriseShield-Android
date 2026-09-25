@@ -6,10 +6,10 @@ import org.junit.Test
 
 class AppLanguageTest {
     @Test
-    fun storedLanguageTagsResolveAndDefaultToPersian() {
+    fun storedLanguageTagsResolveAndDefaultToRussian() {
         assertEquals(AppLanguage.English, AppLanguage.fromLanguageTag("en"))
-        assertEquals(AppLanguage.Persian, AppLanguage.fromLanguageTag("fa"))
-        assertEquals(AppLanguage.Persian, AppLanguage.fromLanguageTag(null))
+        assertEquals(AppLanguage.Russian, AppLanguage.fromLanguageTag("ru"))
+        assertEquals(AppLanguage.Russian, AppLanguage.fromLanguageTag(null))
     }
 
     @Test
