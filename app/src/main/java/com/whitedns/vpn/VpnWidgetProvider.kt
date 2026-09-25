@@ -112,7 +112,7 @@ class VpnWidgetProvider : AppWidgetProvider() {
             return RemoteViews(context.packageName, R.layout.vpn_widget).apply {
                 setInt(R.id.widget_root, "setBackgroundResource", if (dark) R.drawable.widget_background_dark else R.drawable.widget_background_light)
                 setInt(R.id.widget_root, "setLayoutDirection", localized.resources.configuration.layoutDirection)
-                setTextViewText(R.id.widget_name, localized.getString(R.string.app_name))
+                setTextViewText(R.id.widget_name, localized.getString(R.string.widget_shield_name))
                 setTextViewText(R.id.widget_status, if (proxy) "$mode · $status" else status)
                 setTextColor(R.id.widget_name, localized.getColor(R.color.whitedns_on_surface))
                 setTextColor(R.id.widget_status, localized.getColor(R.color.whitedns_on_surface_variant))

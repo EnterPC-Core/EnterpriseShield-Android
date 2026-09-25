@@ -6,7 +6,7 @@
     android:background="@drawable/widget_background"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="8dp">
+    android:padding="4dp">
 
     <LinearLayout
         android:id="@+id/widget_brand"

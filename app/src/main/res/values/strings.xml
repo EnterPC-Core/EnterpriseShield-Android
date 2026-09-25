@@ -442,4 +442,5 @@
 <string name="shares_meta_fmt">taken %1$d · health %2$d%% · by %3$s</string>
 <string name="shares_added">Share added to Servers</string>
 <string name="shares_add_failed">Could not add share</string>
+<string name="widget_shield_name">Shield</string>
 </resources>

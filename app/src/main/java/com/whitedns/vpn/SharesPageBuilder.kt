@@ -97,10 +97,13 @@ object SharesPageBuilder {
         val card = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(12), dp(14), dp(12))
-            background = android.graphics.drawable.GradientDrawable().apply {
-                setColor(SURFACE); cornerRadius = dp(14).toFloat()
-                setStroke(1, OUTLINE)
-            }
+            background = android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(0x307FD6C4),
+                android.graphics.drawable.GradientDrawable().apply {
+                    setColor(SURFACE); cornerRadius = dp(12).toFloat(); setStroke(1, OUTLINE)
+                },
+                android.graphics.drawable.GradientDrawable().apply { cornerRadius = dp(12).toFloat() },
+            )
         }
         card.addView(TextView(activity).apply {
             text = "$place · $title"
