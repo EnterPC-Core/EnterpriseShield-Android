@@ -5026,7 +5026,7 @@ class WhiteDnsVpnService : VpnService() {
         val coreLifecycle = MihomoCoreLifecycle()
         val coreCleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-        const val CHANNEL_ID = "white_dns_vpn"
+        const val CHANNEL_ID = "enterprise_shield"
         const val NOTIFICATION_ID = 1001
         const val CORE_SETUP_SLOW_WARNING_MS = 15_000L
         const val CORE_SETUP_HARD_TIMEOUT_MS = 60_000L

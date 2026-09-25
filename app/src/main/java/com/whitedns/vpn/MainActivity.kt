@@ -549,8 +549,13 @@ class MainActivity : Activity() {
     }
 
     private fun buildTopSharesScreen(): View {
-        val scroll = ScrollView(this)
-        val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16),dp(16),dp(16),dp(112)) }
+        val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false }
+        ViewCompat.setOnApplyWindowInsetsListener(scroll) { view, insets ->
+            val top = insets.getInsets(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout()).top
+            view.setPadding(view.paddingLeft, top, view.paddingRight, view.paddingBottom)
+            insets
+        }
+        val list = MaxWidthLinearLayout(this).apply { maxWidthPx = dp(520); orientation = LinearLayout.VERTICAL; setPadding(dp(24),dp(34),dp(24),dp(112)) }
         scroll.addView(list)
         fun load() {
             list.removeAllViews()
