@@ -74,17 +74,10 @@ class AppUpdateManager(context: Context) {
             coroutineContext.ensureActive()
             clearDownload(previous)
             val apk = release.apk!!
-            val request = DownloadManager.Request(Uri.parse(apk.url))
-                .setTitle(context.getString(R.string.app_name))
-                .setDescription(context.getString(R.string.update_downloading))
-                .setMimeType("application/vnd.android.package-archive")
-                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setVisibleInDownloadsUi(false)
-                .setDestinationInExternalFilesDir(context, "updates", "download.apk")
-                .setAllowedOverMetered(true)
-                .setAllowedOverRoaming(true)
-                .addRequestHeader("User-Agent", "EnterpriseShield/${BuildConfig.VERSION_NAME}")
-            val id = downloads.enqueue(request)
+            val target = java.io.File(context.getExternalFilesDir("updates"), "download.apk")
+            target.parentFile?.mkdirs()
+            InlineApkDownloader.start(context, apk.url, target)
+            val id = 0L
             try {
                 savePending(PendingDownload(id, release, digest))
             } catch (error: Exception) {
@@ -103,6 +96,14 @@ class AppUpdateManager(context: Context) {
                 return@withLock AppDownloadState.Ready(snapshot, pending.release)
             }
             try {
+                if (InlineApkDownloader.failed.get()) throw IOException("Update download failed")
+                if (InlineApkDownloader.active.get()) {
+                    return@withLock AppDownloadState.Downloading(
+                        InlineApkDownloader.bytes.get(),
+                        if (InlineApkDownloader.total.get() > 0) InlineApkDownloader.total.get() else 0L,
+                        false,
+                    )
+                }
                 if (snapshot.isFile) {
                     verifySnapshot(pending)
                     return@withLock AppDownloadState.Ready(snapshot, pending.release)
