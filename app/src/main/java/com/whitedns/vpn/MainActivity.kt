@@ -2013,24 +2013,13 @@ class MainActivity : Activity() {
 buildDeviceSectionContent(deviceSettings)
                 var connectionTestSettings = connectionTestSettingsPreferenceStore.read()
         testingSettings.addView(
-            advancedSectionLabel(getString(R.string.global_test_section)),
+            advancedSectionLabel(getString(R.string.diag_title)),
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(32) },
         )
-        val globalTestPanel = advancedSettingsPanel()
-        globalTestPanel.addView(
-            TextView(this).apply {
-                text = getString(R.string.global_test_detail)
-                textSize = 13f
-                setTextColor(TEXT_SECONDARY)
-            },
-            LinearLayout.LayoutParams(-1, -2).apply {
-                marginStart = dp(16)
-                marginEnd = dp(16)
-                topMargin = dp(14)
-            },
-        )
-        val globalTestButton = MaterialButton(this).apply {
-            text = getString(R.string.global_test_action)
+        val diagPanel = advancedSettingsPanel()
+        val diagContent = DiagnosticSectionBuilder.build(this, diagPanel) { v -> dp(v) }
+        val diagButton = MaterialButton(this).apply {
+            text = getString(R.string.diag_run)
             insetTop = 0
             insetBottom = 0
             cornerRadius = dp(8)
@@ -2041,10 +2030,10 @@ buildDeviceSectionContent(deviceSettings)
             setTextColor(TEAL)
             elevation = 0f
             stateListAnimator = null
-            setOnClickListener { showConnectionTestingPage() }
+            setOnClickListener { DiagnosticSectionBuilder.runDiagnostics(this@MainActivity) }
         }
-        globalTestPanel.addView(
-            globalTestButton,
+        diagPanel.addView(
+            diagButton,
             LinearLayout.LayoutParams(-1, dp(44)).apply {
                 marginStart = dp(16)
                 marginEnd = dp(16)
@@ -2053,7 +2042,7 @@ buildDeviceSectionContent(deviceSettings)
             },
         )
         testingSettings.addView(
-            globalTestPanel,
+            diagPanel,
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
         )
         connectionSettings.addView(

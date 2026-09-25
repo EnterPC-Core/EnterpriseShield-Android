@@ -39,7 +39,7 @@ fun httpsBuildUrl(environmentName: String, defaultValue: String): String {
 
 val mihomoSubscriptionUrl = httpsBuildUrl(
     "WHITEDNS_MIHOMO_SUBSCRIPTION_URL",
-    "https://api.enterprise-shield.ru/v1/public",
+    "https://raw.githubusercontent.com/iampedii/whitedns-sub/refs/heads/main/mihomo.yaml",
 )
 val privateMihomoSubscriptionUrl = (
     System.getenv("WHITEDNS_PRIVATE_MIHOMO_SUBSCRIPTION_URL")?.takeIf { it.isNotBlank() }
@@ -73,7 +73,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 84
-        versionName = "1.0.3"
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resourceConfigurations += listOf("en", "ru")

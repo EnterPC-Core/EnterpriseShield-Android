@@ -64,7 +64,7 @@
     <string name="subscription_clipboard_empty">В буфере обмена нет подписки или конфигурации.</string>
     <string name="subscription_builtin_detail">Встроенный · %1$s</string>
     <string name="subscription_private_name">Щит каналы</string>
-    <string name="subscription_public_name">Enterprise · Публичные (резерв)</string>
+    <string name="subscription_public_name">WhiteDNS · Публичные (резерв)</string>
     <string name="subscription_detail">%1$s · %2$s · %3$s</string>
     <string name="subscription_never_updated">Никогда</string>
     <string name="subscription_selected_badge">Выбрана</string>
@@ -415,4 +415,13 @@
     <string name="root_blocker_requested">Заявка отправлена. Ожидайте одобрения в боте.</string>
     <string name="root_blocker_denied">Разрешение не выдано.</string>
     <string name="exit_action">Выход</string>
+    <string name="diag_title">Диагностика сети</string>
+    <string name="diag_run">Запустить диагностику</string>
+    <string name="diag_wifi">Wi-Fi</string>
+    <string name="diag_router">Роутер</string>
+    <string name="diag_line">Линия</string>
+    <string name="diag_isp">Провайдер</string>
+    <string name="diag_step_waiting">Шаг %1 · ожидание</string>
+    <string name="diag_cellular">Мобильная сеть</string>
+    <string name="diag_no_network">Нет сети</string>
 </resources>

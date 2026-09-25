@@ -59,7 +59,7 @@
     <string name="subscription_clipboard_empty">The clipboard does not contain a subscription or configuration.</string>
     <string name="subscription_builtin_detail">Built-in · %1$s</string>
     <string name="subscription_private_name">Щит каналы</string>
-    <string name="subscription_public_name">Enterprise · Public (fallback)</string>
+    <string name="subscription_public_name">WhiteDNS · Public (fallback)</string>
     <string name="subscription_detail">%1$s · %2$s · %3$s</string>
     <string name="subscription_never_updated">Never</string>
     <string name="subscription_selected_badge">Selected</string>
@@ -419,4 +419,13 @@
 <string name="root_blocker_requested">Request sent. Wait for approval in the bot.</string>
 <string name="root_blocker_denied">Permission not granted.</string>
     <string name="exit_action">Exit</string>
+<string name="diag_title">Network diagnostics</string>
+<string name="diag_run">Run diagnostics</string>
+<string name="diag_wifi">Wi-Fi</string>
+<string name="diag_router">Router</string>
+<string name="diag_line">Line</string>
+<string name="diag_isp">Provider</string>
+<string name="diag_step_waiting">Step %1$d · waiting</string>
+<string name="diag_cellular">Cellular network</string>
+<string name="diag_no_network">No network</string>
 </resources>
