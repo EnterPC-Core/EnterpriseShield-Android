@@ -443,4 +443,5 @@
 <string name="shares_added">Share added to Servers</string>
 <string name="shares_add_failed">Could not add share</string>
 <string name="widget_shield_name">Shield</string>
+    <string name="shares_publish">Добавить раздачу</string>
 </resources>

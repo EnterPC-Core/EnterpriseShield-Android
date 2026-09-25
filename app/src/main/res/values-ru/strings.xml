@@ -439,4 +439,5 @@
 <string name="shares_added">Раздача добавлена в Серверы</string>
 <string name="shares_add_failed">Не удалось добавить раздачу</string>
 <string name="widget_shield_name">Щит</string>
+    <string name="shares_publish">Добавить раздачу</string>
 </resources>

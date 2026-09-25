@@ -557,8 +557,18 @@ class MainActivity : Activity() {
         }
         val list = MaxWidthLinearLayout(this).apply { maxWidthPx = dp(520); orientation = LinearLayout.VERTICAL; setPadding(dp(24),dp(34),dp(24),dp(112)) }
         scroll.addView(list)
+        val refresh = kotlinx.coroutines.flow.MutableStateFlow(0)
+        var doRefresh: () -> Unit = {}
+        fun addPublishButton() {
+            val publish = MaterialButton(this).apply {
+                text = getString(R.string.shares_publish)
+                setOnClickListener { SharePublishDialog.show(this@MainActivity) { doRefresh() } }
+            }
+            list.addView(publish, 0, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(12) })
+        }
         fun load() {
             list.removeAllViews()
+            addPublishButton()
             list.addView(TextView(this).apply { setText(R.string.shares_loading); setTextColor(TEXT_SECONDARY); textSize=14f })
             activityScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                 val shares = runCatching {
@@ -583,11 +593,7 @@ class MainActivity : Activity() {
                 }
             }
         }
-        val publish = MaterialButton(this).apply {
-            text = "Добавить раздачу"
-            setOnClickListener { SharePublishDialog.show(this@MainActivity) { load() } }
-        }
-        list.addView(publish, 0, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(12) })
+        doRefresh = { load() }
         load(); return scroll
     }
 
