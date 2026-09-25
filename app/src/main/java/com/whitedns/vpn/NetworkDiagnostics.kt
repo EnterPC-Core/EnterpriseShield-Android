@@ -1,132 +1,121 @@
 package com.whitedns.vpn
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import org.json.JSONObject
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.net.URL
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-/**
- * Сетевая диагностика: цепочка до интернета
- * Wi-Fi -> Роутер -> Линия -> Провайдер
- */
+data class DiagStep(
+    val index: Int,
+    var title: String = "",
+    var detail: String = "",
+    var ok: Boolean? = null,
+)
+
 object NetworkDiagnostics {
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
 
-    data class StepResult(
-        val labelRes: Int,
-        val detail: String,
-        val ok: Boolean,
-    )
-
-    fun interface Callback {
-        fun onDone(steps: List<StepResult>)
+    fun interface DiagCallback {
+        fun onStep(step: DiagStep)
     }
 
-    fun run(context: Context, callback: Callback) {
+    fun run(context: Context, cb: DiagCallback) {
         executor.execute {
-            val results = mutableListOf<StepResult>()
-            results.add(stepWifi(context))
-            callback.onDone(results.toList())
-            results.add(stepRouter())
-            callback.onDone(results.toList())
-            results.add(stepLine())
-            callback.onDone(results.toList())
-            results.add(stepIsp())
-            callback.onDone(results.toList())
-        }
-    }
-
-    private fun stepWifi(context: Context): StepResult {
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-        val net = cm?.activeNetwork
-        val caps = net?.let { cm.getNetworkCapabilities(it) }
-        return try {
-            when {
-                caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> {
-                    val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-                    val rssi = wm?.connectionInfo?.rssi ?: 0
-                    StepResult(
-                        R.string.diag_wifi,
-                        "Wi-Fi · " + rssi + " dBm",
-                        rssi > -90,
-                    )
+            // 1. Wi-Fi
+            val wifi = DiagStep(0)
+            wifi.title = context.getString(R.string.diag_wifi)
+            try {
+                val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+                val info = wm?.connectionInfo
+                if (info != null && info.bssid != null) {
+                    val freq = if (info.frequency >= 5000) "5 ГГц" else "2,4 ГГц"
+                    wifi.detail = "${info.rssi} dBm · $freq"
+                    wifi.ok = info.rssi > -85
+                } else {
+                    wifi.detail = context.getString(R.string.diag_cellular)
+                    wifi.ok = true
                 }
-                caps?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true ->
-                    StepResult(R.string.diag_wifi, context.getString(R.string.diag_cellular), true)
-                caps?.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == true ->
-                    StepResult(R.string.diag_wifi, "Ethernet", true)
-                else -> StepResult(R.string.diag_wifi, context.getString(R.string.diag_no_network), false)
+            } catch (e: Exception) {
+                wifi.detail = "—"; wifi.ok = null
             }
-        } catch (e: Exception) {
-            StepResult(R.string.diag_wifi, e.message ?: "?", false)
+            cb.onStep(wifi)
+
+            // 2. Router (gateway TCP:53 ping)
+            val router = DiagStep(1)
+            router.title = context.getString(R.string.diag_router)
+            try {
+                val gw = gateway(context)
+                if (gw == null) {
+                    router.detail = "—"; router.ok = false
+                } else {
+                    val t0 = System.currentTimeMillis()
+                    Socket().use { s ->
+                        s.tcpNoDelay = true
+                        s.connect(InetSocketAddress(gw, 53), 1200)
+                    }
+                    val ms = System.currentTimeMillis() - t0
+                    router.detail = "$gw · $ms ms"
+                    router.ok = ms < 800
+                }
+            } catch (e: Exception) {
+                router.detail = context.getString(R.string.diag_fail)
+                router.ok = false
+            }
+            cb.onStep(router)
+
+            // 3. Line (external IP via our API)
+            val line = DiagStep(2)
+            line.title = context.getString(R.string.diag_line)
+            try {
+                val t0 = System.currentTimeMillis()
+                val conn = URL("https://api.enterprise-shield.ru/v1/ip").openConnection() as HttpURLConnection
+                conn.connectTimeout = 4000; conn.readTimeout = 4000
+                val ip = JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).optString("ip")
+                val ms = System.currentTimeMillis() - t0
+                line.detail = "$ip · $ms ms"
+                line.ok = ip.isNotBlank()
+            } catch (e: Exception) {
+                line.detail = context.getString(R.string.diag_fail); line.ok = false
+            }
+            cb.onStep(line)
+
+            // 4. Provider (internet reachability)
+            val isp = DiagStep(3)
+            isp.title = context.getString(R.string.diag_isp)
+            try {
+                val t0 = System.currentTimeMillis()
+                val conn = URL("https://www.gstatic.com/generate_204").openConnection() as HttpURLConnection
+                conn.connectTimeout = 3500; conn.readTimeout = 3500
+                val code = conn.responseCode
+                val ms = System.currentTimeMillis() - t0
+                isp.detail = "$code · $ms ms"
+                isp.ok = code == 204 || code == 200
+            } catch (e: Exception) {
+                isp.detail = context.getString(R.string.diag_fail); isp.ok = false
+            }
+            cb.onStep(isp)
         }
     }
 
-    private fun gatewayIp(): String? = try {
-        BufferedReader(InputStreamReader(Runtime.getRuntime().exec("ip route").inputStream)).use { r ->
-            r.readLines().firstOrNull { it.startsWith("default") }
-                ?.split(" ")?.firstOrNull { it.contains('.') }
+    private fun gateway(context: Context): String? = try {
+        val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+        val d = wm?.dhcpInfo
+        if (d != null && d.gateway != 0) {
+            intToIp(d.gateway)
+        } else {
+            val route = java.io.File("/proc/net/route").readLines()
+            route.firstOrNull { it.split("\t").size > 2 && it.split("\t")[1] == "00000000" }
+                ?.let { l -> intToIp(java.lang.Long.parseLong(l.split("\t")[2], 16).toInt()) }
         }
-    } catch (e: Exception) {
-        null
-    }
+    } catch (e: Exception) { null }
 
-    private fun stepRouter(): StepResult {
-        val gw = gatewayIp() ?: return StepResult(R.string.diag_router, "—", false)
-        return try {
-            val t0 = System.currentTimeMillis()
-            val reachable = InetAddress.getByName(gw).isReachable(2000)
-            val ms = System.currentTimeMillis() - t0
-            StepResult(R.string.diag_router, gw + " · " + ms + " ms", reachable)
-        } catch (e: Exception) {
-            StepResult(R.string.diag_router, gw, false)
-        }
-    }
-
-    private fun httpGet(url: String, timeout: Int): Pair<String, Long> {
-        val t0 = System.currentTimeMillis()
-        val c = URL(url).openConnection() as HttpURLConnection
-        c.connectTimeout = timeout
-        c.readTimeout = timeout
-        try {
-            val body = c.inputStream.bufferedReader().use { it.readText() }
-            return body to (System.currentTimeMillis() - t0)
-        } finally {
-            c.disconnect()
-        }
-    }
-
-    private fun stepLine(): StepResult {
-        return try {
-            val (body, ms) = httpGet("https://api.enterprise-shield.ru/v1/ip", 6000)
-            val ip = org.json.JSONObject(body).optString("ip", "?")
-            StepResult(R.string.diag_line, ip + " · " + ms + " ms", ip != "?")
-        } catch (e: Exception) {
-            StepResult(R.string.diag_line, e.message ?: "—", false)
-        }
-    }
-
-    private fun stepIsp(): StepResult {
-        return try {
-            val t0 = System.currentTimeMillis()
-            val ok = InetAddress.getByName("8.8.8.8").isReachable(3000)
-            val ms = System.currentTimeMillis() - t0
-            StepResult(
-                R.string.diag_isp,
-                contextlessInternetLabel(ok) + " · " + ms + " ms",
-                ok,
-            )
-        } catch (e: Exception) {
-            StepResult(R.string.diag_isp, e.message ?: "—", false)
-        }
-    }
-
-    private fun contextlessInternetLabel(ok: Boolean): String = if (ok) "OK" else "FAIL"
+    private fun intToIp(v: Int): String =
+        String.format("%d.%d.%d.%d", v and 0xFF, v shr 8 and 0xFF, v shr 16 and 0xFF, v shr 24 and 0xFF)
 }

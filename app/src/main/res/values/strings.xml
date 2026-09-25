@@ -428,4 +428,16 @@
 <string name="diag_step_waiting">Step %1$d · waiting</string>
 <string name="diag_cellular">Cellular network</string>
 <string name="diag_no_network">No network</string>
+<string name="diag_waiting">waiting…</string>
+<string name="diag_verdict_ok">Internet chain is healthy</string>
+<string name="diag_verdict_bad">Problem at stage: %s</string>
+<string name="diag_fail">no response</string>
+<string name="tab_shares">Top</string>
+<string name="shares_title">Top shares</string>
+<string name="shares_loading">Loading…</string>
+<string name="shares_error">Could not load shares. Check the connection.</string>
+<string name="shares_empty">No shares yet.</string>
+<string name="shares_take">Take</string>
+<string name="shares_copied">Link copied. Add it in Servers +</string>
+<string name="shares_meta_fmt">taken %1$d · health %2$d%% · by %3$s</string>
 </resources>

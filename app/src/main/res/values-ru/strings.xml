@@ -424,4 +424,16 @@
     <string name="diag_step_waiting">Шаг %1$d · ожидание</string>
     <string name="diag_cellular">Мобильная сеть</string>
     <string name="diag_no_network">Нет сети</string>
+<string name="diag_waiting">ожидание…</string>
+<string name="diag_verdict_ok">Цепочка до интернета в порядке</string>
+<string name="diag_verdict_bad">Проблема на участке: %s</string>
+<string name="diag_fail">нет ответа</string>
+<string name="tab_shares">Топ</string>
+<string name="shares_title">Топ раздач</string>
+<string name="shares_loading">Загрузка…</string>
+<string name="shares_error">Не удалось загрузить раздачи. Проверьте соединение.</string>
+<string name="shares_empty">Пока нет раздач.</string>
+<string name="shares_take">Взять</string>
+<string name="shares_copied">Ссылка скопирована. Добавьте её в Серверы → +</string>
+<string name="shares_meta_fmt">взяли %1$d · здоровье %2$d%% · %3$s</string>
 </resources>

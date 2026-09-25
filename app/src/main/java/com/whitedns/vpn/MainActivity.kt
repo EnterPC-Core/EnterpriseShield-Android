@@ -37,6 +37,7 @@ import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.MotionEvent
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.PathInterpolator
@@ -120,7 +121,7 @@ class MainActivity : Activity() {
                     if (available) ", ${getString(R.string.update_available_title)}" else ""
             }
             if (::appTabs.isInitialized) {
-                appTabs.getTabAt(2)?.let { tab ->
+                appTabs.getTabAt(3)?.let { tab ->
                     tab.contentDescription = getString(R.string.tab_settings)
                     if (available) {
                         tab.orCreateBadge.apply {
@@ -157,6 +158,7 @@ class MainActivity : Activity() {
     private lateinit var appTabs: TabLayout
     private lateinit var connectionTestingPageHost: ConnectionTestingPage
     private var deviceStatusTextView: TextView? = null
+    private lateinit var sharesTabContent: View
     private var connectionTestingPageVisible: Boolean = false
     private var activeChainPickerSlot: ConnectionChainSlot? = null
     private var activeChainPickerSubscriptionId: String? = null
@@ -339,7 +341,7 @@ class MainActivity : Activity() {
             )
             if (chainSlot != ConnectionChainSlot.Before) {
                 if (chainSlot != null) {
-                    appTabs.getTabAt(2)?.select()
+                    appTabs.getTabAt(3)?.select()
                     openConnectionChainSettingsPage?.invoke()
                 }
                 mainHandler.post {
@@ -375,10 +377,12 @@ class MainActivity : Activity() {
         appShellView = shell
         vpnTabContent = buildDashboard()
         subscriptionsTabContent = buildSubscriptionsScreen().apply { visibility = View.GONE }
+        sharesTabContent = SharesPageBuilder.build(this) { v -> dp(v) }.apply { visibility = View.GONE }
         advancedTabContent = buildAdvancedScreen().apply { visibility = View.GONE }
         val content = FrameLayout(this).apply {
             addView(vpnTabContent, FrameLayout.LayoutParams(-1, -1))
             addView(subscriptionsTabContent, FrameLayout.LayoutParams(-1, -1))
+            addView(sharesTabContent, FrameLayout.LayoutParams(-1, -1))
             addView(advancedTabContent, FrameLayout.LayoutParams(-1, -1))
         }
         shell.addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -408,6 +412,7 @@ class MainActivity : Activity() {
             // Enterprise Shield: Servers, Shield (center/active), Settings (right)
             addTab(newTab().setText(R.string.tab_subscriptions).setIcon(R.drawable.ic_subscriptions_tab))
             addTab(newTab().setText(R.string.tab_vpn).setIcon(R.drawable.ic_vpn_tab), true)
+            addTab(newTab().setText(R.string.tab_shares).setIcon(R.drawable.ic_trophy_tab))
             addTab(newTab().setText(R.string.tab_settings).setIcon(R.drawable.ic_advanced_tab))
             post {
                 val tabStrip = getChildAt(0) as? ViewGroup ?: return@post
@@ -422,6 +427,7 @@ class MainActivity : Activity() {
             }
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
+                    appTabs.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                     // Enterprise Shield order: 0=Servers, 1=Shield, 2=Settings
                     showAppTab(tab.position)
                 }
@@ -532,13 +538,14 @@ class MainActivity : Activity() {
     }
 
     private fun showAppTab(position: Int) {
-        if (position != 2) advancedSettingsBackAction?.invoke()
+        if (position != 3) advancedSettingsBackAction?.invoke()
         vpnTabContent.visibility = if (position == 1) View.VISIBLE else View.GONE
         subscriptionsTabContent.visibility = if (position == 0) View.VISIBLE else View.GONE
-        advancedTabContent.visibility = if (position == 2) View.VISIBLE else View.GONE
+        sharesTabContent.visibility = if (position == 2) View.VISIBLE else View.GONE
+        advancedTabContent.visibility = if (position == 3) View.VISIBLE else View.GONE
         if (position == 0) renderSubscriptions()
         if (position == 1) renderConnectionSelection()
-        if (position == 2) renderAdvancedControls()
+        if (position == 3) renderAdvancedControls()
     }
 
     private fun buildSubscriptionsScreen(): View {
@@ -1558,7 +1565,7 @@ class MainActivity : Activity() {
         connectionOrb = ConnectionOrbView(this).apply {
             isClickable = true
             isFocusable = true
-            setOnClickListener { handleButtonClick() }
+            setOnClickListener { performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY); handleButtonClick() }
             setOnLongClickListener {
                 copyDiagnosticsToClipboard()
                 true
@@ -2017,31 +2024,24 @@ buildDeviceSectionContent(deviceSettings)
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(32) },
         )
         val diagPanel = advancedSettingsPanel()
-        val diagContent = DiagnosticSectionBuilder.build(this, diagPanel) { v -> dp(v) }
-        val diagButton = MaterialButton(this).apply {
-            text = getString(R.string.diag_run)
-            insetTop = 0
-            insetBottom = 0
-            cornerRadius = dp(8)
-            backgroundTintList = ColorStateList.valueOf(SURFACE)
-            strokeWidth = dp(1)
-            strokeColor = ColorStateList.valueOf(OUTLINE)
-            rippleColor = ColorStateList.valueOf(withAlpha(TEAL, 28))
-            setTextColor(TEAL)
-            elevation = 0f
-            stateListAnimator = null
-            setOnClickListener { DiagnosticSectionBuilder.runDiagnostics(this@MainActivity) }
-        }
-        diagPanel.addView(
-            diagButton,
-            LinearLayout.LayoutParams(-1, dp(44)).apply {
-                marginStart = dp(16)
-                marginEnd = dp(16)
-                topMargin = dp(12)
-                bottomMargin = dp(14)
-            },
+        DiagnosticSectionBuilder.build(
+            this, diagPanel, { v -> dp(v) },
+            DiagnosticSectionBuilder.DiagStrings(
+                wifi = getString(R.string.diag_wifi),
+                router = getString(R.string.diag_router),
+                line = getString(R.string.diag_line),
+                isp = getString(R.string.diag_isp),
+                waiting = getString(R.string.diag_waiting),
+                run = getString(R.string.diag_run),
+                verdictOk = getString(R.string.diag_verdict_ok),
+                verdictBadFmt = getString(R.string.diag_verdict_bad),
+            ),
         )
         testingSettings.addView(
+            advancedSectionLabel(getString(R.string.diag_title)),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(24) },
+        )
+testingSettings.addView(
             diagPanel,
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
         )
@@ -3612,7 +3612,7 @@ buildDeviceSectionContent(deviceSettings)
     }
 
     private fun openConnectionChainSettingsFromHome() {
-        appTabs.getTabAt(2)?.select()
+        appTabs.getTabAt(3)?.select()
         openConnectionChainSettingsPage?.invoke()
     }
 
