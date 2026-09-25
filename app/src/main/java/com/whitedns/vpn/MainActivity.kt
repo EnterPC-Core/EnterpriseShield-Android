@@ -583,6 +583,11 @@ class MainActivity : Activity() {
                 }
             }
         }
+        val publish = MaterialButton(this).apply {
+            text = "Добавить раздачу"
+            setOnClickListener { SharePublishDialog.show(this@MainActivity) { load() } }
+        }
+        list.addView(publish, 0, LinearLayout.LayoutParams(-1, dp(48)).apply { bottomMargin = dp(12) })
         load(); return scroll
     }
 
