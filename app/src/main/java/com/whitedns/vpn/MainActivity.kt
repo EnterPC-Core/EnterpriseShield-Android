@@ -156,6 +156,7 @@ class MainActivity : Activity() {
     private lateinit var appShellView: View
     private lateinit var appTabs: TabLayout
     private lateinit var connectionTestingPageHost: ConnectionTestingPage
+    private var deviceStatusTextView: TextView? = null
     private var connectionTestingPageVisible: Boolean = false
     private var activeChainPickerSlot: ConnectionChainSlot? = null
     private var activeChainPickerSubscriptionId: String? = null
@@ -1284,6 +1285,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        RootGate.enforce(this)
         appUpdateUi.onResume()
     }
 
@@ -1959,6 +1961,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_LOCALE
         }
+        val deviceSettings = settingsContent()
         val appPreferencesSettings = settingsContent()
         val testingSettings = settingsContent()
         val connectionSettings = settingsContent()
@@ -2007,129 +2010,50 @@ class MainActivity : Activity() {
             appPreferencesPanel,
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(24) },
         )
-        var connectionTestSettings = connectionTestSettingsPreferenceStore.read()
+buildDeviceSectionContent(deviceSettings)
+                var connectionTestSettings = connectionTestSettingsPreferenceStore.read()
         testingSettings.addView(
-            advancedSectionLabel(getString(R.string.config_test_section)),
+            advancedSectionLabel(getString(R.string.global_test_section)),
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(32) },
         )
-        val connectionTestPanel = advancedSettingsPanel()
-        fun testIntegerInput(
-            title: String,
-            detail: String,
-            initialValue: Int,
-            range: IntRange,
-            imeAction: Int,
-            onValueChanged: (Int) -> Unit,
-        ): TextInputLayout {
-            var savedValue = initialValue
-            val input = TextInputEditText(this).apply {
-                setSingleLine(true)
-                layoutDirection = View.LAYOUT_DIRECTION_LTR
-                textDirection = View.TEXT_DIRECTION_LTR
-                gravity = Gravity.CENTER
-                background = null
-                textSize = 16f
-                typeface = WhiteDnsDataTypeface
-                inputType = InputType.TYPE_CLASS_NUMBER
-                imeOptions = imeAction
-                filters = arrayOf(InputFilter.LengthFilter(3))
-                setText(initialValue.toString())
-                setSelectAllOnFocus(true)
-                setTextColor(TEXT_PRIMARY)
-            }
-            fun commit() {
-                val value = (input.text?.toString()?.toIntOrNull() ?: savedValue)
-                    .coerceIn(range.first, range.last)
-                if (input.text?.toString() != value.toString()) {
-                    input.setText(value.toString())
-                    input.setSelection(input.text?.length ?: 0)
-                }
-                if (value != savedValue) {
-                    savedValue = value
-                    onValueChanged(value)
-                }
-            }
-            input.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                if (!hasFocus) commit()
-            }
-            input.setOnEditorActionListener { _, actionId, _ ->
-                if (actionId != EditorInfo.IME_ACTION_NEXT && actionId != EditorInfo.IME_ACTION_DONE) {
-                    false
-                } else {
-                    commit()
-                    input.clearFocus()
-                    true
-                }
-            }
-            return TextInputLayout(this).apply {
-                hint = title
-                helperText = getString(R.string.config_test_integer_range, range.first, range.last, detail)
-                boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
-                boxBackgroundColor = withAlpha(SURFACE, if (palette.isDark) 232 else 246)
-                boxStrokeColor = TEAL
-                boxStrokeWidth = dp(1)
-                boxStrokeWidthFocused = dp(1)
-                defaultHintTextColor = ColorStateList.valueOf(TEXT_SECONDARY)
-                setHelperTextColor(ColorStateList.valueOf(TEXT_SECONDARY))
-                setBoxCornerRadii(dp(8).toFloat(), dp(8).toFloat(), dp(8).toFloat(), dp(8).toFloat())
-                addView(input)
-            }
+        val globalTestPanel = advancedSettingsPanel()
+        globalTestPanel.addView(
+            TextView(this).apply {
+                text = getString(R.string.global_test_detail)
+                textSize = 13f
+                setTextColor(TEXT_SECONDARY)
+            },
+            LinearLayout.LayoutParams(-1, -2).apply {
+                marginStart = dp(16)
+                marginEnd = dp(16)
+                topMargin = dp(14)
+            },
+        )
+        val globalTestButton = MaterialButton(this).apply {
+            text = getString(R.string.global_test_action)
+            insetTop = 0
+            insetBottom = 0
+            cornerRadius = dp(8)
+            backgroundTintList = ColorStateList.valueOf(SURFACE)
+            strokeWidth = dp(1)
+            strokeColor = ColorStateList.valueOf(OUTLINE)
+            rippleColor = ColorStateList.valueOf(withAlpha(TEAL, 28))
+            setTextColor(TEAL)
+            elevation = 0f
+            stateListAnimator = null
+            setOnClickListener { showConnectionTestingPage() }
         }
-        connectionTestPanel.addView(
-            testIntegerInput(
-                title = getString(R.string.config_test_timeout_title),
-                detail = getString(R.string.config_test_timeout_detail),
-                initialValue = connectionTestSettings.timeoutSeconds,
-                range = ConnectionTestSettings.MIN_TIMEOUT_SECONDS..ConnectionTestSettings.MAX_TIMEOUT_SECONDS,
-                imeAction = EditorInfo.IME_ACTION_NEXT,
-            ) { value ->
-                connectionTestSettings = connectionTestSettings.copy(timeoutSeconds = value)
-                connectionTestSettingsPreferenceStore.save(connectionTestSettings)
-            },
-            LinearLayout.LayoutParams(-1, -2).apply {
-                marginStart = dp(12)
-                marginEnd = dp(12)
+        globalTestPanel.addView(
+            globalTestButton,
+            LinearLayout.LayoutParams(-1, dp(44)).apply {
+                marginStart = dp(16)
+                marginEnd = dp(16)
                 topMargin = dp(12)
-            },
-        )
-        connectionTestPanel.addView(
-            testIntegerInput(
-                title = getString(R.string.config_test_concurrency_title),
-                detail = getString(R.string.config_test_concurrency_detail),
-                initialValue = connectionTestSettings.concurrency,
-                range = ConnectionTestSettings.MIN_CONCURRENCY..ConnectionTestSettings.MAX_CONCURRENCY,
-                imeAction = EditorInfo.IME_ACTION_NEXT,
-            ) { value ->
-                connectionTestSettings = connectionTestSettings.copy(concurrency = value)
-                connectionTestSettingsPreferenceStore.save(connectionTestSettings)
-            },
-            LinearLayout.LayoutParams(-1, -2).apply {
-                marginStart = dp(12)
-                marginEnd = dp(12)
-                topMargin = dp(12)
-            },
-        )
-        connectionTestPanel.addView(
-            testIntegerInput(
-                title = getString(R.string.config_test_speed_size_title),
-                detail = getString(R.string.config_test_speed_size_detail),
-                initialValue = connectionTestSettings.speedTestMegabytes,
-                range = ConnectionTestSettings.MIN_SPEED_TEST_MEGABYTES..
-                    ConnectionTestSettings.MAX_SPEED_TEST_MEGABYTES,
-                imeAction = EditorInfo.IME_ACTION_DONE,
-            ) { value ->
-                connectionTestSettings = connectionTestSettings.copy(speedTestMegabytes = value)
-                connectionTestSettingsPreferenceStore.save(connectionTestSettings)
-            },
-            LinearLayout.LayoutParams(-1, -2).apply {
-                marginStart = dp(12)
-                marginEnd = dp(12)
-                topMargin = dp(12)
-                bottomMargin = dp(12)
+                bottomMargin = dp(14)
             },
         )
         testingSettings.addView(
-            connectionTestPanel,
+            globalTestPanel,
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
         )
         connectionSettings.addView(
@@ -3115,6 +3039,12 @@ class MainActivity : Activity() {
             appPreferencesSettings,
         )
         addCategory(
+            R.string.device_section,
+            R.string.device_section_detail,
+            deviceSettings,
+            addDivider = true,
+        )
+        addCategory(
             R.string.settings_category_testing,
             R.string.settings_category_testing_detail,
             testingSettings,
@@ -4053,6 +3983,39 @@ class MainActivity : Activity() {
     }
 
     private fun handleButtonClick() {
+        // Рут-защита: без разрешения root-устройства не подключаются.
+        ShieldRootPolicy.checkAccess(this) { allowed ->
+            if (allowed) {
+                proceedWithButtonClick()
+            } else {
+                runOnUiThread { showRootBlockedDialog() }
+            }
+        }
+    }
+
+    private fun showRootBlockedDialog() {
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.root_blocked_title))
+            .setMessage(getString(R.string.root_blocked_message))
+            .setPositiveButton(getString(R.string.root_blocked_request)) { d, _ ->
+                d.dismiss()
+                ShieldRootPolicy.requestPermission(this) { ok ->
+                    runOnUiThread {
+                        android.widget.Toast.makeText(
+                            this,
+                            if (ok) getString(R.string.root_request_sent)
+                            else getString(R.string.root_request_failed),
+                            android.widget.Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                }
+            }
+            .setNegativeButton(getString(R.string.root_blocked_cancel), null)
+            .create()
+        dialog.show()
+    }
+
+    private fun proceedWithButtonClick() {
         DiagnosticLogger.beginCapture(this)
         val nextAction = buttonModel.nextAction()
         if (nextAction == null) {
@@ -6595,7 +6558,28 @@ class MainActivity : Activity() {
         if (previous.amneziaNoiseEnabled != enabled) reconnectForConnectionOptionChange()
     }
 
-    private fun applyAmneziaNoiseSettings() {
+private fun buildDeviceSectionContent(container: LinearLayout) {
+        container.addView(
+            advancedSectionLabel(getString(R.string.device_section)),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(32) },
+        )
+        val devicePanel = advancedSettingsPanel()
+        DeviceSectionBuilder.build(this, null, devicePanel, { v -> dp(v) }) {
+            ShieldDevice.queryStatus(this) { st ->
+                runOnUiThread { DeviceSectionBuilder.applyStatus(this, st, deviceStatusTextView) }
+            }
+        }
+        (devicePanel.getChildAt(0) as? TextView)?.let { deviceStatusTextView = it }
+        container.addView(
+            devicePanel,
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
+        )
+        ShieldDevice.queryStatus(this) { st ->
+            runOnUiThread { DeviceSectionBuilder.applyStatus(this, st, deviceStatusTextView) }
+        }
+    }
+
+        private fun applyAmneziaNoiseSettings() {
         val previous = connectionOptionsPreferenceStore.read()
         val settings = runCatching(::readAmneziaNoiseInputs).getOrElse { error ->
             showAmneziaNoiseError(localizedError(error, R.string.amnezia_noise_invalid))

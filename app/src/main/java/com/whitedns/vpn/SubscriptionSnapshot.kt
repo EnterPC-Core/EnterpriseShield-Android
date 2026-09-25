@@ -212,7 +212,8 @@ internal class AndroidSubscriptionSnapshotAdapter(
 
     private fun managedSource(id: String): SubscriptionSource.RemoteHttps {
         val url = if (id == SubscriptionStore.PRIVATE_SUBSCRIPTION_ID) {
-            WhiteDnsConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL
+            // Приватная подписка выдаётся только привязанным устройствам (?code).
+            WhiteDnsConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL + "?code=" + ShieldDevice.code(context)
         } else {
             WhiteDnsConfig.MIHOMO_SUBSCRIPTION_URL
         }
