@@ -421,7 +421,7 @@
     <string name="diag_router">Роутер</string>
     <string name="diag_line">Линия</string>
     <string name="diag_isp">Провайдер</string>
-    <string name="diag_step_waiting">Шаг %1 · ожидание</string>
+    <string name="diag_step_waiting">Шаг %1$d · ожидание</string>
     <string name="diag_cellular">Мобильная сеть</string>
     <string name="diag_no_network">Нет сети</string>
 </resources>
