@@ -90,7 +90,7 @@
     <string name="subscription_selected_reconnect">Подписка выбрана. Переподключитесь, чтобы применить её.</string>
     <string name="version_label">Версия %1$s</string>
     <string name="update_available_title">Обновление доступно</string>
-    <string name="update_available_message">Enterprise Shield %1$s доступен на GitHub.</string>
+    <string name="update_available_message">Enterprise Shield %1$s доступен.</string>
     <string name="update_view_release">Открыть релиз</string>
     <string name="update_settings_title">Обновления приложения</string>
     <string name="update_badge">Новый</string>
@@ -101,7 +101,7 @@
     <string name="update_latest_version">Последняя: %1$s</string>
     <string name="update_checking">Проверка обновлений…</string>
     <string name="update_up_to_date">У вас последняя версия.</string>
-    <string name="update_not_ready">Соответствующее обновление еще не готово. Попробуйте позже или просмотрите релиз на GitHub.</string>
+    <string name="update_not_ready">Соответствующее обновление еще не готово. Попробуйте позже или попробуйте позже.</string>
     <string name="update_check_failed">Не удалось проверить обновления. Проверьте подключение и попробуйте ещё раз.</string>
     <string name="update_preparing">Подготовка к загрузке…</string>
     <string name="update_downloading">Загрузка обновления…</string>

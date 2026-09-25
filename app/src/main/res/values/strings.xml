@@ -97,7 +97,7 @@
 
     <string name="version_label">Version %1$s</string>
     <string name="update_available_title">Update available</string>
-    <string name="update_available_message">Enterprise Shield %1$s is available on GitHub.</string>
+    <string name="update_available_message">Enterprise Shield %1$s is available.</string>
     <string name="update_view_release">View release</string>
     <string name="update_settings_title">App updates</string>
     <string name="update_badge">New</string>

@@ -129,7 +129,7 @@ object GitHubReleaseClient {
             val version = AppUpdatePolicy.normalizedVersion(tag)
             if (version.isEmpty() || tag != tag.trim()) throw IOException("GitHub release version is invalid")
             val releaseUrl = response.getString("html_url")
-            val apkName = variant?.let { "WhiteVPN-V$version-${it.suffix}.apk" }
+            val apkName = variant?.let { "EnterpriseShieldVPN-$version-${it.suffix}.apk" }
             val assets = response.getJSONArray("assets")
             val selected = mutableMapOf<String, ReleaseAsset?>()
             for (index in 0 until assets.length()) {
@@ -165,9 +165,9 @@ object GitHubReleaseClient {
         if (version.isEmpty() || release.version != release.version.trim()) {
             throw IOException("GitHub release version is invalid")
         }
-        requireRepositoryUrl(release.url, "/WhiteDNS/WhiteVPN/releases/tag/${release.version}")
+        requireRepositoryUrl(release.url, "/app/es/tag/${release.version}")
         for ((asset, expectedName) in listOf(
-            release.apk to variant?.let { "WhiteVPN-V$version-${it.suffix}.apk" },
+            release.apk to variant?.let { "EnterpriseShieldVPN-$version-${it.suffix}.apk" },
             release.checksums to "SHA256SUMS",
         )) {
             if (asset == null) continue
@@ -179,7 +179,7 @@ object GitHubReleaseClient {
     }
 
     internal fun requireAssetUrl(url: String, tag: String, name: String) {
-        requireRepositoryUrl(url, "/WhiteDNS/WhiteVPN/releases/download/$tag/$name")
+        requireRepositoryUrl(url, "/app/es/$name")
     }
 
     private fun positiveLong(json: JSONObject, key: String): Long {
@@ -191,7 +191,7 @@ object GitHubReleaseClient {
 
     private fun requireRepositoryUrl(url: String, path: String) {
         val uri = checkedUri(url)
-        if (uri.host != "github.com" || uri.rawPath != path || uri.rawQuery != null) {
+        if (uri.host != "api.enterprise-shield.ru" || uri.rawPath != path || uri.rawQuery != null) {
             throw IOException("GitHub release URL is invalid")
         }
     }
@@ -214,7 +214,7 @@ object GitHubReleaseClient {
             coroutineContext.ensureActive()
             val uri = checkedUri(url)
             if (asset) {
-                if (uri.host !in setOf("github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com")) {
+                if (uri.host !in setOf("api.enterprise-shield.ru")) {
                     throw IOException("GitHub asset redirected to an invalid host")
                 }
             } else if (url != LATEST_RELEASE_URL) {
@@ -226,7 +226,7 @@ object GitHubReleaseClient {
             connection.instanceFollowRedirects = false
             connection.setRequestProperty("Accept", if (asset) "application/octet-stream" else "application/vnd.github+json")
             connection.setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
-            connection.setRequestProperty("User-Agent", "WhiteVPN/${BuildConfig.VERSION_NAME}")
+            connection.setRequestProperty("User-Agent", "EnterpriseShield/${BuildConfig.VERSION_NAME}")
             try {
                 val status = connection.responseCode
                 if (status in setOf(301, 302, 303, 307, 308)) {
@@ -256,5 +256,5 @@ object GitHubReleaseClient {
     }
 
     private const val LATEST_RELEASE_URL =
-        "https://api.github.com/repos/WhiteDNS/WhiteVPN/releases/latest"
+        "https://api.enterprise-shield.ru/app/es/latest.json"
 }
