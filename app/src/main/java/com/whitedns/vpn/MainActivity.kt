@@ -377,28 +377,7 @@ class MainActivity : Activity() {
         appShellView = shell
         vpnTabContent = buildDashboard()
         subscriptionsTabContent = buildSubscriptionsScreen().apply { visibility = View.GONE }
-        sharesTabContent = SharesPageBuilder.build(this, { v -> dp(v) }) { shareId, title, url ->
-            activityScope.launch {
-                runCatching { userSubscriptionManager.add(title, url) }
-                    .onSuccess { item ->
-                        SubscriptionStore(this@MainActivity).saveSelectedSubscriptionId(item.id)
-                        activityScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                            runCatching {
-                                val c = java.net.URL("https://api.enterprise-shield.ru/v1/shares/taken").openConnection() as java.net.HttpURLConnection
-                                c.requestMethod = "POST"; c.doOutput = true
-                                c.setRequestProperty("Content-Type", "application/json")
-                                c.outputStream.use { it.write("{\"id\":$shareId}".toByteArray()) }
-                                c.responseCode
-                            }
-                        }
-                        Toast.makeText(this@MainActivity, getString(R.string.shares_added), Toast.LENGTH_SHORT).show()
-                        renderSubscriptions()
-                    }
-                    .onFailure {
-                        Toast.makeText(this@MainActivity, getString(R.string.shares_add_failed), Toast.LENGTH_SHORT).show()
-                    }
-            }
-        }.apply { visibility = View.GONE }
+        sharesTabContent = buildTopSharesScreen().apply { visibility = View.GONE }
         advancedTabContent = buildAdvancedScreen().apply { visibility = View.GONE }
         val content = FrameLayout(this).apply {
             addView(vpnTabContent, FrameLayout.LayoutParams(-1, -1))
@@ -567,6 +546,39 @@ class MainActivity : Activity() {
         if (position == 0) renderSubscriptions()
         if (position == 1) renderConnectionSelection()
         if (position == 3) renderAdvancedControls()
+    }
+
+    private fun buildTopSharesScreen(): View {
+        val scroll = ScrollView(this)
+        val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16),dp(16),dp(16),dp(112)) }
+        scroll.addView(list)
+        fun load() {
+            list.removeAllViews()
+            list.addView(TextView(this).apply { setText(R.string.shares_loading); setTextColor(TEXT_SECONDARY); textSize=14f })
+            activityScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                val shares = runCatching {
+                    val c=java.net.URL("https://api.enterprise-shield.ru/v1/shares").openConnection() as java.net.HttpURLConnection
+                    val a=org.json.JSONObject(c.inputStream.bufferedReader().use{it.readText()}).optJSONArray("shares")
+                    (0 until (a?.length()?:0)).map { a!!.getJSONObject(it) }
+                }.getOrElse { emptyList() }
+                runOnUiThread {
+                    list.removeAllViews()
+                    if(shares.isEmpty()) list.addView(TextView(this@MainActivity).apply{setText(R.string.shares_empty);setTextColor(TEXT_SECONDARY)})
+                    shares.forEachIndexed { n,x ->
+                        val id=x.optInt("id"); val title=x.optString("title"); val url=x.optString("url")
+                        val detail="#${n+1} · ${x.optString("proto")} · ${x.optString("host")}\n${x.optString("owner_username").ifBlank{x.optString("owner")}} · ${getString(R.string.shares_meta_fmt,x.optInt("taken"),x.optInt("health_score"),"")}" 
+                        list.addView(subscriptionCard(title,detail,false,"",{},listOf(R.string.shares_take to {
+                            activityScope.launch { runCatching { userSubscriptionManager.add(title,url) }.onSuccess { item ->
+                                SubscriptionStore(this@MainActivity).saveSelectedSubscriptionId(item.id); renderSubscriptions()
+                                activityScope.launch(kotlinx.coroutines.Dispatchers.IO){runCatching { val c=java.net.URL("https://api.enterprise-shield.ru/v1/shares/taken").openConnection() as java.net.HttpURLConnection;c.requestMethod="POST";c.doOutput=true;c.outputStream.use{it.write("{\"id\":$id}".toByteArray())};c.responseCode }}
+                                Toast.makeText(this@MainActivity,getString(R.string.shares_added),Toast.LENGTH_SHORT).show()
+                            }.onFailure { Toast.makeText(this@MainActivity,getString(R.string.shares_add_failed),Toast.LENGTH_SHORT).show() } }
+                        })),LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=dp(10)})
+                    }
+                }
+            }
+        }
+        load(); return scroll
     }
 
     private fun buildSubscriptionsScreen(): View {

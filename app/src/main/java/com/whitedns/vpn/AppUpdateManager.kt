@@ -74,7 +74,7 @@ class AppUpdateManager(context: Context) {
             coroutineContext.ensureActive()
             clearDownload(previous)
             val apk = release.apk!!
-            val target = java.io.File(context.getExternalFilesDir("updates"), "download.apk")
+            val target = File(context.filesDir, "updates/update.apk")
             target.parentFile?.mkdirs()
             InlineApkDownloader.start(context, apk.url, target)
             val id = 0L

@@ -115,7 +115,7 @@ class WhiteDnsTileService : TileService() {
     private fun updateTile(state: VpnState) {
         val tile = qsTile ?: return
         val presentation = QuickSettingsTileStateMapper.presentationFor(state)
-        tile.label = getString(presentation.labelRes)
+        tile.label = getString(R.string.widget_shield_name)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             tile.subtitle = getString(presentation.subtitleRes)
         }

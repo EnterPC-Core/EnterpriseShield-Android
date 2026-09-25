@@ -29,7 +29,8 @@ object InlineApkDownloader {
     fun start(context: Context, url: String, target: File) {
         if (active.get()) return
         reset(); active.set(true)
-        val tmp = File(target.parentFile, "download.part")
+        target.parentFile?.mkdirs()
+        val tmp = File(target.parentFile, "update.apk.part")
         executor.execute {
             var conn: HttpURLConnection? = null
             try {
