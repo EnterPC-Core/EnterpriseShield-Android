@@ -305,7 +305,7 @@ internal class AppUpdateUi(
             notice != null -> notice
             ready -> activity.getString(R.string.update_ready,
                 version((state as AppDownloadState.Ready).release.version))
-            state is AppDownloadState.Failed -> activity.getString(R.string.update_download_failed)
+            state is AppDownloadState.Failed -> notice ?: activity.getString(R.string.update_download_failed)
             release != null && !release.downloadable -> activity.getString(R.string.update_not_ready)
             else -> ""
         }
