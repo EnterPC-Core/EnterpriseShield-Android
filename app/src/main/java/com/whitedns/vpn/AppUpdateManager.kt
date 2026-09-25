@@ -76,6 +76,7 @@ class AppUpdateManager(context: Context) {
             val apk = release.apk!!
             val target = File(context.filesDir, "updates/update.apk")
             target.parentFile?.mkdirs()
+            DiagnosticLogger.info(context, "ota.manager.download", "version=${release.version} asset=${apk.name} size=${apk.size}")
             InlineApkDownloader.start(context, apk.url, target)
             val id = 0L
             try {
@@ -96,7 +97,7 @@ class AppUpdateManager(context: Context) {
                 return@withLock AppDownloadState.Ready(snapshot, pending.release)
             }
             try {
-                if (InlineApkDownloader.failed.get()) throw IOException("Update download failed")
+                if (InlineApkDownloader.failed.get()) throw IOException("OTA: " + InlineApkDownloader.error.get())
                 if (InlineApkDownloader.active.get()) {
                     return@withLock AppDownloadState.Downloading(
                         InlineApkDownloader.bytes.get(),
@@ -105,7 +106,9 @@ class AppUpdateManager(context: Context) {
                     )
                 }
                 if (snapshot.isFile) {
+                    DiagnosticLogger.info(context, "ota.manager.verify", "file=${snapshot.length()} expected=${pending.release.apk?.size}")
                     verifySnapshot(pending)
+                    DiagnosticLogger.info(context, "ota.manager.ready", "version=${pending.release.version}")
                     return@withLock AppDownloadState.Ready(snapshot, pending.release)
                 }
                 downloads.query(DownloadManager.Query().setFilterById(pending.id)).use { cursor ->

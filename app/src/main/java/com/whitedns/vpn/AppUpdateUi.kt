@@ -229,6 +229,7 @@ internal class AppUpdateUi(
                 } catch (error: Exception) {
                     state = AppDownloadState.Failed
                     fail("update.refresh.failed", error, R.string.update_download_failed)
+                    notice = "Ошибка OTA: ${error.message ?: error.javaClass.simpleName}"
                 }
                 if (state !is AppDownloadState.Downloading && state !is AppDownloadState.Verifying) break
                 delay(1_000)
