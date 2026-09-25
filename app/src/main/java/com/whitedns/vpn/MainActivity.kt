@@ -421,14 +421,8 @@ class MainActivity : Activity() {
             }
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
-                    // Map new tab order: 0=Settings, 1=VPN, 2=Subscriptions
-                    val mappedPosition = when (tab.position) {
-                        0 -> 2  // Settings -> position 2
-                        1 -> 1  // VPN -> position 1
-                        2 -> 0  // Subscriptions -> position 0
-                        else -> tab.position
-                    }
-                    showAppTab(mappedPosition)
+                    // Enterprise Shield order: 0=Servers, 1=Shield, 2=Settings
+                    showAppTab(tab.position)
                 }
 
                 override fun onTabUnselected(tab: TabLayout.Tab) = Unit
