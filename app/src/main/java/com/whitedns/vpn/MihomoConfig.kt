@@ -314,13 +314,13 @@ object MihomoSelectionPolicy {
     }
 
     fun mainSelectorGroup(summary: MihomoConfigSummary): MihomoProxyGroup? {
-        return summary.groups.firstOrNull { it.name.contains("Proxy Select", ignoreCase = true) }
+        return summary.groups.firstOrNull { it.name.contains("Proxy Select", ignoreCase = true) || it.name.contains("Каналы") }
             ?: summary.groups.firstOrNull { it.type.equals("select", ignoreCase = true) }
     }
 
     fun autoGroup(summary: MihomoConfigSummary): MihomoProxyGroup? {
         return summary.groups.firstOrNull { group ->
-            group.name.contains("Auto Select", ignoreCase = true) ||
+            group.name.contains("Auto Select", ignoreCase = true) || group.name.contains("Авто", ignoreCase = true) ||
                 group.name.normalized().contains(" auto ")
         } ?: summary.groups.firstOrNull { group ->
             group.type.lowercase(Locale.US) in setOf("url-test", "fallback", "load-balance")

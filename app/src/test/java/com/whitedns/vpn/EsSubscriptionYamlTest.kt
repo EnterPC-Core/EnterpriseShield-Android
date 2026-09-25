@@ -29,6 +29,6 @@ class EsSubscriptionYamlTest {
         val target = MihomoSelectionPolicy.trafficProbeGroup(snapshot.summary)
             ?: MihomoSelectionPolicy.mainSelectorGroup(snapshot.summary)
         assertNotNull(target)
-        assertEquals("🚀 Proxy Select", target?.name)
+        assertEquals("🚀 Каналы", target?.name)
     }
 }

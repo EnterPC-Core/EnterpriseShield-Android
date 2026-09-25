@@ -271,10 +271,10 @@ proxies:
     reality-opts:
       public-key: k04yw3df-c7OQB3GnV7EIZTOt8fP4WIPQx0-m0Sdggg
 proxy-groups:
-  - name: 🚀 Proxy Select
+  - name: 🚀 Каналы
     type: select
     proxies:
-      - ♻️ Auto Select
+      - ♻️ Авто-выбор
       - Enterprise 3
       - Enterprise 2
       - Enterprise 5
@@ -289,7 +289,7 @@ proxy-groups:
       - Enterprise 6
       - Enterprise 4
       - Enterprise 8
-  - name: ♻️ Auto Select
+  - name: ♻️ Авто-выбор
     type: url-test
     url: 'https://www.gstatic.com/generate_204'
     interval: 300
@@ -309,4 +309,4 @@ proxy-groups:
       - Enterprise 4
       - Enterprise 8
 rules:
-  - 'MATCH,🚀 Proxy Select'
+  - 'MATCH,🚀 Каналы'
