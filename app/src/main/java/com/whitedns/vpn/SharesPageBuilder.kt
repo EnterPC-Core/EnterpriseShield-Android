@@ -27,7 +27,7 @@ object SharesPageBuilder {
     private const val SURFACE = 0xFF13203C.toInt()
     private const val OUTLINE = 0xFF24406B.toInt()
 
-    fun build(activity: Activity, dp: (Int) -> Int): View {
+    fun build(activity: Activity, dp: (Int) -> Int, onTake: (String, String) -> Unit): View {
         val scroll = ScrollView(activity).apply { isFillViewport = true }
         val content = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -79,7 +79,7 @@ object SharesPageBuilder {
                         val host = s.optString(3); val url = s.optString(4)
                         val owner = s.optString(6).ifBlank { s.optString(5) }
                         val taken = s.optInt(7); val health = s.optInt(9)
-                        list.addView(shareRow(activity, dp, i + 1, title, proto, host, owner, taken, health, url))
+                        list.addView(shareRow(activity, dp, i + 1, title, proto, host, owner, taken, health, url, onTake))
                     }
                 }
             }
@@ -92,7 +92,7 @@ object SharesPageBuilder {
 
     private fun shareRow(
         activity: Activity, dp: (Int) -> Int, place: Int, title: String, proto: String,
-        host: String, owner: String, taken: Int, health: Int, url: String,
+        host: String, owner: String, taken: Int, health: Int, url: String, onTake: (String, String) -> Unit,
     ): View {
         val card = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -130,11 +130,7 @@ object SharesPageBuilder {
             setTextColor(TEAL)
             elevation = 0f
             stateListAnimator = null
-            setOnClickListener {
-                val cm = activity.getSystemService(Activity.CLIPBOARD_SERVICE) as ClipboardManager
-                cm.setPrimaryClip(ClipData.newPlainText("share", url))
-                Toast.makeText(activity, activity.getString(R.string.shares_copied), Toast.LENGTH_SHORT).show()
-            }
+            setOnClickListener { onTake(title, url) }
         }
         card.addView(take, LinearLayout.LayoutParams(-2, dp(38)).apply {
             topMargin = dp(8); gravity = Gravity.END

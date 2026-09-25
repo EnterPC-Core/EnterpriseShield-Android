@@ -377,7 +377,19 @@ class MainActivity : Activity() {
         appShellView = shell
         vpnTabContent = buildDashboard()
         subscriptionsTabContent = buildSubscriptionsScreen().apply { visibility = View.GONE }
-        sharesTabContent = SharesPageBuilder.build(this) { v -> dp(v) }.apply { visibility = View.GONE }
+        sharesTabContent = SharesPageBuilder.build(this, { v -> dp(v) }) { title, url ->
+            activityScope.launch {
+                runCatching { userSubscriptionManager.add(title, url) }
+                    .onSuccess { item ->
+                        SubscriptionStore(this@MainActivity).saveSelectedSubscriptionId(item.id)
+                        Toast.makeText(this@MainActivity, getString(R.string.shares_added), Toast.LENGTH_SHORT).show()
+                        renderSubscriptions()
+                    }
+                    .onFailure {
+                        Toast.makeText(this@MainActivity, getString(R.string.shares_add_failed), Toast.LENGTH_SHORT).show()
+                    }
+            }
+        }.apply { visibility = View.GONE }
         advancedTabContent = buildAdvancedScreen().apply { visibility = View.GONE }
         val content = FrameLayout(this).apply {
             addView(vpnTabContent, FrameLayout.LayoutParams(-1, -1))

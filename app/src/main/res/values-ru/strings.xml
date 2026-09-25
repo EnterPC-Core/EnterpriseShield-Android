@@ -64,7 +64,7 @@
     <string name="subscription_clipboard_empty">В буфере обмена нет подписки или конфигурации.</string>
     <string name="subscription_builtin_detail">Встроенный · %1$s</string>
     <string name="subscription_private_name">Щит каналы</string>
-    <string name="subscription_public_name">WhiteDNS · Публичные (резерв)</string>
+    <string name="subscription_public_name">Enterprise · Резерв</string>
     <string name="subscription_detail">%1$s · %2$s · %3$s</string>
     <string name="subscription_never_updated">Никогда</string>
     <string name="subscription_selected_badge">Выбрана</string>
@@ -436,4 +436,6 @@
 <string name="shares_take">Взять</string>
 <string name="shares_copied">Ссылка скопирована. Добавьте её в Серверы → +</string>
 <string name="shares_meta_fmt">взяли %1$d · здоровье %2$d%% · %3$s</string>
+<string name="shares_added">Раздача добавлена в Серверы</string>
+<string name="shares_add_failed">Не удалось добавить раздачу</string>
 </resources>

@@ -59,7 +59,7 @@
     <string name="subscription_clipboard_empty">The clipboard does not contain a subscription or configuration.</string>
     <string name="subscription_builtin_detail">Built-in · %1$s</string>
     <string name="subscription_private_name">Щит каналы</string>
-    <string name="subscription_public_name">WhiteDNS · Public (fallback)</string>
+    <string name="subscription_public_name">Enterprise · Reserve</string>
     <string name="subscription_detail">%1$s · %2$s · %3$s</string>
     <string name="subscription_never_updated">Never</string>
     <string name="subscription_selected_badge">Selected</string>
@@ -440,4 +440,6 @@
 <string name="shares_take">Take</string>
 <string name="shares_copied">Link copied. Add it in Servers +</string>
 <string name="shares_meta_fmt">taken %1$d · health %2$d%% · by %3$s</string>
+<string name="shares_added">Share added to Servers</string>
+<string name="shares_add_failed">Could not add share</string>
 </resources>
