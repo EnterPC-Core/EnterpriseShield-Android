@@ -1,11 +1,11 @@
 <resources>
-    <string name="widget_description">Connect or disconnect Enterprise Shield VPN from your home screen</string>
+    <string name="widget_description">Connect or disconnect Enterprise Shield from your home screen</string>
     <string name="widget_connect">Connect</string>
     <string name="widget_disconnected">Not connected</string>
-    <string name="widget_open_app">Open Enterprise Shield VPN</string>
-    <string name="app_name">Enterprise Shield VPN</string>
-    <string name="notification_channel_vpn">VPN connection</string>
-    <string name="notification_title">Enterprise Shield VPN</string>
+    <string name="widget_open_app">Open Enterprise Shield</string>
+    <string name="app_name">Enterprise Shield</string>
+    <string name="notification_channel_vpn">Shield connection</string>
+    <string name="notification_title">Enterprise Shield</string>
     <string name="notification_starting">Connecting</string>
     <string name="notification_connected">Connected</string>
     <string name="notification_connected_public">Connected using public servers</string>
@@ -13,20 +13,20 @@
     <string name="notification_action_reconnect">Reconnect</string>
     <string name="footer_copyright">© Enterprise Shield</string>
     <string name="footer_url">https://t.me/Enterprise_vpn_bot</string>
-    <string name="footer_telegram_content_description">Open Enterprise Shield VPN on Telegram</string>
+    <string name="footer_telegram_content_description">Open Enterprise Shield on Telegram</string>
     <string name="privacy_policy_title">Privacy policy</string>
-    <string name="privacy_policy_message">Enterprise Shield VPN is a free VPN service that routes your device traffic through VPN servers when connected.\n\n- We do not ask for account details in this app.\n- The app may process technical connection information needed to provide the VPN, such as connection status, traffic usage, diagnostics, and service errors.\n- The app stores usage counters locally on your device.\n- Third-party network providers may process connection metadata required to deliver internet traffic.\n- You are responsible for how you use this service. Any illegal activity performed through the service is not the responsibility of Enterprise Shield VPN.\n- Do not use the service for unlawful activity. Service availability, speed, and privacy protections are provided without warranty.</string>
+    <string name="privacy_policy_message">Enterprise Shield is a free service that routes your device traffic through Shield servers when connected.\n\n- We do not ask for account details in this app.\n- The app may process technical connection information needed to provide the service, such as connection status, traffic usage, diagnostics, and service errors.\n- The app stores usage counters locally on your device.\n- Third-party network providers may process connection metadata required to deliver internet traffic.\n- You are responsible for how you use this service. Any illegal activity performed through the service is not the responsibility of Enterprise Shield.\n- Do not use the service for unlawful activity. Service availability, speed, and privacy protections are provided without warranty.</string>
     <string name="privacy_policy_checkbox">I have read and agree</string>
     <string name="privacy_policy_accept">Accept</string>
     <string name="privacy_policy_not_now">Not now</string>
     <string name="location_selector_title">Select location</string>
     <string name="split_tunnel_button_off">Split tunneling: Off</string>
     <string name="split_tunnel_button_bypass">Bypass apps: %1$d</string>
-    <string name="split_tunnel_button_vpn_only">VPN apps: %1$d</string>
+    <string name="split_tunnel_button_vpn_only">Apps in Shield: %1$d</string>
     <string name="split_tunnel_title">Split tunneling</string>
     <string name="split_tunnel_mode_off">Off</string>
     <string name="split_tunnel_mode_bypass">Bypass selected apps</string>
-    <string name="split_tunnel_mode_vpn_only">VPN only selected apps</string>
+    <string name="split_tunnel_mode_vpn_only">Only selected apps inside the Shield</string>
     <string name="split_tunnel_search_hint">Search apps</string>
     <string name="split_tunnel_empty_apps">No launchable apps found.</string>
     <string name="split_tunnel_empty_search">No apps match this search.</string>
@@ -40,14 +40,14 @@
     <string name="language_russian">Русский</string>
     <string name="language_section">Language</string>
     <string name="language_setting_title">App language</string>
-    <string name="language_setting_detail">Choose the language used throughout Enterprise Shield VPN.</string>
+    <string name="language_setting_detail">Choose the language used throughout Enterprise Shield.</string>
     <string name="theme_dialog_title">Theme</string>
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
 
-    <string name="tab_vpn">VPN</string>
-    <string name="tab_subscriptions">Subscriptions</string>
+    <string name="tab_vpn">Shield</string>
+    <string name="tab_subscriptions">Servers</string>
     <string name="tab_settings">Settings</string>
 
     <string name="subscriptions_title">Subscriptions</string>
@@ -97,7 +97,7 @@
 
     <string name="version_label">Version %1$s</string>
     <string name="update_available_title">Update available</string>
-    <string name="update_available_message">Enterprise Shield VPN %1$s is available on GitHub.</string>
+    <string name="update_available_message">Enterprise Shield %1$s is available on GitHub.</string>
     <string name="update_view_release">View release</string>
     <string name="update_settings_title">App updates</string>
     <string name="update_badge">New</string>
@@ -120,7 +120,7 @@
     <string name="update_cancel_download">Cancel download</string>
     <string name="update_retry">Retry download</string>
     <string name="update_install">Install update</string>
-    <string name="update_permission_denied">Allow Enterprise Shield VPN to install updates in Android settings, then tap Install update.</string>
+    <string name="update_permission_denied">Allow Enterprise Shield to install updates in Android settings, then tap Install update.</string>
     <string name="update_install_failed">Could not open the update installer. Check Android installation settings and try again.</string>
     <string name="output_automatic">🌐  Automatic output</string>
     <string name="metric_connection_time">Connection time</string>
@@ -131,7 +131,7 @@
     <string name="connection_selector_title">Select connection</string>
     <string name="connection_testing_page_title">Connection testing</string>
     <string name="connection_testing_page_config">%1$d s timeout · %2$d at once · %3$d MB speed test</string>
-    <string name="connection_testing_back">Back to VPN</string>
+    <string name="connection_testing_back">Back to Shield</string>
     <string name="connection_selector_loading">Loading connections…</string>
     <string name="connection_filter_types_title">Connection types</string>
     <string name="connection_filter_select_all">Select all</string>
@@ -151,9 +151,9 @@
     <string name="connection_detail">%1$s · %2$s:%3$d</string>
     <string name="connection_test_visible">Test visible connections</string>
     <string name="connection_test_again">Test again</string>
-    <string name="connection_test_explanation">Uses a real HTTPS request through every connection; the VPN tunnel can stay off.</string>
-    <string name="connection_test_busy">Wait for the current VPN operation to finish.</string>
-    <string name="connection_test_reconnect_required">Reconnect the VPN before testing this subscription.</string>
+    <string name="connection_test_explanation">Uses a real HTTPS request through every connection; the tunnel can stay off.</string>
+    <string name="connection_test_busy">Wait for the current Shield operation to finish.</string>
+    <string name="connection_test_reconnect_required">Reconnect before testing this subscription.</string>
     <string name="connection_test_failed">Could not test connection delays.</string>
     <string name="connection_test_preparing">Preparing connection test…</string>
     <string name="connection_test_progress">Testing %1$d of %2$d…</string>
@@ -189,7 +189,7 @@
     <string name="location_content_description">Location: %1$s</string>
 
     <string name="settings_title">Settings</string>
-    <string name="settings_categories_description">Choose a category to configure Enterprise Shield VPN.</string>
+    <string name="settings_categories_description">Choose a category to configure Enterprise Shield.</string>
     <string name="settings_category_app_preferences">App preferences</string>
     <string name="settings_category_app_preferences_detail">Subscription, appearance, and language.</string>
     <string name="settings_subscription_title">Subscription</string>
@@ -198,14 +198,14 @@
     <string name="settings_category_testing_detail">Delay limits, concurrency, and speed-test size.</string>
     <string name="settings_category_connections">Connections</string>
     <string name="settings_category_connections_detail">Security, transport, routing, DNS, and IP replacement.</string>
-    <string name="settings_category_split_tunnel_detail">Choose which apps use or bypass the VPN.</string>
-    <string name="settings_category_sharing">VPN sharing</string>
-    <string name="settings_category_sharing_detail">Share the VPN with devices on your local network.</string>
+    <string name="settings_category_split_tunnel_detail">Choose which apps use or bypass the Shield.</string>
+    <string name="settings_category_sharing">Shield sharing</string>
+    <string name="settings_category_sharing_detail">Share the Shield with devices on your local network.</string>
     <string name="settings_category_system">System protection</string>
-    <string name="settings_category_system_detail">Always-on VPN and the Android kill switch.</string>
+    <string name="settings_category_system_detail">Always-on connection and the Android kill switch.</string>
     <string name="settings_category_back">Back to settings</string>
     <string name="connection_repair_title">Repair connection</string>
-    <string name="connection_repair_message">Saved connection test results and automatic route history will be cleared, then Enterprise Shield VPN’s built-in subscriptions will be refreshed. Your subscriptions and settings will stay unchanged. If connected, the current connection will keep running.</string>
+    <string name="connection_repair_message">Saved connection test results and automatic route history will be cleared, then Enterprise Shield’s built-in subscriptions will be refreshed. Your subscriptions and settings will stay unchanged. If connected, the current connection will keep running.</string>
     <string name="connection_repair_confirm">Repair</string>
     <string name="connection_repair_running">Repairing connection…</string>
     <string name="connection_repair_done">Connection repaired. Try connecting again.</string>
@@ -213,7 +213,7 @@
     <string name="connection_repair_test_running">Stop the running connection test before repairing.</string>
     <string name="connection_repair_failed">Connection repair failed.</string>
     <string name="settings_reset">Reset settings</string>
-    <string name="settings_reset_message">All app settings will return to their original defaults. Your subscriptions and saved test results will be kept. Android Always-on VPN and the kill switch will not change. If connected, the current connection will keep running; the defaults apply next time.</string>
+    <string name="settings_reset_message">All app settings will return to their original defaults. Your subscriptions and saved test results will be kept. Android Always-on and the kill switch will not change. If connected, the current connection will keep running; the defaults apply next time.</string>
     <string name="settings_reset_confirm">Reset</string>
     <string name="settings_reset_done">Settings reset.</string>
     <string name="config_test_section">Config Test</string>
@@ -224,12 +224,12 @@
     <string name="config_test_speed_size_title">Speed test size</string>
     <string name="config_test_speed_size_detail">Data downloaded for each manual speed test; applies to the next test.</string>
     <string name="config_test_integer_range">Whole number from %1$d to %2$d. %3$s</string>
-    <string name="always_on_section">Always-on VPN &amp; kill switch</string>
-    <string name="always_on_description">Android manages these protections. Enable Always-on VPN and Block connections without VPN in system settings. With blocking enabled, apps bypassing the VPN may lose internet access.</string>
-    <string name="always_on_open_settings">Open Android VPN settings</string>
+    <string name="always_on_section">Always-on &amp; kill switch</string>
+    <string name="always_on_description">Android manages these protections. Enable Always-on and Block connections without the Shield in system settings. With blocking enabled, apps bypassing the Shield may lose internet access.</string>
+    <string name="always_on_open_settings">Open Android connection settings</string>
     <string name="always_on_status_inactive">Managed by Android · inactive</string>
-    <string name="always_on_status_active">Always-on VPN active</string>
-    <string name="always_on_status_lockdown">Always-on VPN + kill switch active</string>
+    <string name="always_on_status_active">Always-on active</string>
+    <string name="always_on_status_lockdown">Always-on + kill switch active</string>
     <string name="tls_integrity_section">Connection security</string>
     <string name="tls_integrity_title">TLS integrity</string>
     <string name="tls_integrity_description">Checks secure sites and blocks routes with invalid certificates.</string>
@@ -275,9 +275,9 @@
     <string name="routing_mode_russia">Russia bypass</string>
     <string name="routing_mode_russia_detail">Russian sites go direct, everything else through the Shield.</string>
     <string name="shield_guard_title">ShieldGuard protection</string>
-    <string name="shield_guard_detail">Blocks ads, trackers, torrent and Tor traffic, and hostile ports inside the VPN tunnel.</string>
+    <string name="shield_guard_detail">Blocks ads, trackers, torrent and Tor traffic, and hostile ports inside the tunnel.</string>
     <string name="routing_mode_global">Global proxy</string>
-    <string name="routing_mode_global_detail">Route all traffic through the selected VPN connection.</string>
+    <string name="routing_mode_global_detail">Route all traffic through the selected Shield connection.</string>
     <string name="routing_content_description">Routing rules: %1$s</string>
     <string name="dns_privacy_section">DNS privacy</string>
     <string name="dns_encrypted_title">Encrypted DNS</string>
@@ -296,12 +296,12 @@
     <string name="dns_dot_helper">Host name with an optional port</string>
     <string name="lan_sharing_section">LAN sharing</string>
     <string name="connection_mode_label">Connection mode</string>
-    <string name="connection_mode_vpn">VPN</string>
+    <string name="connection_mode_vpn">Shield</string>
     <string name="connection_mode_proxy">Proxy</string>
     <string name="connection_mode_local_ip" translatable="false">IP: %1$s</string>
     <string name="connection_mode_local_endpoint" translatable="false">IP: %1$s · Port: %2$s</string>
-    <string name="lan_sharing_title">Share VPN on LAN</string>
-    <string name="lan_sharing_description">Let other devices use Enterprise Shield VPN through an HTTP or SOCKS5 proxy.</string>
+    <string name="lan_sharing_title">Share Shield on LAN</string>
+    <string name="lan_sharing_description">Let other devices use Enterprise Shield through an HTTP or SOCKS5 proxy.</string>
     <string name="lan_sharing_require_password">Require password</string>
     <string name="lan_sharing_require_password_description">Protect access with the generated username and password.</string>
     <string name="lan_sharing_manual_setup">Configure the proxy manually on each client. Wi-Fi client isolation and apps that ignore proxy settings may prevent access.</string>
@@ -315,8 +315,8 @@
     <string name="lan_sharing_regenerate">Regenerate password</string>
     <string name="lan_sharing_copied">LAN proxy settings copied.</string>
 
-    <string name="split_tunnel_value_bypass">Active · outside VPN · %1$d</string>
-    <string name="split_tunnel_value_vpn_only">Active · inside VPN · %1$d</string>
+    <string name="split_tunnel_value_bypass">Active · outside the tunnel · %1$d</string>
+    <string name="split_tunnel_value_vpn_only">Active · inside the tunnel · %1$d</string>
     <string name="split_tunnel_content_description">Split tunneling: %1$s</string>
 
     <string name="state_ready">Ready</string>
@@ -389,7 +389,7 @@
     <string name="connection_chain_error_shared_proxy">Connection and After share an underlying proxy and can’t be chained. Choose a different one.</string>
     <string name="connection_chain_error_udp">After needs UDP, but Connection supports TCP only. Choose a UDP-capable Connection.</string>
 
-    <string name="diagnostics_empty">The Enterprise Shield VPN diagnostics log is empty.</string>
+    <string name="diagnostics_empty">The Enterprise Shield diagnostics log is empty.</string>
     <string name="diagnostics_copied">Diagnostics copied.</string>
     <string name="chevron_forward">›</string>
 </resources>

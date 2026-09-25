@@ -120,7 +120,7 @@ class MainActivity : Activity() {
                     if (available) ", ${getString(R.string.update_available_title)}" else ""
             }
             if (::appTabs.isInitialized) {
-                appTabs.getTabAt(0)?.let { tab ->
+                appTabs.getTabAt(2)?.let { tab ->
                     tab.contentDescription = getString(R.string.tab_settings)
                     if (available) {
                         tab.orCreateBadge.apply {
@@ -338,7 +338,7 @@ class MainActivity : Activity() {
             )
             if (chainSlot != ConnectionChainSlot.Before) {
                 if (chainSlot != null) {
-                    appTabs.getTabAt(0)?.select()
+                    appTabs.getTabAt(2)?.select()
                     openConnectionChainSettingsPage?.invoke()
                 }
                 mainHandler.post {
@@ -404,10 +404,10 @@ class MainActivity : Activity() {
             )
             tabMode = TabLayout.MODE_FIXED
             tabGravity = TabLayout.GRAVITY_FILL
-            // Reorder tabs: Settings, VPN (center/active), Subscription
-            addTab(newTab().setText(R.string.tab_settings).setIcon(R.drawable.ic_advanced_tab))
-            addTab(newTab().setText(R.string.tab_vpn).setIcon(R.drawable.ic_vpn_tab), true)
+            // Enterprise Shield: Servers, Shield (center/active), Settings (right)
             addTab(newTab().setText(R.string.tab_subscriptions).setIcon(R.drawable.ic_subscriptions_tab))
+            addTab(newTab().setText(R.string.tab_vpn).setIcon(R.drawable.ic_vpn_tab), true)
+            addTab(newTab().setText(R.string.tab_settings).setIcon(R.drawable.ic_advanced_tab))
             post {
                 val tabStrip = getChildAt(0) as? ViewGroup ?: return@post
                 for (index in 0 until tabStrip.childCount) {
@@ -1460,7 +1460,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER
             setPadding(dp(9), dp(4), dp(9), dp(4))
             addView(TextView(this@MainActivity).apply {
-                text = "WhiteVPN"
+                text = "Enterprise Shield"
                 textSize = 14.5f
                 typeface = WhiteDnsDisplayTypeface
                 setTextColor(TEXT_PRIMARY)
@@ -3699,7 +3699,7 @@ class MainActivity : Activity() {
     }
 
     private fun openConnectionChainSettingsFromHome() {
-        appTabs.getTabAt(0)?.select()
+        appTabs.getTabAt(2)?.select()
         openConnectionChainSettingsPage?.invoke()
     }
 
