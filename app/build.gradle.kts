@@ -73,7 +73,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 84
-        versionName = "1.0.13"
+        versionName = "1.0.14"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resourceConfigurations += listOf("en", "ru")

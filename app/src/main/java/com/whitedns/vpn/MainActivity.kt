@@ -377,11 +377,20 @@ class MainActivity : Activity() {
         appShellView = shell
         vpnTabContent = buildDashboard()
         subscriptionsTabContent = buildSubscriptionsScreen().apply { visibility = View.GONE }
-        sharesTabContent = SharesPageBuilder.build(this, { v -> dp(v) }) { title, url ->
+        sharesTabContent = SharesPageBuilder.build(this, { v -> dp(v) }) { shareId, title, url ->
             activityScope.launch {
                 runCatching { userSubscriptionManager.add(title, url) }
                     .onSuccess { item ->
                         SubscriptionStore(this@MainActivity).saveSelectedSubscriptionId(item.id)
+                        activityScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                            runCatching {
+                                val c = java.net.URL("https://api.enterprise-shield.ru/v1/shares/taken").openConnection() as java.net.HttpURLConnection
+                                c.requestMethod = "POST"; c.doOutput = true
+                                c.setRequestProperty("Content-Type", "application/json")
+                                c.outputStream.use { it.write("{\"id\":$shareId}".toByteArray()) }
+                                c.responseCode
+                            }
+                        }
                         Toast.makeText(this@MainActivity, getString(R.string.shares_added), Toast.LENGTH_SHORT).show()
                         renderSubscriptions()
                     }

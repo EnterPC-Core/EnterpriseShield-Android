@@ -27,7 +27,7 @@ object SharesPageBuilder {
     private const val SURFACE = 0xFF13203C.toInt()
     private const val OUTLINE = 0xFF24406B.toInt()
 
-    fun build(activity: Activity, dp: (Int) -> Int, onTake: (String, String) -> Unit): View {
+    fun build(activity: Activity, dp: (Int) -> Int, onTake: (Int, String, String) -> Unit): View {
         val scroll = ScrollView(activity).apply { isFillViewport = true }
         val content = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -56,13 +56,13 @@ object SharesPageBuilder {
             list.removeAllViews()
             executor.execute {
                 var error = false
-                val shares = mutableListOf<JSONArray>()
+                val shares = mutableListOf<org.json.JSONObject>()
                 try {
                     val c = URL("https://api.enterprise-shield.ru/v1/shares").openConnection() as HttpURLConnection
                     c.connectTimeout = 8000; c.readTimeout = 8000
                     val arr = org.json.JSONObject(c.inputStream.bufferedReader().use { it.readText() })
                         .optJSONArray("shares") ?: JSONArray()
-                    for (i in 0 until arr.length()) shares.add(arr.getJSONArray(i))
+                    for (i in 0 until arr.length()) shares.add(arr.getJSONObject(i))
                 } catch (e: Exception) { error = true }
                 main.post {
                     if (error) {
@@ -75,11 +75,11 @@ object SharesPageBuilder {
                     }
                     status.visibility = View.GONE
                     shares.forEachIndexed { i, s ->
-                        val title = s.optString(1); val proto = s.optString(2)
-                        val host = s.optString(3); val url = s.optString(4)
-                        val owner = s.optString(6).ifBlank { s.optString(5) }
-                        val taken = s.optInt(7); val health = s.optInt(9)
-                        list.addView(shareRow(activity, dp, i + 1, title, proto, host, owner, taken, health, url, onTake))
+                        val id = s.optInt("id"); val title = s.optString("title"); val proto = s.optString("proto")
+                        val host = s.optString("host"); val url = s.optString("url")
+                        val owner = s.optString("owner_username").ifBlank { s.optString("owner") }
+                        val taken = s.optInt("taken"); val health = s.optInt("health_score")
+                        list.addView(shareRow(activity, dp, i + 1, id, title, proto, host, owner, taken, health, url, onTake))
                     }
                 }
             }
@@ -91,8 +91,8 @@ object SharesPageBuilder {
     }
 
     private fun shareRow(
-        activity: Activity, dp: (Int) -> Int, place: Int, title: String, proto: String,
-        host: String, owner: String, taken: Int, health: Int, url: String, onTake: (String, String) -> Unit,
+        activity: Activity, dp: (Int) -> Int, place: Int, id: Int, title: String, proto: String,
+        host: String, owner: String, taken: Int, health: Int, url: String, onTake: (Int, String, String) -> Unit,
     ): View {
         val card = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -130,7 +130,7 @@ object SharesPageBuilder {
             setTextColor(TEAL)
             elevation = 0f
             stateListAnimator = null
-            setOnClickListener { onTake(title, url) }
+            setOnClickListener { onTake(id, title, url) }
         }
         card.addView(take, LinearLayout.LayoutParams(-2, dp(38)).apply {
             topMargin = dp(8); gravity = Gravity.END
