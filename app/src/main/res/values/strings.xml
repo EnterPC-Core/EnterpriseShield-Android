@@ -15,7 +15,7 @@
     <string name="footer_url">https://t.me/Enterprise_vpn_bot</string>
     <string name="footer_telegram_content_description">Open Enterprise Shield on Telegram</string>
     <string name="privacy_policy_title">Privacy policy</string>
-    <string name="privacy_policy_message">Enterprise Shield is a free service that routes your device traffic through Shield servers when connected.\n\n- We do not ask for account details in this app.\n- The app may process technical connection information needed to provide the service, such as connection status, traffic usage, diagnostics, and service errors.\n- The app stores usage counters locally on your device.\n- Third-party network providers may process connection metadata required to deliver internet traffic.\n- You are responsible for how you use this service. Any illegal activity performed through the service is not the responsibility of Enterprise Shield.\n- Do not use the service for unlawful activity. Service availability, speed, and privacy protections are provided without warranty.</string>
+    <string name="privacy_policy_message">Enterprise Shield is a free private service, provided "as is", without warranties or obligations of any kind.\n\n- The service requires no account and collects no personal data.\n- The app processes only technical data required to operate: connection status, traffic usage, error diagnostics.\n- Usage counters are stored locally on the device and never transferred.\n- Encrypted traffic content is neither analyzed nor stored.\n- Third-party network providers may process technical metadata required to deliver traffic.\n- The service is free: we owe nothing to anyone and assume no obligations regarding availability, speed or compatibility.\n- All responsibility for using the service lies with the user. Enterprise Shield is not liable for any damage or unlawful actions performed through the service.\n- Using the service for unlawful purposes is prohibited.</string>
     <string name="privacy_policy_checkbox">I have read and agree</string>
     <string name="privacy_policy_accept">Accept</string>
     <string name="privacy_policy_not_now">Not now</string>
@@ -444,4 +444,5 @@
 <string name="shares_add_failed">Could not add share</string>
 <string name="widget_shield_name">Shield</string>
     <string name="shares_publish">Добавить раздачу</string>
+    <string name="support_project_title">Support the project</string>
 </resources>

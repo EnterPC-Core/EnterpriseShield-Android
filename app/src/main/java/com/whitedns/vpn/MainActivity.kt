@@ -3201,6 +3201,21 @@ testingSettings.addView(
             setTextColor(TEXT_SECONDARY)
             includeFontPadding = false
         }
+        val supportProjectButton = com.google.android.material.button.MaterialButton(this).apply {
+            text = getString(R.string.support_project_title)
+            insetTop = 0; insetBottom = 0
+            cornerRadius = dp(12)
+            strokeWidth = dp(1)
+            elevation = 0f
+            stateListAnimator = null
+            setOnClickListener { openExternalUrl("https://t.me/Enterprise_vpn_bot?start=support") }
+        }
+        appPreferencesPanel.addView(
+            supportProjectButton,
+            LinearLayout.LayoutParams(-1, dp(44)).apply {
+                marginStart = dp(16); marginEnd = dp(16); topMargin = dp(12); bottomMargin = dp(12)
+            },
+        )
         val footerTelegramLink = TextView(this).apply {
             gravity = Gravity.CENTER
             layoutDirection = View.LAYOUT_DIRECTION_LTR
