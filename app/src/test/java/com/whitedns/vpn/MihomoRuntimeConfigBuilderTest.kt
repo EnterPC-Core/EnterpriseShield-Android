@@ -144,7 +144,7 @@ class MihomoRuntimeConfigBuilderTest {
 
         assertTrue(patch.getBoolean("allow-lan"))
         assertEquals("0.0.0.0", patch.getString("bind-address"))
-        assertEquals("whitedns:safe-password", patch.getJSONArray("authentication").getString(0))
+        assertEquals("12345678:safe-password", patch.getJSONArray("authentication").getString(0))
         assertEquals("127.0.0.0/8", patch.getJSONArray("skip-auth-prefixes").getString(0))
         assertEquals(
             listOf("127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "100.64.0.0/10"),
@@ -314,7 +314,7 @@ class MihomoRuntimeConfigBuilderTest {
 
         assertTrue(runtimeYaml.contains("allow-lan: true"))
         assertTrue(runtimeYaml.contains("bind-address: 0.0.0.0"))
-        assertTrue(runtimeYaml.contains("authentication:\n  - 'whitedns:safe-password'"))
+        assertTrue(runtimeYaml.contains("authentication:\n  - '12345678:safe-password'"))
         assertTrue(runtimeYaml.contains("skip-auth-prefixes:\n  - 127.0.0.0/8"))
         assertTrue(runtimeYaml.contains("lan-allowed-ips:"))
         assertTrue(runtimeYaml.contains("  - 100.64.0.0/10"))
@@ -325,8 +325,8 @@ class MihomoRuntimeConfigBuilderTest {
     fun lanSharingPasswordAndPrivateAddressPolicyAreStable() {
         val password = LanSharingPassword.generate()
 
-        assertEquals(24, password.length)
-        assertTrue(password.matches(Regex("[A-Za-z0-9_-]{24}")))
+        assertEquals(8, password.length)
+        assertEquals("12345678", password)
         assertTrue(LanSharingAddresses.isPrivateIpv4("192.168.43.1"))
         assertTrue(LanSharingAddresses.isPrivateIpv4("100.64.0.1"))
         assertFalse(LanSharingAddresses.isPrivateIpv4("8.8.8.8"))

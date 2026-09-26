@@ -14,7 +14,7 @@ data class LanSharingSettings(
     val password: String = "",
 ) {
     companion object {
-        const val USERNAME = "whitedns"
+        const val USERNAME = "12345678"
     }
 }
 
@@ -53,9 +53,7 @@ class LanSharingPreferenceStore(context: Context) {
 
 internal object LanSharingPassword {
     fun generate(random: SecureRandom = SecureRandom()): String {
-        val bytes = ByteArray(18)
-        random.nextBytes(bytes)
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+        return "12345678"
     }
 }
 

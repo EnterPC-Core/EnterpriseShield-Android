@@ -300,6 +300,20 @@ class MainActivity : Activity() {
         }
     }
 
+    private var hapticDownX = 0f
+    private var hapticDownY = 0f
+
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
+        when (ev.actionMasked) {
+            android.view.MotionEvent.ACTION_DOWN -> { hapticDownX = ev.x; hapticDownY = ev.y }
+            android.view.MotionEvent.ACTION_UP -> {
+                val dx = ev.x - hapticDownX; val dy = ev.y - hapticDownY
+                if (dx * dx + dy * dy < 25 * 25) window.decorView.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+            }
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appLanguagePreferenceStore = AppLanguagePreferenceStore(this)
@@ -651,7 +665,7 @@ class MainActivity : Activity() {
             minWidth = 0
             insetTop = 0
             insetBottom = 0
-            cornerRadius = dp(8)
+            cornerRadius = dp(12)
             backgroundTintList = ColorStateList.valueOf(SURFACE)
             strokeWidth = dp(1)
             strokeColor = ColorStateList.valueOf(TEAL)
@@ -897,7 +911,7 @@ class MainActivity : Activity() {
             minimumHeight = dp(48)
             insetTop = 0
             insetBottom = 0
-            cornerRadius = dp(8)
+            cornerRadius = dp(12)
             setPaddingRelative(dp(12), 0, dp(12), 0)
             backgroundTintList = ColorStateList.valueOf(palette.surfaceElevated2)
             strokeWidth = dp(1)
@@ -2291,7 +2305,7 @@ testingSettings.addView(
             minHeight = dp(44)
             insetTop = 0
             insetBottom = 0
-            cornerRadius = dp(8)
+            cornerRadius = dp(12)
             backgroundTintList = ColorStateList.valueOf(SURFACE)
             strokeWidth = dp(1)
             strokeColor = ColorStateList.valueOf(OUTLINE)
@@ -2778,7 +2792,7 @@ testingSettings.addView(
             background = RippleDrawable(
                 ColorStateList.valueOf(withAlpha(TEAL, 28)),
                 GradientDrawable().apply {
-                    cornerRadius = dp(8).toFloat()
+                    cornerRadius = dp(12).toFloat()
                     setColor(withAlpha(SURFACE, if (palette.isDark) 232 else 246))
                     setStroke(dp(1), withAlpha(OUTLINE, 170), dp(5).toFloat(), dp(4).toFloat())
                 },
@@ -2805,7 +2819,7 @@ testingSettings.addView(
             minHeight = dp(44)
             insetTop = 0
             insetBottom = 0
-            cornerRadius = dp(8)
+            cornerRadius = dp(12)
             backgroundTintList = ColorStateList.valueOf(SURFACE)
             strokeWidth = dp(1)
             strokeColor = ColorStateList.valueOf(OUTLINE)
@@ -2860,7 +2874,7 @@ testingSettings.addView(
                 minHeight = dp(44)
                 insetTop = 0
                 insetBottom = 0
-                cornerRadius = dp(8)
+                cornerRadius = dp(12)
                 backgroundTintList = ColorStateList.valueOf(SURFACE)
                 strokeWidth = dp(1)
                 strokeColor = ColorStateList.valueOf(TEAL)
@@ -3610,7 +3624,7 @@ testingSettings.addView(
                         setPadding(dp(12), dp(10), dp(12), dp(10))
                         contentDescription = message
                         background = GradientDrawable().apply {
-                            cornerRadius = dp(8).toFloat()
+                            cornerRadius = dp(12).toFloat()
                             setColor(withAlpha(ERROR, 18))
                             setStroke(dp(1), withAlpha(ERROR, 110))
                         }
@@ -4635,7 +4649,7 @@ testingSettings.addView(
             setPadding(dp(6), dp(2), dp(6), dp(2))
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             background = GradientDrawable().apply {
-                cornerRadius = dp(8).toFloat()
+                cornerRadius = dp(12).toFloat()
                 setColor(withAlpha(TEAL, 24))
                 setStroke(dp(1), withAlpha(TEAL, 90))
             }
@@ -4843,7 +4857,7 @@ testingSettings.addView(
                     )
                     holder.udpBadge.setTextColor(udpColor)
                     holder.udpBadge.background = GradientDrawable().apply {
-                        cornerRadius = dp(8).toFloat()
+                        cornerRadius = dp(12).toFloat()
                         setColor(withAlpha(udpColor, 24))
                         setStroke(dp(1), withAlpha(udpColor, 90))
                     }
@@ -7245,10 +7259,8 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
         (color and 0x00FFFFFF) or (alpha.coerceIn(0, 255) shl 24)
 
     private fun View.setSelectableBackground() {
-        val value = TypedValue()
-        if (theme.resolveAttribute(android.R.attr.selectableItemBackground, value, true)) {
-            setBackgroundResource(value.resourceId)
-        }
+        val mask = android.graphics.drawable.GradientDrawable().apply { cornerRadius = dp(10).toFloat() }
+        background = RippleDrawable(ColorStateList.valueOf(withAlpha(TEAL, 20)), null, mask)
     }
 
     @Suppress("DEPRECATION")
