@@ -297,6 +297,8 @@ internal class SubscriptionSnapshotResolver(
             ?: throw IOException("Subscription no longer exists")
         val cached = entry.cachedYaml?.let { yaml ->
             runCatching { parseSubscriptionSnapshot(yaml, entry.fetchedAt) }.getOrNull()
+        } ?: runCatching { parseSubscriptionSnapshot(ShieldChannelsAsset.yaml, 0L) }.getOrNull().takeIf {
+            id == SubscriptionStore.PRIVATE_SUBSCRIPTION_ID
         }
         val now = nowMs()
         if (
