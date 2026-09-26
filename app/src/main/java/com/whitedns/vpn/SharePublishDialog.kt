@@ -31,9 +31,9 @@ object SharePublishDialog {
         dialog.show()
     }
     private fun publish(activity: Activity, title: String, link: String, done: () -> Unit) = scope.launch(Dispatchers.IO) {
-        val u = URL(link); val proto = u.protocol.uppercase(); val host = u.host
-        val body = JSONObject().put("code", ShieldDevice.code(activity)).put("title", title).put("url", link).put("proto", proto).put("host", host).toString().toByteArray()
         val result = runCatching {
+            val u = java.net.URI(link).toURL(); val proto = u.protocol.uppercase(); val host = u.host ?: ""
+            val body = JSONObject().put("code", ShieldDevice.code(activity)).put("title", title.ifBlank { host }).put("url", link).put("proto", proto).put("host", host).toString().toByteArray()
             val c = URL("https://api.enterprise-shield.ru/v1/shares/publish").openConnection() as HttpURLConnection
             c.requestMethod = "POST"; c.doOutput = true; c.setRequestProperty("Content-Type", "application/json"); c.outputStream.use { it.write(body) }
             val text = (if (c.responseCode in 200..299) c.inputStream else c.errorStream).bufferedReader().use { it.readText() }
