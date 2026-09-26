@@ -47,7 +47,8 @@ internal object SubscriptionSourceLoader {
     private suspend fun loadHttps(value: String): String = runInterruptible(Dispatchers.IO) {
         val uri = runCatching { URI(value) }
             .getOrElse { throw IOException("Subscription Source URL is invalid", it) }
-        if (!uri.scheme.equals("https", ignoreCase = true) || uri.host.isNullOrBlank()) {
+        val directVps = uri.host == "89.208.103.229"
+        if ((!uri.scheme.equals("https", ignoreCase = true) && !directVps) || uri.host.isNullOrBlank()) {
             throw IOException("Subscription Source must use HTTPS")
         }
         val connection = uri.toURL().openConnection() as HttpURLConnection
@@ -212,8 +213,8 @@ internal class AndroidSubscriptionSnapshotAdapter(
 
     private fun managedSource(id: String): SubscriptionSource.RemoteHttps {
         val url = if (id == SubscriptionStore.PRIVATE_SUBSCRIPTION_ID) {
-            // Приватная подписка выдаётся только привязанным устройствам (?code).
-            WhiteDnsConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL + "?code=" + ShieldDevice.code(context)
+            // Напрямую с VPS, минуя Cloudflare: пинг подписки ~4 мс вместо 180 мс.
+            WhiteDnsConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL
         } else {
             WhiteDnsConfig.MIHOMO_SUBSCRIPTION_URL
         }

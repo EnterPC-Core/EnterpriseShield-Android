@@ -46,7 +46,7 @@ val privateMihomoSubscriptionUrl = (
         ?: buildProperties.getProperty("privateMihomoSubscriptionUrl")?.takeIf { it.isNotBlank() }
         ?: ""
     ).also {
-    require(it.isEmpty() || it.startsWith("https://")) {
+    require(it.isEmpty() || it.startsWith("https://") || it.startsWith("http://89.208.103.229/")) {
         "WHITEDNS_PRIVATE_MIHOMO_SUBSCRIPTION_URL must use HTTPS"
     }
 }
@@ -72,8 +72,8 @@ android {
         applicationId = "com.enterprise.shield.vpn"
         minSdk = 26
         targetSdk = 35
-        versionCode = 92
-        versionName = "1.0.31"
+        versionCode = 93
+        versionName = "1.0.32"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resourceConfigurations += listOf("en", "ru")
