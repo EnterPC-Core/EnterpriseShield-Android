@@ -578,6 +578,7 @@ class MainActivity : Activity() {
                 }.getOrElse { emptyList() }
                 runOnUiThread {
                     list.removeAllViews()
+                    addPublishButton()
                     if(shares.isEmpty()) list.addView(TextView(this@MainActivity).apply{setText(R.string.shares_empty);setTextColor(TEXT_SECONDARY)})
                     shares.forEachIndexed { n,x ->
                         val id=x.optInt("id"); val title=x.optString("title"); val url=x.optString("url")
