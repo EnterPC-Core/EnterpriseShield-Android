@@ -129,7 +129,7 @@ object GitHubReleaseClient {
             val version = AppUpdatePolicy.normalizedVersion(tag)
             if (version.isEmpty() || tag != tag.trim()) throw IOException("GitHub release version is invalid")
             val releaseUrl = response.getString("html_url")
-            val apkName = variant?.let { "EnterpriseShieldVPN-$version-${it.suffix}.apk" }
+            val apkName = variant?.let { "EnterpriseShield-$version-${it.suffix}.apk" }
             val assets = response.getJSONArray("assets")
             val selected = mutableMapOf<String, ReleaseAsset?>()
             for (index in 0 until assets.length()) {
@@ -167,7 +167,7 @@ object GitHubReleaseClient {
         }
         requireRepositoryUrl(release.url, "/app/es/tag/${release.version}")
         for ((asset, expectedName) in listOf(
-            release.apk to variant?.let { "EnterpriseShieldVPN-$version-${it.suffix}.apk" },
+            release.apk to variant?.let { "EnterpriseShield-$version-${it.suffix}.apk" },
             release.checksums to "SHA256SUMS",
         )) {
             if (asset == null) continue

@@ -96,7 +96,7 @@ class AppUpdatePolicyTest {
             listOf(asset(apkName())),
             listOf(asset("SHA256SUMS")),
             listOf(asset(apkName()).put("state", "starter"), asset("SHA256SUMS")),
-            listOf(asset("EnterpriseShieldVPN-1.3.0-universal.apk"), asset("SHA256SUMS")),
+            listOf(asset("EnterpriseShield-1.3.0-universal.apk"), asset("SHA256SUMS")),
             listOf(asset(apkName(ApkVariant.Arm64V8a)), asset("SHA256SUMS")),
         )) {
             val parsed = GitHubReleaseClient.parseRelease(releaseJson(assets).toString(), ApkVariant.Universal)
@@ -196,7 +196,7 @@ class AppUpdatePolicyTest {
         assertThrows(IOException::class.java) { AppUpdatePolicy.validateApk(candidate, installed.copy(versionName = "1.5.0"), release) }
     }
 
-    private fun apkName(variant: ApkVariant = ApkVariant.Universal) = "EnterpriseShieldVPN-1.4.0-${variant.suffix}.apk"
+    private fun apkName(variant: ApkVariant = ApkVariant.Universal) = "EnterpriseShield-1.4.0-${variant.suffix}.apk"
 
     private fun asset(name: String) = JSONObject()
         .put("id", 123)
