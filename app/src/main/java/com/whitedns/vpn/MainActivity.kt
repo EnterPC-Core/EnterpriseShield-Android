@@ -317,6 +317,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        runCatching { TvUi.detect(this) }
         appLanguagePreferenceStore = AppLanguagePreferenceStore(this)
         appThemePreferenceStore = AppThemePreferenceStore(this)
         if (savedInstanceState == null) {
@@ -481,6 +482,7 @@ class MainActivity : Activity() {
             insets
         }
         root.addView(connectionTestingPageHost, FrameLayout.LayoutParams(-1, -1))
+        runCatching { TvUi.attachAutoStyling(root) }
         return root
     }
 
@@ -1356,9 +1358,9 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         // TV: применяем focus ко всем clickable элементам
-        if (android.os.Build.MODEL?.contains("TV") == true || 
-            packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK)) {
+        if (TvUi.isTv()) {
             runCatching { applyTvFocusRecursive(window.decorView) }
+            runCatching { TvUi.styleTree(window.decorView) }
         }
         super.onResume()
         RootGate.enforce(this)
@@ -5557,6 +5559,7 @@ testingSettings.addView(
             content,
             FrameLayout.LayoutParams(-1, -1, Gravity.CENTER_HORIZONTAL),
         )
+        runCatching { TvUi.styleTree(content) }
         updateTestControls()
         setConnectionTestingPageVisible(visible = true, animate = animate && !rebuild)
     }
