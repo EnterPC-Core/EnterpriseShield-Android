@@ -1359,7 +1359,6 @@ class MainActivity : Activity() {
     override fun onResume() {
         // TV: применяем focus ко всем clickable элементам
         if (TvUi.isTv()) {
-            runCatching { applyTvFocusRecursive(window.decorView) }
             runCatching { TvUi.styleTree(window.decorView) }
         }
         super.onResume()
@@ -7199,29 +7198,6 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
         DiagnosticLogger.info(this, "diagnostics.copy", "chars=${diagnostics.length}")
     }
 
-    private fun tvFocus(view: View) {
-        runCatching {
-            view.isFocusable = true
-            view.isFocusableInTouchMode = true
-            if (android.os.Build.MODEL?.contains("TV") == true || 
-                packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK)) {
-                if (view !is com.google.android.material.button.MaterialButton) {
-                    view.background = android.graphics.drawable.RippleDrawable(
-                        android.content.res.ColorStateList.valueOf(0x407FD6C4),
-                        view.background,
-                        android.graphics.drawable.GradientDrawable().apply { cornerRadius = dp(8).toFloat() }
-                    )
-                }
-            }
-        }
-    }
-
-    private fun applyTvFocusRecursive(view: View) {
-        if (view.isClickable) tvFocus(view)
-        if (view is android.view.ViewGroup) {
-            for (i in 0 until view.childCount) applyTvFocusRecursive(view.getChildAt(i))
-        }
-    }
 
     private fun startHeartbeat() {
         activityScope.launch(Dispatchers.IO) {
