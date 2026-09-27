@@ -38,12 +38,12 @@ class ConnectionChainTest {
             second,
         ).single()
 
-        assertTrue(plan.rawYaml.contains("name: 'WhiteDNS Chain 1.1'"))
-        assertTrue(plan.rawYaml.contains("name: 'WhiteDNS Chain 1.2'"))
-        assertTrue(plan.rawYaml.contains("name: 'WhiteDNS Chain 2.1'"))
-        assertTrue(plan.rawYaml.contains("dialer-proxy: 'WhiteDNS Chain 1.1'"))
-        assertTrue(plan.rawYaml.contains("dialer-proxy: 'WhiteDNS Chain 1.2'"))
-        assertEquals("WhiteDNS Chain 2.1", plan.finalRuntimeName)
+        assertTrue(plan.rawYaml.contains("name: 'Enterprise Chain 1.1'"))
+        assertTrue(plan.rawYaml.contains("name: 'Enterprise Chain 1.2'"))
+        assertTrue(plan.rawYaml.contains("name: 'Enterprise Chain 2.1'"))
+        assertTrue(plan.rawYaml.contains("dialer-proxy: 'Enterprise Chain 1.1'"))
+        assertTrue(plan.rawYaml.contains("dialer-proxy: 'Enterprise Chain 1.2'"))
+        assertEquals("Enterprise Chain 2.1", plan.finalRuntimeName)
     }
 
     @Test
@@ -431,8 +431,8 @@ class ConnectionChainTest {
             second,
         ).single()
 
-        assertTrue(plan.rawYaml.contains("name: 'WhiteDNS Chain 1.1'"))
-        assertTrue(plan.rawYaml.contains("name: 'WhiteDNS Chain 2.1'"))
+        assertTrue(plan.rawYaml.contains("name: 'Enterprise Chain 1.1'"))
+        assertTrue(plan.rawYaml.contains("name: 'Enterprise Chain 2.1'"))
         assertEquals(2, plan.hops.map { it.candidate.ref }.distinct().size)
     }
 
@@ -497,7 +497,7 @@ class ConnectionChainTest {
             plans(fixedSettings(shaped.ref("late-name"), exit.ref("exit")), shaped, exit)
                 .single()
                 .rawYaml
-                .contains("name: 'WhiteDNS Chain 1.1'"),
+                .contains("name: 'Enterprise Chain 1.1'"),
         )
     }
 

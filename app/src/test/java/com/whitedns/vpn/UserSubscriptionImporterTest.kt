@@ -215,8 +215,8 @@ class UserSubscriptionImporterTest {
         assertEquals(2, snapshot.summary.groups.size)
         assertTrue(imported.yaml.contains("ws-opts:"))
         assertTrue(imported.yaml.contains("servername: 'edge.example.com'"))
-        assertTrue(imported.yaml.contains("name: 'WhiteDNS Proxy'"))
-        assertTrue(imported.yaml.contains("- 'MATCH,WhiteDNS Proxy'"))
+        assertTrue(imported.yaml.contains("name: 'Enterprise Proxy'"))
+        assertTrue(imported.yaml.contains("- 'MATCH,Enterprise Proxy'"))
     }
 
     @Test
@@ -257,7 +257,7 @@ class UserSubscriptionImporterTest {
         assertEquals("url-safe", byName.getValue("URL-safe").getString("password"))
         assertEquals("solo", byName.getValue("User-only").getString("username"))
         assertFalse(byName.getValue("User-only").has("password"))
-        assertTrue(imported.yaml.contains("name: 'WhiteDNS Proxy'"))
+        assertTrue(imported.yaml.contains("name: 'Enterprise Proxy'"))
     }
 
     @Test
@@ -844,8 +844,8 @@ class UserSubscriptionImporterTest {
         val migrated = MihomoLinkConfigBuilder.migrateGeneratedYaml(oldYaml)
 
         assertFalse(migrated.contains("WhiteDNS Select"))
-        assertTrue(migrated.contains("name: 'WhiteDNS Proxy'"))
+        assertTrue(migrated.contains("name: 'Enterprise Proxy'"))
         assertTrue(migrated.contains("cipher: 'auto'"))
-        assertTrue(migrated.contains("- 'MATCH,WhiteDNS Proxy'"))
+        assertTrue(migrated.contains("- 'MATCH,Enterprise Proxy'"))
     }
 }

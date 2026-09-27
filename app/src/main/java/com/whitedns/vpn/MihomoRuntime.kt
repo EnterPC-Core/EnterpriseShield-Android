@@ -958,7 +958,7 @@ object MihomoAutomaticRoutingBridge {
         val blocks = parseGroupBlocks(lines)
         val summary = runCatching { MihomoConfigParser.parseSummary(rawYaml) }.getOrNull()
             ?: return result(rawYaml, reason = "invalid-config")
-        val rawTrafficBlocks = blocks.filter { it.name?.contains("Enterprise Proxy", ignoreCase = true) == true }
+        val rawTrafficBlocks = blocks.filter { it.name?.contains("Enterprise Proxy", ignoreCase = true) == true || it.name?.contains("WhiteDNS Proxy", ignoreCase = true) == true }
         if (rawTrafficBlocks.size > 1) {
             return result(rawYaml, reason = "root-layout-ambiguous")
         }
@@ -1658,7 +1658,7 @@ object MihomoDpiBypassPatcher {
 
         fun flushProxy() {
             if (currentProxy.isEmpty()) return
-            if (proxyName(currentProxy) == DpiBypassDefaults.PROXY_NAME) {
+            if (proxyName(currentProxy) == DpiBypassDefaults.PROXY_NAME || proxyName(currentProxy) == "WhiteDNS ByeByeDPI") {
                 sawDpiProxy = true
                 output += dpiProxyBlock(proxyPort)
             } else {

@@ -1232,16 +1232,16 @@ class MihomoRuntimeConfigBuilderTest {
         val repatched = MihomoDpiBypassPatcher.patch(patched, enabled = true, proxyPort = 31_235)
 
         assertEquals(yaml, disabled)
-        assertTrue(patched.contains("name: 'WhiteDNS ByeByeDPI'"))
+        assertTrue(patched.contains("name: 'Enterprise Shield DPI'"))
         assertTrue(patched.contains("type: socks5"))
         assertTrue(patched.contains("server: 127.0.0.1"))
         assertTrue(patched.contains("udp: true"))
         assertTrue(patched.contains("port: 31234"))
-        assertTrue(patched.contains("dialer-proxy: 'WhiteDNS ByeByeDPI'"))
-        assertTrue(patched.contains("dialer-proxy: 'WhiteDNS ByeByeDPI' }"))
+        assertTrue(patched.contains("dialer-proxy: 'Enterprise Shield DPI'"))
+        assertTrue(patched.contains("dialer-proxy: 'Enterprise Shield DPI' }"))
         assertTrue(patched.contains("Host: host.example.com"))
         assertTrue(repatched.contains("port: 31235"))
-        assertEquals(1, Regex("name: 'WhiteDNS ByeByeDPI'").findAll(repatched).count())
+        assertEquals(1, Regex("name: 'Enterprise Shield DPI'").findAll(repatched).count())
     }
 
     @Test
