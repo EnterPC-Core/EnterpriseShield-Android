@@ -428,9 +428,11 @@ class SubscriptionStore(private val context: Context) {
     companion object {
         const val PRIVATE_SUBSCRIPTION_ID = "whitevpn-private"
         const val PUBLIC_SUBSCRIPTION_ID = "whitedns"
+        const val TTR_SUBSCRIPTION_ID = "ttr-extra"
         val BUILT_IN_SUBSCRIPTION_IDS = listOfNotNull(
             PRIVATE_SUBSCRIPTION_ID.takeIf { BuildConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL.isNotBlank() },
             PUBLIC_SUBSCRIPTION_ID,
+
         )
         val DEFAULT_SUBSCRIPTION_ID = BUILT_IN_SUBSCRIPTION_IDS.first()
         fun isBuiltInSubscription(id: String): Boolean = id in BUILT_IN_SUBSCRIPTION_IDS

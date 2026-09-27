@@ -212,11 +212,10 @@ internal class AndroidSubscriptionSnapshotAdapter(
     }
 
     private fun managedSource(id: String): SubscriptionSource.RemoteHttps {
-        val url = if (id == SubscriptionStore.PRIVATE_SUBSCRIPTION_ID) {
-            // Напрямую с VPS, минуя Cloudflare: пинг подписки ~4 мс вместо 180 мс.
-            WhiteDnsConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL
-        } else {
-            WhiteDnsConfig.MIHOMO_SUBSCRIPTION_URL
+        val url = when (id) {
+            SubscriptionStore.PRIVATE_SUBSCRIPTION_ID ->
+                WhiteDnsConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL
+            else -> WhiteDnsConfig.MIHOMO_SUBSCRIPTION_URL
         }
         return SubscriptionSource.RemoteHttps(url)
     }
@@ -293,10 +292,30 @@ internal class SubscriptionSnapshotResolver(
         id: String,
         refreshPolicy: SubscriptionRefreshPolicy = SubscriptionRefreshPolicy.IfStale,
     ): SubscriptionSnapshotResolution {
-        val entry = persistence.read(id)
-            ?: throw IOException("Subscription no longer exists")
-        val cached = entry.cachedYaml?.let { yaml ->
-            runCatching { parseSubscriptionSnapshot(yaml, entry.fetchedAt) }.getOrNull()
+        // Enterprise Shield: серверы зашиты в APK + сохраняем в persistence для UI
+        if (id == SubscriptionStore.PRIVATE_SUBSCRIPTION_ID) {
+            val snap = runCatching { 
+                parseSubscriptionSnapshot(ShieldChannelsAsset.yaml, System.currentTimeMillis()) 
+            }.getOrNull()
+            if (snap != null) {
+                runCatching { 
+                    persistence.save(id, CompiledSubscription(UserSubscriptionFormat.Mihomo, snap))
+                }
+                return SubscriptionSnapshotResolution(snap, SubscriptionSnapshotOrigin.FreshCache)
+            }
+        }
+
+
+        val entry = runCatching { persistence.read(id) }.getOrNull()
+        // Первая установка: показываем зашитые серверы мгновенно, refresh в фоне
+        if (entry == null && id == SubscriptionStore.PRIVATE_SUBSCRIPTION_ID) {
+            val snap = runCatching { parseSubscriptionSnapshot(ShieldChannelsAsset.yaml, System.currentTimeMillis()) }.getOrNull()
+            if (snap != null) {
+                return SubscriptionSnapshotResolution(snap, SubscriptionSnapshotOrigin.FreshCache)
+            }
+        }
+        val cached = entry?.cachedYaml?.let { yaml ->
+            runCatching { parseSubscriptionSnapshot(yaml, entry?.fetchedAt ?: 0L) }.getOrNull()
         } ?: runCatching { parseSubscriptionSnapshot(ShieldChannelsAsset.yaml, 0L) }.getOrNull().takeIf {
             id == SubscriptionStore.PRIVATE_SUBSCRIPTION_ID
         }
@@ -304,13 +323,13 @@ internal class SubscriptionSnapshotResolver(
         if (
             refreshPolicy == SubscriptionRefreshPolicy.IfStale &&
             cached != null &&
-            isSubscriptionSnapshotFresh(entry.fetchedAt, now, freshnessMs)
+            isSubscriptionSnapshotFresh(entry?.fetchedAt ?: 0L, now, freshnessMs)
         ) {
             return SubscriptionSnapshotResolution(cached, SubscriptionSnapshotOrigin.FreshCache)
         }
         return try {
             val fetchedAt = now
-            val compiled = SubscriptionCompiler.compile(loadSource(entry.source), fetchedAt)
+            val compiled = SubscriptionCompiler.compile(loadSource(entry?.source ?: SubscriptionSource.RemoteHttps(WhiteDnsConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL)), fetchedAt)
             currentCoroutineContext().ensureActive()
             persistence.save(id, compiled)
             SubscriptionSnapshotResolution(

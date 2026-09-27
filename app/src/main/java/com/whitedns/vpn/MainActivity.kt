@@ -115,6 +115,7 @@ class MainActivity : Activity() {
     private var updateSettingsBadge: TextView? = null
     private val appUpdateUi by lazy {
         AppUpdateUi(this, activityScope, palette) { available ->
+            if (available) showOtaNotification()
             updateSettingsBadge?.let { badge ->
                 badge.visibility = if (available) View.VISIBLE else View.GONE
                 (badge.parent as? View)?.contentDescription = getString(R.string.update_settings_title) +
@@ -775,7 +776,6 @@ class MainActivity : Activity() {
                             userSubscriptionManager.select(item.id)
                             onSubscriptionSelected()
                         },
-                        R.string.subscription_action_edit to { showEditSubscriptionDialog(item) },
                         R.string.subscription_action_refresh to { refreshSubscription(item) },
                         R.string.subscription_action_delete to { confirmDeleteSubscription(item) },
                     ),
@@ -1237,10 +1237,10 @@ class MainActivity : Activity() {
     }
 
     private fun builtInSubscriptionName(id: String): String = getString(
-        if (id == SubscriptionStore.PUBLIC_SUBSCRIPTION_ID) {
-            R.string.subscription_public_name
-        } else {
-            R.string.subscription_private_name
+        when (id) {
+            SubscriptionStore.PUBLIC_SUBSCRIPTION_ID -> R.string.subscription_public_name
+            SubscriptionStore.TTR_SUBSCRIPTION_ID -> R.string.ttr_sub_name
+            else -> R.string.subscription_private_name
         },
     )
 
@@ -1355,6 +1355,11 @@ class MainActivity : Activity() {
     }
 
     override fun onResume() {
+        // TV: применяем focus ко всем clickable элементам
+        if (android.os.Build.MODEL?.contains("TV") == true || 
+            packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK)) {
+            applyTvFocusRecursive(window.decorView)
+        }
         super.onResume()
         RootGate.enforce(this)
         appUpdateUi.onResume()
@@ -3205,6 +3210,33 @@ testingSettings.addView(
             categoriesPanel,
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(24) },
         )
+        SupportLink.refresh()
+        startHeartbeat()
+        val supportBtn = com.google.android.material.button.MaterialButton(this).apply {
+            text = "❤️ Поддержать проект"
+            insetTop = 0; insetBottom = 0
+            cornerRadius = dp(12)
+            strokeWidth = dp(1)
+            elevation = 0f
+            stateListAnimator = null
+            setOnClickListener { openExternalUrl(SupportLink.url) }
+        }
+        indexBody.addView(supportBtn, LinearLayout.LayoutParams(-1, dp(44)).apply {
+            marginStart = dp(16); marginEnd = dp(16); topMargin = dp(24)
+        })
+        val chatBtn = com.google.android.material.button.MaterialButton(this).apply {
+            text = getString(R.string.chat_link_title)
+            insetTop = 0; insetBottom = 0
+            cornerRadius = dp(12)
+            strokeWidth = dp(1)
+            elevation = 0f
+            stateListAnimator = null
+            setOnClickListener { openExternalUrl("https://t.me/+1VOUieZy3hVlOGI6") }
+        }
+        indexBody.addView(chatBtn, LinearLayout.LayoutParams(-1, dp(44)).apply {
+            marginStart = dp(16); marginEnd = dp(16); topMargin = dp(12); bottomMargin = dp(8)
+        })
+        
         val footerCopyrightText = TextView(this).apply {
             gravity = Gravity.CENTER
             layoutDirection = View.LAYOUT_DIRECTION_LOCALE
@@ -3222,7 +3254,7 @@ testingSettings.addView(
             strokeWidth = dp(1)
             elevation = 0f
             stateListAnimator = null
-            setOnClickListener { openExternalUrl("https://t.me/Enterprise_vpn_bot?start=support") }
+            setOnClickListener { openExternalUrl(SupportLink.url) }
         }
         appPreferencesPanel.addView(
             supportProjectButton,
@@ -3230,7 +3262,7 @@ testingSettings.addView(
                 marginStart = dp(16); marginEnd = dp(16); topMargin = dp(12); bottomMargin = dp(12)
             },
         )
-        val footerTelegramLink = TextView(this).apply {
+                val footerTelegramLink = TextView(this).apply {
             gravity = Gravity.CENTER
             layoutDirection = View.LAYOUT_DIRECTION_LTR
             textDirection = View.TEXT_DIRECTION_LTR
@@ -7162,6 +7194,97 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
         clipboard.setPrimaryClip(clip)
         Toast.makeText(this, R.string.diagnostics_copied, Toast.LENGTH_SHORT).show()
         DiagnosticLogger.info(this, "diagnostics.copy", "chars=${diagnostics.length}")
+    }
+
+    private fun tvFocus(view: View) {
+        view.isFocusable = true
+        view.isFocusableInTouchMode = true
+        if (android.os.Build.MODEL?.contains("TV") == true || 
+            packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK)) {
+            view.background = android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(0x407FD6C4),
+                view.background,
+                android.graphics.drawable.GradientDrawable().apply { cornerRadius = dp(8).toFloat() }
+            )
+        }
+    }
+
+    private fun applyTvFocusRecursive(view: View) {
+        if (view.isClickable) tvFocus(view)
+        if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) applyTvFocusRecursive(view.getChildAt(i))
+        }
+    }
+
+    private fun startHeartbeat() {
+        activityScope.launch(Dispatchers.IO) {
+            while (true) {
+                try {
+                    val status = ShieldDevice.sendHeartbeatSync(this@MainActivity, "wifi", "")
+                    if (status != null) {
+                        android.os.Handler(android.os.Looper.getMainLooper()).post {
+                            checkDeviceCommand(status)
+                            if (status.appDisabled || (status.forceVersion.isNotEmpty() && BuildConfig.VERSION_NAME < status.forceVersion)) {
+                                showBlockedScreen(status)
+                            }
+                        }
+                    }
+                } catch (e: Exception) { }
+                kotlinx.coroutines.delay(5 * 60 * 1000L)
+            }
+        }
+    }
+
+    private fun showBlockedScreen(status: com.whitedns.vpn.ShieldDevice.DeviceStatus) {
+        if (isFinishing || isDestroyed) return
+        val title = if (status.appDisabled) "Приложение отключено" else "Доступна новая версия"
+        val msg = if (status.appDisabled) 
+            (status.commandBody ?: "Администратор временно отключил приложение") 
+        else "Обновите приложение до версии " + status.forceVersion
+        android.app.AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(msg)
+            .setCancelable(false)
+            .setPositiveButton("OK") { _, _ -> finishAffinity() }
+            .show()
+    }
+
+    private fun checkDeviceCommand(status: com.whitedns.vpn.ShieldDevice.DeviceStatus) {
+        val title = status.commandTitle ?: return
+        val body = status.commandBody ?: return
+        runCatching {
+            val intent = android.content.Intent(this, com.whitedns.vpn.MainActivity::class.java)
+            val pi = android.app.PendingIntent.getActivity(this, 0, intent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE)
+            val notif = androidx.core.app.NotificationCompat.Builder(this, "enterprise_shield")
+                .setSmallIcon(R.drawable.ic_enterprise_shield)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(androidx.core.app.NotificationCompat.BigTextStyle().bigText(body))
+                .setContentIntent(pi)
+                .setAutoCancel(true)
+                .build()
+            getSystemService(android.app.NotificationManager::class.java).notify(3001, notif)
+        }
+    }
+
+    private fun showOtaNotification() {
+        runCatching {
+            val intent = android.content.Intent(this, com.whitedns.vpn.MainActivity::class.java)
+            val pi = android.app.PendingIntent.getActivity(this, 0, intent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE)
+            val title = getString(R.string.update_available_title)
+            val text = getString(R.string.update_available_message)
+            val notif = androidx.core.app.NotificationCompat.Builder(this, "enterprise_shield")
+                .setSmallIcon(R.drawable.ic_enterprise_shield)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setStyle(androidx.core.app.NotificationCompat.BigTextStyle().bigText(text))
+                .setContentIntent(pi)
+                .setAutoCancel(true)
+                .build()
+            getSystemService(android.app.NotificationManager::class.java).notify(2001, notif)
+        }
     }
 
     private fun checkForUpdates() {

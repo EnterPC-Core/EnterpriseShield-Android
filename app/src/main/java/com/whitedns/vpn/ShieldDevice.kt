@@ -53,6 +53,11 @@ object ShieldDevice {
         val status: String,
         val banned: Boolean,
         val telegram: String,
+        val commandTitle: String? = null,
+        val commandBody: String? = null,
+        val commandUrl: String? = null,
+        val appDisabled: Boolean = false,
+        val forceVersion: String = ""
     ) {
         val active: Boolean get() = linked && !banned
     }
@@ -96,6 +101,10 @@ object ShieldDevice {
         }
     }
 
+    fun sendHeartbeatSync(context: Context, network: String, channel: String): DeviceStatus? {
+        return runCatching { sendHeartbeat(context, network, channel) }.getOrNull()
+    }
+
     private fun sendHeartbeat(context: Context, network: String, channel: String): DeviceStatus {
         val payload = JSONObject()
             .put("code", code(context))
@@ -119,6 +128,11 @@ object ShieldDevice {
                 status = json.optString("status", "active"),
                 banned = json.optBoolean("banned", false),
                 telegram = json.optString("telegram", ""),
+                commandTitle = json.optJSONObject("command")?.optString("title"),
+                commandBody = json.optJSONObject("command")?.optString("body"),
+                commandUrl = json.optJSONObject("command")?.optString("url"),
+                appDisabled = json.optBoolean("app_disabled", false),
+                forceVersion = json.optString("min_app_version", ""),
             )
         } finally {
             conn.disconnect()

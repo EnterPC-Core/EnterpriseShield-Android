@@ -434,4 +434,6 @@
 <string name="widget_shield_name">Щит</string>
     <string name="shares_publish">Добавить раздачу</string>
     <string name="support_project_title">Поддержать проект</string>
+    <string name="ttr_sub_name">Enterprise Extra</string>
+    <string name="chat_link_title">Наш чат</string>
 </resources>

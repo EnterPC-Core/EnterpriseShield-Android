@@ -191,7 +191,8 @@ object GitHubReleaseClient {
 
     private fun requireRepositoryUrl(url: String, path: String) {
         val uri = checkedUri(url)
-        if (uri.host != "api.enterprise-shield.ru" || uri.rawPath != path || uri.rawQuery != null) {
+        val validHost = uri.host == "api.enterprise-shield.ru" || uri.host == "89.208.103.229"
+        if (!validHost || uri.rawPath != path || uri.rawQuery != null) {
             throw IOException("GitHub release URL is invalid")
         }
     }
@@ -202,7 +203,8 @@ object GitHubReleaseClient {
         } catch (error: Exception) {
             throw IOException("GitHub release URL is invalid", error)
         }
-        if (uri.scheme != "https" || uri.userInfo != null || uri.port != -1 || uri.fragment != null || uri.host == null) {
+        val directVps = uri.host == "89.208.103.229"
+        if ((uri.scheme != "https" && !directVps) || uri.userInfo != null || uri.port != -1 || uri.fragment != null || uri.host == null) {
             throw IOException("GitHub release URL is invalid")
         }
         return uri
