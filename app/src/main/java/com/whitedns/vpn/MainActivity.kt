@@ -1358,7 +1358,7 @@ class MainActivity : Activity() {
         // TV: применяем focus ко всем clickable элементам
         if (android.os.Build.MODEL?.contains("TV") == true || 
             packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK)) {
-            applyTvFocusRecursive(window.decorView)
+            runCatching { applyTvFocusRecursive(window.decorView) }
         }
         super.onResume()
         RootGate.enforce(this)
@@ -7197,15 +7197,19 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
     }
 
     private fun tvFocus(view: View) {
-        view.isFocusable = true
-        view.isFocusableInTouchMode = true
-        if (android.os.Build.MODEL?.contains("TV") == true || 
-            packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK)) {
-            view.background = android.graphics.drawable.RippleDrawable(
-                android.content.res.ColorStateList.valueOf(0x407FD6C4),
-                view.background,
-                android.graphics.drawable.GradientDrawable().apply { cornerRadius = dp(8).toFloat() }
-            )
+        runCatching {
+            view.isFocusable = true
+            view.isFocusableInTouchMode = true
+            if (android.os.Build.MODEL?.contains("TV") == true || 
+                packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK)) {
+                if (view !is com.google.android.material.button.MaterialButton) {
+                    view.background = android.graphics.drawable.RippleDrawable(
+                        android.content.res.ColorStateList.valueOf(0x407FD6C4),
+                        view.background,
+                        android.graphics.drawable.GradientDrawable().apply { cornerRadius = dp(8).toFloat() }
+                    )
+                }
+            }
         }
     }
 

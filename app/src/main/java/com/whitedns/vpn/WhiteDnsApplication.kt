@@ -20,6 +20,7 @@ class WhiteDnsApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        runCatching { CrashReporter.install(this) }
         initializeWhiteDnsTypefaces(this)
         File(filesDir, "mihomo").mkdirs()
         File(cacheDir, "mihomo").mkdirs()
