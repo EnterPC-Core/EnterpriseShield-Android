@@ -9,7 +9,7 @@ import java.util.Date
 import java.util.Locale
 
 object DiagnosticLogger {
-    private const val TAG = "WhiteDNSDiag"
+    private const val TAG = "EsDiag"
     private const val LOG_FILE_NAME = "whitedns-debug.log"
     private const val MIHOMO_STDERR_FILE_NAME = "service_error.log"
     private const val MAX_LOG_BYTES = 512 * 1024
@@ -60,7 +60,7 @@ object DiagnosticLogger {
         }.getOrDefault("")
 
         return buildString {
-            append("WhiteVPN ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n")
+            append("EnterpriseShield ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n")
             append("Device ${Build.MANUFACTURER} ${Build.MODEL}; Android ${Build.VERSION.RELEASE} ")
             append("(SDK ${Build.VERSION.SDK_INT}); ABIs ${Build.SUPPORTED_ABIS.joinToString()}\n")
             append("--- events ---\n")

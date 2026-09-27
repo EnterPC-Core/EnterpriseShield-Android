@@ -340,7 +340,7 @@ object MihomoSelectionPolicy {
     }
 
     private fun trafficProxyGroup(summary: MihomoConfigSummary): MihomoProxyGroup? {
-        return summary.groups.firstOrNull { it.name.contains("WhiteDNS Proxy", ignoreCase = true) }
+        return summary.groups.firstOrNull { it.name.contains("Enterprise Proxy", ignoreCase = true) }
     }
 
     private fun countriesGroup(summary: MihomoConfigSummary): MihomoProxyGroup? {

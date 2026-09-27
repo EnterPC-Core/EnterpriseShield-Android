@@ -5,7 +5,7 @@ import androidx.annotation.Keep
 import com.follow.clash.core.TunInterface
 
 object DpiBypassDefaults {
-    const val PROXY_NAME = "WhiteDNS ByeByeDPI"
+    const val PROXY_NAME = "Enterprise Shield DPI"
     const val PROXY_HOST = "127.0.0.1"
     const val FALLBACK_PROXY_PORT = 1080
     private const val PROTECT_PATH_PLACEHOLDER = "android-vpn-protect"

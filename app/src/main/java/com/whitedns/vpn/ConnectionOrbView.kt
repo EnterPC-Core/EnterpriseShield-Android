@@ -33,7 +33,7 @@ import kotlin.random.Random
 
 /**
  * A smooth liquid orb button with gentle morphing, layered gradients,
- * and particle effects - matching the WhiteVPN design.
+ * and particle effects - matching the app design.
  */
 class ConnectionOrbView(context: Context) : View(context) {
     private val palette = WhiteDnsDesignTokens.forContext(context)

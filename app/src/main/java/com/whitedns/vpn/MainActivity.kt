@@ -6576,7 +6576,7 @@ testingSettings.addView(
         val settings = lanSharingPreferenceStore.read()
         val value = lanSharingDetails(settings)
         getSystemService(ClipboardManager::class.java)
-            .setPrimaryClip(ClipData.newPlainText("WhiteVPN LAN proxy", value))
+            .setPrimaryClip(ClipData.newPlainText("EnterpriseShield LAN proxy", value))
         Toast.makeText(this, R.string.lan_sharing_copied, Toast.LENGTH_SHORT).show()
     }
 
@@ -7183,7 +7183,7 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
     private fun copyDiagnosticsToClipboard() {
         val diagnostics = DiagnosticLogger.read(this).ifBlank { getString(R.string.diagnostics_empty) }
         val clipboard = getSystemService(ClipboardManager::class.java)
-        val clip = ClipData.newPlainText("WhiteVPN diagnostics", diagnostics).apply {
+        val clip = ClipData.newPlainText("EnterpriseShield diagnostics", diagnostics).apply {
             // Keeps the clipboard preview toast from rendering the log on screen (Android 13+).
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 description.extras = PersistableBundle().apply {

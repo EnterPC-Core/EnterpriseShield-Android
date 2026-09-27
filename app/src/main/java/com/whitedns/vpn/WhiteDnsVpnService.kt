@@ -482,7 +482,7 @@ class WhiteDnsVpnService : VpnService() {
         }
         createNotificationChannel()
         val wakeLock = getSystemService(PowerManager::class.java)
-            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WhiteVPN:ConnectionTests")
+            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "EnterpriseShield:ConnectionTests")
             .apply { setReferenceCounted(false) }
         connectionTestWakeLock = ConnectionTestWakeLock(
             scope,

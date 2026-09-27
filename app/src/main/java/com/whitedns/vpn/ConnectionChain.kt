@@ -333,7 +333,7 @@ data class ConnectionChainRuntimePlan(
 
 object ConnectionChainPlanner {
     const val MAX_RUNTIME_ATTEMPTS = 12
-    const val GROUP_NAME = "WhiteDNS Proxy Chain"
+    const val GROUP_NAME = "Enterprise Proxy Chain"
     private const val MAX_COMPATIBILITY_CHECKS = 1_000_000
 
     fun plans(
@@ -603,7 +603,7 @@ object ConnectionChainPlanner {
                 proxies = candidate.blocks.mapIndexed { proxyIndex, block ->
                     ResolvedConnectionChainProxy(
                         block = block,
-                        runtimeName = "WhiteDNS Chain ${index + 1}.${proxyIndex + 1}",
+                        runtimeName = "Enterprise Chain ${index + 1}.${proxyIndex + 1}",
                     )
                 },
             )
