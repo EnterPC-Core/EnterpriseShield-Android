@@ -20,6 +20,7 @@ class WhiteDnsApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        runCatching { resetStaleCoreCacheOnUpdate() }
         runCatching { CrashReporter.install(this) }
         initializeWhiteDnsTypefaces(this)
         File(filesDir, "mihomo").mkdirs()
@@ -42,4 +43,22 @@ class WhiteDnsApplication : Application() {
         super.onConfigurationChanged(newConfig)
         VpnWidgetProvider.refresh(this)
     }
+    /**
+     * Обновление поверх старой версии оставляет кэш ядра (cache/mihomo), который может
+     * рассинхронизироваться с новой конфигурацией: соединение "показывает", но каналы
+     * не работают до полного сноса приложения. Сбрасываем кэш ядра один раз при смене
+     * версии — пользовательские настройки и подписки не трогаем.
+     */
+    private fun resetStaleCoreCacheOnUpdate() {
+        val prefs = getSharedPreferences("es_meta", MODE_PRIVATE)
+        val current = BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")"
+        val previous = prefs.getString("last_version", null)
+        if (previous != null && previous != current) {
+            runCatching { File(cacheDir, "mihomo").deleteRecursively() }
+            runCatching { File(cacheDir, "clash").deleteRecursively() }
+            DiagnosticLogger.info(this, "app.update.cache.reset", "from=$previous to=$current")
+        }
+        prefs.edit().putString("last_version", current).apply()
+    }
+
 }

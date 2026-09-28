@@ -6076,7 +6076,7 @@ testingSettings.addView(
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_LOCALE
-            setPadding(0, dp(24), 0, dp(24))
+            setPadding(0, dp(24), 0, dp(96))
         }
 
         val modeGroup = RadioGroup(this).apply {
@@ -6155,7 +6155,12 @@ testingSettings.addView(
         val appListHeight = minOf(dp(520), resources.displayMetrics.heightPixels * 55 / 100)
         val appList = object : ListView(this) {
             override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-                parent.requestDisallowInterceptTouchEvent(true)
+                // Родителю отдаём жест только если список сам не скроллится:
+                // перехват разрешаем лишь при реальном движении внутри списка,
+                // иначе страница не докручивается и последние приложения ("я"...) не видны.
+                if (event.actionMasked == MotionEvent.ACTION_MOVE) {
+                    parent.requestDisallowInterceptTouchEvent(true)
+                }
                 return super.dispatchTouchEvent(event)
             }
         }.apply {
