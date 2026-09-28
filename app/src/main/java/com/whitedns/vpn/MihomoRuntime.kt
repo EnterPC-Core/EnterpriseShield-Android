@@ -320,8 +320,8 @@ private val RussiaBypassProxyDomains = listOf(
 
 /** Геосеты, которые ходят напрямую (обновления, сторы, RU-сегмент). */
 private val RussiaBypassDirectGeosites = listOf(
-    "apple", "apple-pki", "huawei", "xiaomi", "category-android-app-download",
-    "f-droid", "twitch", "ru",
+    "APPLE", "APPLE-PKI", "HUAWEI", "XIAOMI", "CATEGORY-ANDROID-APP-DOWNLOAD",
+    "F-DROID", "TWITCH", "CATEGORY-RU",
 )
 
 internal fun StringBuilder.appendRussiaSplitRules(target: String?, quote: (String) -> String) {
@@ -333,8 +333,8 @@ internal fun StringBuilder.appendRussiaSplitRules(target: String?, quote: (Strin
     RussiaBypassDirectGeosites.forEach { g ->
         append("  - ").append(quote("GEOSITE,$g,DIRECT")).append("\n")
     }
-    append("  - ").append(quote("GEOIP,private,DIRECT,no-resolve")).append("\n")
-    append("  - ").append(quote("GEOIP,ru,DIRECT")).append("\n")
+    append("  - ").append(quote("GEOIP,PRIVATE,DIRECT,no-resolve")).append("\n")
+    append("  - ").append(quote("GEOIP,RU,DIRECT")).append("\n")
 }
 
 class RoutingModePreferenceStore(context: Context) {

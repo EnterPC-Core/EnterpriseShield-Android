@@ -817,7 +817,7 @@ class MihomoRuntimeConfigBuilderTest {
             routingMode = RoutingMode.RussiaBypass,
         )
 
-        assertTrue(runtimeYaml.contains("- 'GEOSITE,ru,DIRECT'"))
+        assertTrue(runtimeYaml.contains("- 'GEOSITE,CATEGORY-RU,DIRECT'"))
         assertTrue(runtimeYaml.contains("- 'MATCH,Node''s'"))
         assertFalse(runtimeYaml.contains("old-provider"))
         assertFalse(runtimeYaml.contains("old-sub-rule"))
