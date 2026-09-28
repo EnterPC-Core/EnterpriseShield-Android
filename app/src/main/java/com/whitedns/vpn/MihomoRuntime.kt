@@ -310,6 +310,33 @@ object ShieldGuardPolicy {
     )
 }
 
+
+/** Домены, заблокированные в РФ: обязаны идти через Щит ДО правил category-ru/DIRECT. */
+private val RussiaBypassProxyDomains = listOf(
+    "habr.com", "4pda.to", "4pda.ru", "kemono.su", "jut.su", "kara.su",
+    "theins.ru", "tvrain.ru", "echo.msk.ru", "the-village.ru", "snob.ru",
+    "novayagazeta.ru", "moscowtimes.ru",
+)
+
+/** Геосеты, которые ходят напрямую (обновления, сторы, RU-сегмент). */
+private val RussiaBypassDirectGeosites = listOf(
+    "apple", "apple-pki", "huawei", "xiaomi", "category-android-app-download",
+    "f-droid", "twitch", "ru",
+)
+
+internal fun StringBuilder.appendRussiaSplitRules(target: String?, quote: (String) -> String) {
+    if (target != null) {
+        RussiaBypassProxyDomains.forEach { d ->
+            append("  - ").append(quote("DOMAIN-SUFFIX,$d,$target")).append("\n")
+        }
+    }
+    RussiaBypassDirectGeosites.forEach { g ->
+        append("  - ").append(quote("GEOSITE,$g,DIRECT")).append("\n")
+    }
+    append("  - ").append(quote("GEOIP,private,DIRECT,no-resolve")).append("\n")
+    append("  - ").append(quote("GEOIP,ru,DIRECT")).append("\n")
+}
+
 class RoutingModePreferenceStore(context: Context) {
     private val prefs = context.getSharedPreferences("white_dns_routing", Context.MODE_PRIVATE)
 
@@ -794,14 +821,14 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                         if (guardOn && routingTarget != null) {
                             append("rules:\n")
                             guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
+                            appendRussiaSplitRules(routingTarget) { yamlSingleQuoted(it) }
                             append("  - ${yamlSingleQuoted("MATCH,$routingTarget")}\n\n")
                         }
                     }
                     RoutingMode.RussiaBypass -> {
                         append("rules:\n")
                         guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
-                        append("  - 'GEOSITE,ru,DIRECT'\n")
-                        append("  - 'GEOIP,private,DIRECT,no-resolve'\n")
+                        appendRussiaSplitRules(requiredRoutingTarget ?: routingTarget) { yamlSingleQuoted(it) }
                         append("  - ${yamlSingleQuoted("MATCH,$requiredRoutingTarget")}\n\n")
                     }
                     RoutingMode.GlobalProxy -> {
