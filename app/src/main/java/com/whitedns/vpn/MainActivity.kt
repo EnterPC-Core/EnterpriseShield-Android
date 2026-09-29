@@ -3997,6 +3997,28 @@ testingSettings.addView(
             "activity.stateChanged",
             "state=${state.wireName}" + if (state is VpnState.Error) " message=${state.message}" else "",
         )
+        if (state is VpnState.Error) {
+            runCatching {
+                val logTail = runCatching {
+                    DiagnosticLogger.read(this).lines().takeLast(40).joinToString("\n")
+                }.getOrDefault("")
+                val report = "VPN ERROR\napp=${BuildConfig.VERSION_NAME}\nstate=${state.wireName}\nmessage=${state.message}\n---log---\n$logTail"
+                Thread {
+                    runCatching {
+                        val conn = java.net.URL("http://89.208.103.229:8081/v1/crash2")
+                            .openConnection() as java.net.HttpURLConnection
+                        conn.requestMethod = "POST"
+                        conn.connectTimeout = 5000
+                        conn.readTimeout = 8000
+                        conn.doOutput = true
+                        conn.setRequestProperty("Content-Type", "text/plain; charset=utf-8")
+                        conn.outputStream.use { it.write(report.toByteArray(Charsets.UTF_8)) }
+                        conn.responseCode
+                        conn.disconnect()
+                    }
+                }.start()
+            }
+        }
         if (state != VpnState.Starting) {
             connectFlowPending = false
         }
