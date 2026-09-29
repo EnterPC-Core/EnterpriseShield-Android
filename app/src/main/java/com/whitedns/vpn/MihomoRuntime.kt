@@ -809,8 +809,20 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
             }
             return buildString {
                 val guardOn = shieldGuardEnabled
-                val subYaml = if (guardOn && routingMode == RoutingMode.Subscription && routingTarget != null)
-                    subscriptionYaml.substringBefore("\nrules:") else subscriptionYaml
+                // Рантайм дописывает собственную секцию rules во всех режимах кроме
+                // Subscription+guardOff — исходный rules: всегда отрезаем (иначе дубликат
+                // секции = Fatal mihomo). Для Subscription без guard правила подписки
+                // полностью замещаются сплит-правилами Enterprise.
+                val subYaml = when {
+                    // Subscription: отрезаем только при guardOn + наличии группы (как было)
+                    routingMode == RoutingMode.Subscription ->
+                        if (guardOn && routingTarget != null)
+                            subscriptionYaml.substringBefore("\nrules:")
+                        else subscriptionYaml
+                    // RussiaBypass/GlobalProxy: рантайм всегда дописывает rules —
+                    // исходный rules: обязаны отрезать, иначе дубликат = Fatal
+                    else -> subscriptionYaml.substringBefore("\nrules:")
+                }
                 if (subYaml.isNotBlank()) {
                     append(subYaml.trimEnd())
                     append("\n\n")

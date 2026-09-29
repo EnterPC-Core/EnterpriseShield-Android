@@ -31,6 +31,12 @@ internal object SubConvConverter {
 
     fun convert(input: String): List<JSONObject> {
         val data = decodeBase64Text(input) ?: input
+        val trimmed = data.trim()
+        // XRAY/Happ JSON: массив конфигов {"outbounds":[{"protocol":"vless",...}]} или одиночный конфиг
+        if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+            val fromJson = convertXrayJson(trimmed)
+            if (fromJson.isNotEmpty()) return fromJson
+        }
         val names = NameRegistry()
         val proxies = data.lineSequence().mapNotNull { raw ->
             val line = raw.trimEnd(' ', '\r').takeIf { "://" in it } ?: return@mapNotNull null
@@ -52,6 +58,93 @@ internal object SubConvConverter {
         }.toList()
         require(proxies.isNotEmpty()) { "No valid proxies found" }
         return proxies
+    }
+
+
+    /** Импорт XRAY-JSON (Happ/iapps): массив конфигов или одиночный конфиг; берём серверные outbound'ы. */
+    private fun convertXrayJson(text: String): List<JSONObject> {
+        val out = ArrayList<JSONObject>()
+        try {
+            val root = org.json.JSONTokener(text).nextValue()
+            val configs = when (root) {
+                is org.json.JSONArray -> (0 until root.length()).mapNotNull { root.optJSONObject(it) }
+                is org.json.JSONObject -> listOf(root)
+                else -> emptyList()
+            }
+            for (cfg in configs) {
+                val outbounds = cfg.optJSONArray("outbounds") ?: continue
+                for (i in 0 until outbounds.length()) {
+                    val ob = outbounds.optJSONObject(i) ?: continue
+                    val proto = ob.optString("protocol").lowercase()
+                    if (proto !in setOf("vless", "trojan", "socks", "shadowsocks", "vmess")) continue
+                    val stream = ob.optJSONObject("streamSettings")
+                    val proxy = xrayOutboundToProxy(ob, proto, stream) ?: continue
+                    out.add(proxy)
+                }
+            }
+        } catch (_: Exception) {
+        }
+        return out
+    }
+
+    private fun xrayOutboundToProxy(ob: org.json.JSONObject, proto: String, stream: org.json.JSONObject?): JSONObject? {
+        val settings = ob.optJSONObject("settings") ?: return null
+        val tag = ob.optString("tag").ifBlank { proto }
+        return try {
+            when (proto) {
+                "vless" -> {
+                    val vnext = settings.optJSONArray("vnext")?.optJSONObject(0) ?: return null
+                    val user = settings.optJSONArray("vnext")?.optJSONObject(0)?.optJSONArray("users")?.optJSONObject(0)
+                    val p = JSONObject()
+                    p.put("name", tag)
+                    p.put("type", "vless")
+                    p.put("server", vnext.optString("address"))
+                    p.put("port", vnext.optInt("port"))
+                    p.put("uuid", user?.optString("id") ?: "")
+                    p.put("udp", true)
+                    applyStream(p, stream)
+                    p
+                }
+                "trojan" -> {
+                    val srv = settings.optJSONArray("servers")?.optJSONObject(0) ?: return null
+                    val p = JSONObject()
+                    p.put("name", tag)
+                    p.put("type", "trojan")
+                    p.put("server", srv.optString("address"))
+                    p.put("port", srv.optInt("port"))
+                    p.put("password", srv.optString("password"))
+                    p.put("udp", true)
+                    applyStream(p, stream)
+                    p
+                }
+                else -> null
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun applyStream(p: JSONObject, stream: org.json.JSONObject?) {
+        if (stream == null) return
+        p.put("network", stream.optString("network", "tcp"))
+        val security = stream.optString("security", "none")
+        p.put("tls", security != "none")
+        val tlsSettings = stream.optJSONObject("tlsSettings") ?: stream.optJSONObject("realitySettings")
+        if (tlsSettings != null) {
+            tlsSettings.optString("serverName").takeIf { it.isNotBlank() }?.let { p.put("servername", it) }
+            tlsSettings.optJSONObject("realitySettings")?.let { rs ->
+                p.put("reality-opts", JSONObject().put("public-key", rs.optString("publicKey")))
+                rs.optString("shortId").takeIf { it.isNotBlank() }?.let { p.put("short-id", it) }
+            }
+        }
+        val net = stream.optJSONObject("networkSettings") ?: stream.optJSONObject(stream.optString("network") + "Settings")
+        if (net != null) {
+            net.optString("path").takeIf { it.isNotBlank() }?.let { p.put("ws-path", it) }
+            net.optJSONObject("headers")?.optString("Host")?.takeIf { it.isNotBlank() }?.let { p.put("ws-headers", JSONObject().put("Host", it)) }
+            net.optInt("flow") // noop
+        }
+        val grpc = stream.optJSONObject("grpcSettings")
+        if (grpc != null) grpc.optString("serviceName").takeIf { it.isNotBlank() }?.let { p.put("grpc-service-name", it) }
     }
 
     private fun parseVless(line: String, names: NameRegistry): JSONObject {
