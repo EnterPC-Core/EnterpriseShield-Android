@@ -623,6 +623,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                 dohUrl = document.dns.dohUrl,
                 dotEndpoint = document.dns.dotEndpoint,
                 shieldGuardEnabled = ShieldGuardPolicy.readEnabled(context),
+                adBlockEnabled = AdBlockPolicy.readEnabled(context),
             ),
         )
         patchFinal.writeText(
@@ -777,6 +778,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
             dohUrl: String = DnsPrivacyPolicy.DEFAULT_DOH_URL,
             dotEndpoint: String = DnsPrivacyPolicy.DEFAULT_DOT_ENDPOINT,
             shieldGuardEnabled: Boolean = true,
+            adBlockEnabled: Boolean = false,
         ): String {
             val routingTarget = routingTarget(rawYaml)
             val requiredRoutingTarget = if (routingMode == RoutingMode.Subscription) {
@@ -828,10 +830,12 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                     append("\n\n")
                 }
                 val guardRules = if (guardOn) ShieldGuardPolicy.ruleLines() else emptyList()
+                val adBlockRules = if (adBlockEnabled) AdBlockPolicy.ruleLines() else emptyList()
                 when (routingMode) {
                     RoutingMode.Subscription -> {
                         if (guardOn && routingTarget != null) {
                             append("rules:\n")
+                            adBlockRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                             guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                             appendRussiaSplitRules(routingTarget) { yamlSingleQuoted(it) }
                             append("  - ${yamlSingleQuoted("MATCH,$routingTarget")}\n\n")
@@ -839,12 +843,14 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                     }
                     RoutingMode.RussiaBypass -> {
                         append("rules:\n")
+                        adBlockRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                         guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                         appendRussiaSplitRules(requiredRoutingTarget ?: routingTarget) { yamlSingleQuoted(it) }
                         append("  - ${yamlSingleQuoted("MATCH,$requiredRoutingTarget")}\n\n")
                     }
                     RoutingMode.GlobalProxy -> {
                         append("rules:\n")
+                        adBlockRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                         guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                         append("  - ${yamlSingleQuoted("MATCH,$requiredRoutingTarget")}\n\n")
                     }

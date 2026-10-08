@@ -433,6 +433,8 @@
 <string name="shares_add_failed">Не удалось добавить раздачу</string>
 <string name="widget_shield_name">Щит</string>
     <string name="shares_publish">Добавить раздачу</string>
+    <string name="adblock_title">Блокировка рекламы и метрики</string>
+    <string name="adblock_detail">Блокирует рекламу, телеметрию и трекеры Xiaomi / MIUI / POCO. Экономит батарею и трафик. Не затрагивает push, аккаунт и обновления системы.</string>
     <string name="shares_admin_remove">Убрать раздачу</string>
     <string name="shares_admin_removed">Раздача убрана из топа</string>
     <string name="shares_admin_remove_failed">Не удалось убрать раздачу</string>

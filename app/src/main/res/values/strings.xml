@@ -444,6 +444,8 @@
 <string name="shares_add_failed">Could not add share</string>
 <string name="widget_shield_name">Shield</string>
     <string name="shares_publish">Добавить раздачу</string>
+    <string name="adblock_title">Ad &amp; tracker blocking</string>
+    <string name="adblock_detail">Block Xiaomi / MIUI / POCO ads, telemetry and trackers. Saves battery and traffic. Does not affect push, account or system updates.</string>
     <string name="shares_admin_remove">Remove share</string>
     <string name="shares_admin_removed">Share removed</string>
     <string name="shares_admin_remove_failed">Failed to remove</string>
