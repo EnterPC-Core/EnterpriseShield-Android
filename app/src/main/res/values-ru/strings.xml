@@ -433,6 +433,9 @@
 <string name="shares_add_failed">Не удалось добавить раздачу</string>
 <string name="widget_shield_name">Щит</string>
     <string name="shares_publish">Добавить раздачу</string>
+    <string name="shares_admin_remove">Убрать раздачу</string>
+    <string name="shares_admin_removed">Раздача убрана из топа</string>
+    <string name="shares_admin_remove_failed">Не удалось убрать раздачу</string>
     <string name="support_project_title">Поддержать проект</string>
     <string name="ttr_sub_name">Enterprise Extra</string>
     <string name="chat_link_title">Наш чат</string>

@@ -444,6 +444,9 @@
 <string name="shares_add_failed">Could not add share</string>
 <string name="widget_shield_name">Shield</string>
     <string name="shares_publish">Добавить раздачу</string>
+    <string name="shares_admin_remove">Remove share</string>
+    <string name="shares_admin_removed">Share removed</string>
+    <string name="shares_admin_remove_failed">Failed to remove</string>
     <string name="support_project_title">Support the project</string>
     <string name="ttr_sub_name">Enterprise Extra</string>
     <string name="chat_link_title">Наш чат</string>

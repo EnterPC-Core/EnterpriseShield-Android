@@ -593,6 +593,11 @@ class MainActivity : Activity() {
                     val a=org.json.JSONObject(c.inputStream.bufferedReader().use{it.readText()}).optJSONArray("shares")
                     (0 until (a?.length()?:0)).map { a!!.getJSONObject(it) }
                 }.getOrElse { emptyList() }
+                val admin = runCatching {
+                    val dc=com.whitedns.vpn.ShieldDevice.code(this@MainActivity)
+                    val ac=java.net.URL("https://api.enterprise-shield.ru/v1/shares/admin?code="+java.net.URLEncoder.encode(dc,"UTF-8")).openConnection() as java.net.HttpURLConnection
+                    org.json.JSONObject(ac.inputStream.bufferedReader().use{it.readText()}).optBoolean("admin", false)
+                }.getOrElse { false }
                 runOnUiThread {
                     list.removeAllViews()
                     addPublishButton()
@@ -600,13 +605,26 @@ class MainActivity : Activity() {
                     shares.forEachIndexed { n,x ->
                         val id=x.optInt("id"); val title=x.optString("title"); val url=x.optString("url")
                         val detail="#${n+1} · ${x.optString("proto")} · ${x.optString("host")}\n${x.optString("owner_username").ifBlank{x.optString("owner")}} · ${getString(R.string.shares_meta_fmt,x.optInt("taken"),x.optInt("health_score"),"")}" 
-                        list.addView(subscriptionCard(title,detail,false,"",{},listOf(R.string.shares_take to {
+                        val acts=mutableListOf<Pair<Int,()->Unit>>(R.string.shares_take to {
                             activityScope.launch { runCatching { userSubscriptionManager.add(title,url) }.onSuccess { item ->
                                 SubscriptionStore(this@MainActivity).saveSelectedSubscriptionId(item.id); renderSubscriptions()
                                 activityScope.launch(kotlinx.coroutines.Dispatchers.IO){runCatching { val c=java.net.URL("https://api.enterprise-shield.ru/v1/shares/taken").openConnection() as java.net.HttpURLConnection;c.requestMethod="POST";c.doOutput=true;c.outputStream.use{it.write("{\"id\":$id}".toByteArray())};c.responseCode }}
                                 Toast.makeText(this@MainActivity,getString(R.string.shares_added),Toast.LENGTH_SHORT).show()
                             }.onFailure { Toast.makeText(this@MainActivity,getString(R.string.shares_add_failed),Toast.LENGTH_SHORT).show() } }
-                        })),LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=dp(10)})
+                        })
+                        if (admin) acts.add(R.string.shares_admin_remove to {
+                            activityScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                runCatching {
+                                    val dc=com.whitedns.vpn.ShieldDevice.code(this@MainActivity)
+                                    val rc=java.net.URL("https://api.enterprise-shield.ru/v1/shares/remove").openConnection() as java.net.HttpURLConnection
+                                    rc.requestMethod="POST"; rc.doOutput=true; rc.setRequestProperty("Content-Type","application/json")
+                                    rc.outputStream.use{ it.write(org.json.JSONObject().put("id",id).put("code",dc).toString().toByteArray()) }
+                                    rc.responseCode
+                                }.onSuccess { runOnUiThread { Toast.makeText(this@MainActivity,getString(R.string.shares_admin_removed),Toast.LENGTH_SHORT).show(); doRefresh() } }
+                                .onFailure { runOnUiThread { Toast.makeText(this@MainActivity,getString(R.string.shares_admin_remove_failed),Toast.LENGTH_SHORT).show() } }
+                            }
+                        })
+                        list.addView(subscriptionCard(title,detail,false,"",{},acts),LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=dp(10)})
                     }
                 }
             }
