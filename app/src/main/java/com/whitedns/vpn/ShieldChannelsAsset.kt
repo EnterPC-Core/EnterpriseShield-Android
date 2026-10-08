@@ -2034,7 +2034,8 @@ proxy-groups:
   - name: "♻️ Авто-выбор"
     type: url-test
     url: "https://www.gstatic.com/generate_204"
-    interval: 300
+    interval: 900
+    lazy: true
     proxies:
       - "Enterprise 12"
       - "Enterprise 8"

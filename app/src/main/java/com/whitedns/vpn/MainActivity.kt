@@ -238,6 +238,7 @@ class MainActivity : Activity() {
     private lateinit var routingModeDetailText: TextView
     private lateinit var shieldGuardCheckbox: MaterialSwitch
     private lateinit var adBlockCheckbox: MaterialSwitch
+    private lateinit var quicBlockCheckbox: MaterialSwitch
     private lateinit var dnsPrivacyRow: LinearLayout
     private lateinit var dnsPrivacyValueText: TextView
     private lateinit var dnsPrivacyDetailText: TextView
@@ -2610,6 +2611,22 @@ testingSettings.addView(
                 title = getString(R.string.adblock_title),
                 detail = getString(R.string.adblock_detail),
                 toggle = adBlockCheckbox,
+            ),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) },
+        )
+        quicBlockCheckbox = MaterialSwitch(this).apply {
+            isChecked = AdBlockPolicy.readQuicBlockEnabled(this@MainActivity)
+            contentDescription = getString(R.string.quic_block_title)
+            setOnClickListener {
+                AdBlockPolicy.saveQuicBlockEnabled(this@MainActivity, isChecked)
+                reconnectForConnectionOptionChange()
+            }
+        }
+        routingPanel.addView(
+            advancedToggleRow(
+                title = getString(R.string.quic_block_title),
+                detail = getString(R.string.quic_block_detail),
+                toggle = quicBlockCheckbox,
             ),
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) },
         )

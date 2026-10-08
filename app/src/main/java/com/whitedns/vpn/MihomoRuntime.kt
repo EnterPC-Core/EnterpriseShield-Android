@@ -624,6 +624,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                 dotEndpoint = document.dns.dotEndpoint,
                 shieldGuardEnabled = ShieldGuardPolicy.readEnabled(context),
                 adBlockEnabled = AdBlockPolicy.readEnabled(context),
+            quicBlockEnabled = AdBlockPolicy.readQuicBlockEnabled(context),
             ),
         )
         patchFinal.writeText(
@@ -779,6 +780,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
             dotEndpoint: String = DnsPrivacyPolicy.DEFAULT_DOT_ENDPOINT,
             shieldGuardEnabled: Boolean = true,
             adBlockEnabled: Boolean = false,
+            quicBlockEnabled: Boolean = false,
         ): String {
             val routingTarget = routingTarget(rawYaml)
             val requiredRoutingTarget = if (routingMode == RoutingMode.Subscription) {
@@ -835,6 +837,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                     RoutingMode.Subscription -> {
                         if (guardOn && routingTarget != null) {
                             append("rules:\n")
+                            if (quicBlockEnabled) append("  - ${yamlSingleQuoted(AdBlockPolicy.QUIC_RULE)}\n")
                             adBlockRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                             guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                             appendRussiaSplitRules(routingTarget) { yamlSingleQuoted(it) }
@@ -843,6 +846,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                     }
                     RoutingMode.RussiaBypass -> {
                         append("rules:\n")
+                        if (quicBlockEnabled) append("  - ${yamlSingleQuoted(AdBlockPolicy.QUIC_RULE)}\n")
                         adBlockRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                         guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                         appendRussiaSplitRules(requiredRoutingTarget ?: routingTarget) { yamlSingleQuoted(it) }
@@ -850,6 +854,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                     }
                     RoutingMode.GlobalProxy -> {
                         append("rules:\n")
+                        if (quicBlockEnabled) append("  - ${yamlSingleQuoted(AdBlockPolicy.QUIC_RULE)}\n")
                         adBlockRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                         guardRules.forEach { append("  - ${yamlSingleQuoted(it)}\n") }
                         append("  - ${yamlSingleQuoted("MATCH,$requiredRoutingTarget")}\n\n")

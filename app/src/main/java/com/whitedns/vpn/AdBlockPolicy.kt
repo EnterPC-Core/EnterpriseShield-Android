@@ -8,6 +8,7 @@ import android.content.Context
 object AdBlockPolicy {
     private const val PREFERENCES_NAME = "white_dns_adblock"
     private const val KEY_ENABLED = "adblock_enabled"
+    private const val KEY_QUIC = "quic_block_enabled"
     private const val DEFAULT_ENABLED = true
     /** Полный список блокируемых доменов (без критичных). */
     val DOMAINS: List<String> = listOf(
@@ -137,5 +138,17 @@ object AdBlockPolicy {
             .edit().putBoolean(KEY_ENABLED, enabled).apply()
     }
     /** mihomo rule-строки вида DOMAIN-SUFFIX,<host>,REJECT. */
+    const val QUIC_RULE = "AND,((NETWORK,udp),(DST-PORT,443)),REJECT"
+
     fun ruleLines(): List<String> = DOMAINS.map { "DOMAIN-SUFFIX,$it,REJECT" }
+
+    fun readQuicBlockEnabled(context: android.content.Context): Boolean {
+        return context.getSharedPreferences(PREFERENCES_NAME, android.content.Context.MODE_PRIVATE)
+            .getBoolean(KEY_QUIC, false)
+    }
+
+    fun saveQuicBlockEnabled(context: android.content.Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFERENCES_NAME, android.content.Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_QUIC, enabled).apply()
+    }
 }

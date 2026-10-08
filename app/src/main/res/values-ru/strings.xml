@@ -441,4 +441,6 @@
     <string name="support_project_title">Поддержать проект</string>
     <string name="ttr_sub_name">Enterprise Extra</string>
     <string name="chat_link_title">Наш чат</string>
+    <string name="quic_block_title">Блокировать QUIC (HTTP/3)</string>
+    <string name="quic_block_detail">Заставляет сайты использовать TCP. Экономит батарею, YouTube стабильнее через прокси</string>
 </resources>

@@ -575,6 +575,7 @@ class WhiteDnsVpnService : VpnService() {
         subscriptionRefreshJob?.cancel()
         cancelPostConnectHealthWatchdog()
         runCatching { networkMonitor.stop() }
+        runCatching { BlockStatsTracker.stopPolling(this) }
         stopCoreImmediately()
         scope.cancel()
         currentVpnService = null
@@ -3159,6 +3160,7 @@ class WhiteDnsVpnService : VpnService() {
         }
         sessionStartedAtElapsedMs = SystemClock.elapsedRealtime()
         publishState(VpnState.Started, notice)
+        runCatching { BlockStatsTracker.startPolling(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret) }
         getSystemService(NotificationManager::class.java)
             .notify(NOTIFICATION_ID, serviceNotification(connectedNotificationText()))
         DiagnosticLogger.info(
