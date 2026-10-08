@@ -104,6 +104,8 @@ object BatteryUsageTracker {
 
     fun getBatteryInfo(): BatteryInfo? = cachedBattery
 
+    private val MAX_PLAUSIBLE_UA = 30_000_000L
+
     fun updateCurrentViaBatteryManager(context: Context) {
         val cur = cachedBattery ?: return
         try {
@@ -111,7 +113,9 @@ object BatteryUsageTracker {
             val propCurrent = bm.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
             var currentUa = cur.currentUa
             if (propCurrent != Long.MIN_VALUE && propCurrent != 0L) {
-                currentUa = if (kotlin.math.abs(propCurrent) > 1_000_000L) propCurrent.toInt() else (propCurrent * 1000).toInt()
+                if (kotlin.math.abs(propCurrent) <= MAX_PLAUSIBLE_UA) {
+                    currentUa = propCurrent.toInt()
+                }
             }
             if (currentUa != cur.currentUa) {
                 val voltageV = cur.voltageMv / 1000.0
@@ -165,7 +169,14 @@ object BatteryUsageTracker {
 
         // sysfs (Xiaomi/POCO — обычно доступно без root)
         val batDir = "/sys/class/power_supply/battery"
-        val currentUa = readSysfs("$batDir/current_now")
+        val rawCurrent = readSysfs("$batDir/current_now")
+        // Normalization: some kernels report mA, others uA. Real battery current is 0..30 A.
+        val currentUa = when {
+            rawCurrent == 0 -> 0
+            kotlin.math.abs(rawCurrent) <= 30_000 -> rawCurrent * 1000
+            kotlin.math.abs(rawCurrent) <= 30_000_000 -> rawCurrent
+            else -> 0
+        }
         val voltageNow = readSysfs("$batDir/voltage_now")
         val chargeFullUah = readSysfs("$batDir/charge_full")
         val designCapUah = readSysfs("$batDir/charge_full_design").let { if (it > 0) it else readSysfs("$batDir/energy_full_design") }
