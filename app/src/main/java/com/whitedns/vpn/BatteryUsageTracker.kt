@@ -104,6 +104,23 @@ object BatteryUsageTracker {
 
     fun getBatteryInfo(): BatteryInfo? = cachedBattery
 
+    fun updateCurrentViaBatteryManager(context: Context) {
+        val cur = cachedBattery ?: return
+        try {
+            val bm = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return
+            val propCurrent = bm.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+            var currentUa = cur.currentUa
+            if (propCurrent != Long.MIN_VALUE && propCurrent != 0L) {
+                currentUa = if (kotlin.math.abs(propCurrent) > 1_000_000L) propCurrent.toInt() else (propCurrent * 1000).toInt()
+            }
+            if (currentUa != cur.currentUa) {
+                val voltageV = cur.voltageMv / 1000.0
+                val powerW = voltageV * kotlin.math.abs(currentUa / 1_000_000.0)
+                cachedBattery = cur.copy(currentUa = currentUa, powerW = powerW)
+            }
+        } catch (_: Exception) { }
+    }
+
     private fun readSysfs(path: String): Int {
         return try {
             File(path).readText().trim().toInt()

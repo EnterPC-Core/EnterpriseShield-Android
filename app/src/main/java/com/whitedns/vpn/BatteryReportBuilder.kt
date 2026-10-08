@@ -119,6 +119,7 @@ object BatteryReportBuilder {
         val live = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
         holder.addView(live)
         fun drawLive() {
+            BatteryUsageTracker.updateCurrentViaBatteryManager(activity)
             val battery = BatteryUsageTracker.getBatteryInfo()
             live.removeAllViews()
             if (battery == null) return
@@ -225,6 +226,25 @@ object BatteryReportBuilder {
         refreshHandler = handler
         refreshRunnable = runnable
         handler.postDelayed(runnable, REFRESH_INTERVAL_MS)
+
+        // Статистика приложений (грузится один раз, не в refresh-цикле)
+        if (BatteryUsageTracker.hasUsageAccess(activity)) {
+            val statsHolder = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+            holder.addView(statsHolder)
+            statsHolder.addView(TextView(activity).apply {
+                text = activity.getString(R.string.battery_report_loading)
+                textSize = 13f
+                setTextColor(ts)
+                setPadding(0, dp(activity, 12), 0, dp(activity, 12))
+            })
+            Thread {
+                val usage = BatteryUsageTracker.collect(activity)
+                activity.runOnUiThread {
+                    statsHolder.removeAllViews()
+                    renderAppStats(activity, statsHolder, usage, surface, tp, ts, teal, amber, red)
+                }
+            }.apply { isDaemon = true }.start()
+        }
     }
 
     private fun renderAppStats(
