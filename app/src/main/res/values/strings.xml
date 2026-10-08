@@ -456,7 +456,7 @@
     <string name="quic_block_detail">TCP only: saves battery, YouTube more stable</string>
     <string name="smart_sleep_title">Smart Shield sleep</string>
     <string name="smart_sleep_detail">Screen off 10 min — sleeps. Unlock — back online</string>
-    <string name="battery_report_title">Battery drain report</string>
+    <string name="battery_report_title">Battery usage</string>
     <string name="battery_report_subtitle">Last 24 hours analytics</string>
     <string name="battery_report_need_access">Usage access needed for the report</string>
     <string name="battery_report_access_hint">Tap the button, find Enterprise Shield in the list and allow access</string>
@@ -477,7 +477,7 @@
     <string name="battery_report_days_ago">%1$dd ago</string>
     <string name="battery_report_hours_ago">%1$dh ago</string>
     <string name="battery_report_min_ago">%1$dmin ago</string>
-    <string name="battery_report_open">Battery drain report</string>
+    <string name="battery_report_open">Battery usage</string>
     <string name="battery_tab_battery">Battery</string>
     <string name="battery_tab_system">System</string>
     <string name="battery_tab_apps">Apps</string>

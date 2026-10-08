@@ -13,11 +13,8 @@ import android.content.pm.PackageManager
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
+import java.io.File
 
-/**
- * Сбор статистики по приложениям + батарее.
- * Требует PACKAGE_USAGE_STATS для статистики приложений.
- */
 object BatteryUsageTracker {
 
     data class AppUsage(
@@ -45,11 +42,22 @@ object BatteryUsageTracker {
     data class BatteryInfo(
         val level: Int,
         val isCharging: Boolean,
+        val isFull: Boolean,
+        val status: String,
         val health: String,
         val temperature: Float,
-        val voltage: Int,
+        val voltageMv: Int,
         val technology: String,
         val chargingType: String,
+        // sysfs данные (могут быть недоступны)
+        val currentUa: Int,           // ток в микроамперах
+        val powerW: Double,            // мощность в ваттах
+        val chargeFullUah: Int,        // реальная ёмкость
+        val designCapacityUah: Int,    // заводская ёмкость
+        val cycleCount: Int,           // циклы зарядки
+        val healthPercent: Int,        // износ аккумулятора %
+        val timeRemainingMin: Int,     // время до разряда/заряда (мин)
+        val timeRemainingLabel: String,// описание времени
     )
 
     private var batteryReceiver: BroadcastReceiver? = null
@@ -79,7 +87,6 @@ object BatteryUsageTracker {
                 cachedBattery = parseBattery(intent)
             }
         }
-        // ACTION_BATTERY_CHANGED is sticky — registerReceiver returns the last value
         val sticky = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.registerReceiver(batteryReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
@@ -97,18 +104,32 @@ object BatteryUsageTracker {
 
     fun getBatteryInfo(): BatteryInfo? = cachedBattery
 
+    private fun readSysfs(path: String): Int {
+        return try {
+            File(path).readText().trim().toInt()
+        } catch (_: Exception) { 0 }
+    }
+
     private fun parseBattery(intent: Intent?): BatteryInfo? {
         if (intent == null) return null
         val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100)
         val pct = if (scale > 0) (level * 100 / scale) else level
         val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
-        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
+        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+        val isFull = status == BatteryManager.BATTERY_STATUS_FULL
+        val statusStr = when (status) {
+            BatteryManager.BATTERY_STATUS_CHARGING -> "Заряжается"
+            BatteryManager.BATTERY_STATUS_DISCHARGING -> "Разряжается"
+            BatteryManager.BATTERY_STATUS_FULL -> "Полностью заряжен"
+            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> "Не заряжается"
+            else -> "Неизвестно"
+        }
         val healthCode = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN)
         val health = when (healthCode) {
             BatteryManager.BATTERY_HEALTH_GOOD -> "Хорошо"
             BatteryManager.BATTERY_HEALTH_OVERHEAT -> "Перегрев"
-            BatteryManager.BATTERY_HEALTH_DEAD -> "Мёртвая"
+            BatteryManager.BATTERY_HEALTH_DEAD -> "Не работает"
             BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> "Перенапряжение"
             BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> "Сбой"
             BatteryManager.BATTERY_HEALTH_COLD -> "Холодная"
@@ -119,12 +140,57 @@ object BatteryUsageTracker {
         val tech = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY) ?: "Li-ion"
         val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
         val chargingType = when (plugged) {
-            BatteryManager.BATTERY_PLUGGED_AC -> "от сети"
+            BatteryManager.BATTERY_PLUGGED_AC -> "от сети 220В"
             BatteryManager.BATTERY_PLUGGED_USB -> "USB"
             BatteryManager.BATTERY_PLUGGED_WIRELESS -> "беспроводная"
-            else -> if (isCharging) "зарядка" else "—"
+            else -> if (isCharging) "зарядка" else "батарея"
         }
-        return BatteryInfo(pct, isCharging, health, temp, volt, tech, chargingType)
+
+        // sysfs (Xiaomi/POCO — обычно доступно без root)
+        val batDir = "/sys/class/power_supply/battery"
+        val currentUa = readSysfs("$batDir/current_now")
+        val voltageNow = readSysfs("$batDir/voltage_now")
+        val chargeFullUah = readSysfs("$batDir/charge_full")
+        val designCapUah = readSysfs("$batDir/charge_full_design").let { if (it > 0) it else readSysfs("$batDir/energy_full_design") }
+        val cycleCount = readSysfs("$batDir/cycle_count")
+
+        // Расчёты
+        val voltageV = (if (voltageNow > 0) voltageNow else volt * 1000) / 1_000_000.0
+        val currentA = currentUa / 1_000_000.0
+        val powerW = voltageV * kotlin.math.abs(currentA)
+
+        val healthPct = if (chargeFullUah > 0 && designCapUah > 0) {
+            (chargeFullUah * 100 / designCapUah).coerceIn(0, 100)
+        } else 0
+
+        // Время до разряда / заряда
+        val chargeNowUah = if (chargeFullUah > 0) (chargeFullUah * pct / 100) else 0
+        var timeRemainingMin = 0
+        var timeLabel = "—"
+        if (isCharging && currentUa > 0 && chargeFullUah > 0) {
+            val remainingUah = chargeFullUah - chargeNowUah
+            val mins = (remainingUah.toFloat() / currentUa * 60).toInt()
+            if (mins in 1..600) {
+                timeRemainingMin = mins
+                timeLabel = "до полной: ${mins / 60}ч ${mins % 60}м"
+            }
+        } else if (!isCharging && currentUa < 0 && chargeNowUah > 0) {
+            val mins = (chargeNowUah.toFloat() / kotlin.math.abs(currentUa) * 60).toInt()
+            if (mins in 1..1440) {
+                timeRemainingMin = mins
+                timeLabel = "до разряда: ${mins / 60}ч ${mins % 60}м"
+            }
+        }
+
+        return BatteryInfo(
+            level = pct, isCharging = isCharging, isFull = isFull,
+            status = statusStr, health = health, temperature = temp,
+            voltageMv = volt, technology = tech, chargingType = chargingType,
+            currentUa = currentUa, powerW = powerW,
+            chargeFullUah = chargeFullUah, designCapacityUah = designCapUah,
+            cycleCount = cycleCount, healthPercent = healthPct,
+            timeRemainingMin = timeRemainingMin, timeRemainingLabel = timeLabel,
+        )
     }
 
     fun collect(context: Context, sinceMs: Long = System.currentTimeMillis() - 24 * 3_600_000L): List<AppUsage> {
@@ -167,9 +233,7 @@ object BatteryUsageTracker {
             if (foregroundMs <= 0) continue
             val appInfo: ApplicationInfo = try {
                 pm.getApplicationInfo(pkg, 0)
-            } catch (_: Exception) {
-                continue
-            }
+            } catch (_: Exception) { continue }
             val traffic = uidTraffic[appInfo.uid] ?: LongArray(4)
             result.add(AppUsage(
                 packageName = pkg,
@@ -177,10 +241,8 @@ object BatteryUsageTracker {
                 isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0,
                 foregroundMs = foregroundMs,
                 lastUsed = stat.lastTimeUsed,
-                mobileRxBytes = traffic[0],
-                mobileTxBytes = traffic[1],
-                wifiRxBytes = traffic[2],
-                wifiTxBytes = traffic[3],
+                mobileRxBytes = traffic[0], mobileTxBytes = traffic[1],
+                wifiRxBytes = traffic[2], wifiTxBytes = traffic[3],
             ))
         }
         return result.sortedByDescending { it.foregroundMs }

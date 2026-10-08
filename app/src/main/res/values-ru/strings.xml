@@ -445,7 +445,7 @@
     <string name="quic_block_detail">Сайты на TCP: экономия батареи, стабильнее YouTube</string>
     <string name="smart_sleep_title">Умный сон Щита</string>
     <string name="smart_sleep_detail">Экран выкл 10 мин — Щит спит. Разблокировка — на связи</string>
-    <string name="battery_report_title">Кто жрёт батарею</string>
+    <string name="battery_report_title">Потребление батареи</string>
     <string name="battery_report_subtitle">Аналитика за последние 24 часа</string>
     <string name="battery_report_need_access">Для отчёта нужен доступ к статистике использования</string>
     <string name="battery_report_access_hint">Нажмите кнопку, найдите Enterprise Shield в списке и разрешите доступ</string>
@@ -466,7 +466,7 @@
     <string name="battery_report_days_ago">%1$d д назад</string>
     <string name="battery_report_hours_ago">%1$d ч назад</string>
     <string name="battery_report_min_ago">%1$d мин назад</string>
-    <string name="battery_report_open">Кто жрёт батарею</string>
+    <string name="battery_report_open">Потребление батареи</string>
     <string name="battery_tab_battery">Батарея</string>
     <string name="battery_tab_system">Система</string>
     <string name="battery_tab_apps">Приложения</string>
