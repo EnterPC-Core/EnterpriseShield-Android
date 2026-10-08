@@ -56,19 +56,13 @@ object BatteryReportBuilder {
             clipToPadding = false
             setBackgroundColor(bg)
         }
-        ViewCompat.setOnApplyWindowInsetsListener(scrollView) { view, insets ->
-            val top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            val bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
-            view.setPadding(view.paddingLeft, top, view.paddingRight, bottom)
-            insets
-        }
         scrollView.addView(LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(activity, 24), 0, dp(activity, 24), dp(activity, 40))
             addView(contentHolder)
         })
-        mainLayout.addView(scrollView, LinearLayout.LayoutParams(-1, 0, 1f))
         mainLayout.addView(tabRow, LinearLayout.LayoutParams(-1, -2))
+        mainLayout.addView(scrollView, LinearLayout.LayoutParams(-1, 0, 1f))
 
         // Заголовок
         contentHolder.addView(TextView(activity).apply {
@@ -76,7 +70,7 @@ object BatteryReportBuilder {
             textSize = 22f
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             setTextColor(textPrimary)
-            setPadding(0, dp(activity, 16), 0, dp(activity, 4))
+            setPadding(0, dp(activity, 8), 0, dp(activity, 4))
         })
 
         // ===== Таб-кнопки =====

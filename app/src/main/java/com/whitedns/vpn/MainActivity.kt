@@ -491,6 +491,15 @@ class MainActivity : Activity() {
             visibility = View.GONE
             setBackgroundColor(BACKGROUND)
         }
+        ViewCompat.setOnApplyWindowInsetsListener(batteryReportPageHost) { view, insets ->
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or
+                    WindowInsetsCompat.Type.navigationBars() or
+                    WindowInsetsCompat.Type.displayCutout(),
+            )
+            view.setPadding(0, systemBars.top, 0, systemBars.bottom)
+            insets
+        }
         root.addView(batteryReportPageHost, FrameLayout.LayoutParams(-1, -1))
         runCatching { TvUi.attachAutoStyling(root) }
         return root
