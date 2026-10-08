@@ -445,7 +445,7 @@
 <string name="widget_shield_name">Shield</string>
     <string name="shares_publish">Добавить раздачу</string>
     <string name="adblock_title">Ad &amp; tracker blocking</string>
-    <string name="adblock_detail">Block Xiaomi / MIUI / POCO ads, telemetry and trackers. Saves battery and traffic. Does not affect push, account or system updates.</string>
+    <string name="adblock_detail">Xiaomi/MIUI ads and telemetry. Saves battery</string>
     <string name="shares_admin_remove">Remove share</string>
     <string name="shares_admin_removed">Share removed</string>
     <string name="shares_admin_remove_failed">Failed to remove</string>
@@ -453,7 +453,7 @@
     <string name="ttr_sub_name">Enterprise Extra</string>
     <string name="chat_link_title">Наш чат</string>
     <string name="quic_block_title">Block QUIC (HTTP/3)</string>
-    <string name="quic_block_detail">Forces sites to use TCP. Saves battery, YouTube is more stable through proxy</string>
-    <string name="smart_sleep_title">Smart VPN sleep</string>
-    <string name="smart_sleep_detail">VPN sleeps when screen is off for 10 min, resumes instantly on unlock. Saves battery overnight</string>
+    <string name="quic_block_detail">TCP only: saves battery, YouTube more stable</string>
+    <string name="smart_sleep_title">Smart Shield sleep</string>
+    <string name="smart_sleep_detail">Screen off 10 min — sleeps. Unlock — back online</string>
 </resources>

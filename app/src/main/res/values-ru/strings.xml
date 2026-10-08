@@ -434,7 +434,7 @@
 <string name="widget_shield_name">Щит</string>
     <string name="shares_publish">Добавить раздачу</string>
     <string name="adblock_title">Блокировка рекламы и метрики</string>
-    <string name="adblock_detail">Блокирует рекламу, телеметрию и трекеры Xiaomi / MIUI / POCO. Экономит батарею и трафик. Не затрагивает push, аккаунт и обновления системы.</string>
+    <string name="adblock_detail">Реклама и телеметрия Xiaomi/MIUI. Батарея и трафик</string>
     <string name="shares_admin_remove">Убрать раздачу</string>
     <string name="shares_admin_removed">Раздача убрана из топа</string>
     <string name="shares_admin_remove_failed">Не удалось убрать раздачу</string>
@@ -442,7 +442,7 @@
     <string name="ttr_sub_name">Enterprise Extra</string>
     <string name="chat_link_title">Наш чат</string>
     <string name="quic_block_title">Блокировать QUIC (HTTP/3)</string>
-    <string name="quic_block_detail">Заставляет сайты использовать TCP. Экономит батарею, YouTube стабильнее через прокси</string>
-    <string name="smart_sleep_title">Умный сон VPN</string>
-    <string name="smart_sleep_detail">VPN засыпает при выключенном экране 10 мин, мгновенно просыпается при разблокировке. Экономит батарею ночью</string>
+    <string name="quic_block_detail">Сайты на TCP: экономия батареи, стабильнее YouTube</string>
+    <string name="smart_sleep_title">Умный сон Щита</string>
+    <string name="smart_sleep_detail">Экран выкл 10 мин — Щит спит. Разблокировка — на связи</string>
 </resources>
