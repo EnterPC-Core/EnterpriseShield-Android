@@ -445,4 +445,26 @@
     <string name="quic_block_detail">Сайты на TCP: экономия батареи, стабильнее YouTube</string>
     <string name="smart_sleep_title">Умный сон Щита</string>
     <string name="smart_sleep_detail">Экран выкл 10 мин — Щит спит. Разблокировка — на связи</string>
+    <string name="battery_report_title">Кто жрёт батарею</string>
+    <string name="battery_report_subtitle">Аналитика за последние 24 часа</string>
+    <string name="battery_report_need_access">Для отчёта нужен доступ к статистике использования</string>
+    <string name="battery_report_access_hint">Нажмите кнопку, найдите Enterprise Shield в списке и разрешите доступ</string>
+    <string name="battery_report_grant">Разрешить доступ</string>
+    <string name="battery_report_loading">Собираю данные…</string>
+    <string name="battery_report_empty">Нет данных за 24 часа. Воспользуйтесь телефоном и вернитесь.</string>
+    <string name="battery_report_summary">Сводка за 24 часа</string>
+    <string name="battery_report_screen_time">Экранное время</string>
+    <string name="battery_report_total_traffic">Всего трафика</string>
+    <string name="battery_report_bg_suspects">Фоновых прожор</string>
+    <string name="battery_report_top_screen">Топ по экранному времени</string>
+    <string name="battery_report_bg_hogs">Фоновые прожоры (трафик без использования)</string>
+    <string name="battery_report_top_mobile">Топ по мобильному трафику</string>
+    <string name="battery_report_recommend">Рекомендация</string>
+    <string name="battery_report_recommend_text">«%1$s» качает данные в фоне, но вы им почти не пользуетесь. Ограничьте фоновую активность в настройках устройства или заморозьте его.</string>
+    <string name="battery_report_traffic">Трафик</string>
+    <string name="battery_report_used_ago">использовано</string>
+    <string name="battery_report_days_ago">%1$d д назад</string>
+    <string name="battery_report_hours_ago">%1$d ч назад</string>
+    <string name="battery_report_min_ago">%1$d мин назад</string>
+    <string name="battery_report_open">Кто жрёт батарею</string>
 </resources>

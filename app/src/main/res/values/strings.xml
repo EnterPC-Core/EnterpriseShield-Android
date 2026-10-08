@@ -456,4 +456,26 @@
     <string name="quic_block_detail">TCP only: saves battery, YouTube more stable</string>
     <string name="smart_sleep_title">Smart Shield sleep</string>
     <string name="smart_sleep_detail">Screen off 10 min — sleeps. Unlock — back online</string>
+    <string name="battery_report_title">Battery drain report</string>
+    <string name="battery_report_subtitle">Last 24 hours analytics</string>
+    <string name="battery_report_need_access">Usage access needed for the report</string>
+    <string name="battery_report_access_hint">Tap the button, find Enterprise Shield in the list and allow access</string>
+    <string name="battery_report_grant">Grant access</string>
+    <string name="battery_report_loading">Collecting data…</string>
+    <string name="battery_report_empty">No data in the last 24 hours. Use your phone and come back.</string>
+    <string name="battery_report_summary">Summary (24h)</string>
+    <string name="battery_report_screen_time">Screen time</string>
+    <string name="battery_report_total_traffic">Total traffic</string>
+    <string name="battery_report_bg_suspects">Background hogs</string>
+    <string name="battery_report_top_screen">Top by screen time</string>
+    <string name="battery_report_bg_hogs">Background hogs (traffic without usage)</string>
+    <string name="battery_report_top_mobile">Top by mobile data</string>
+    <string name="battery_report_recommend">Recommendation</string>
+    <string name="battery_report_recommend_text">"%1$s" downloads data in background but you barely use it. Restrict background activity in device settings or freeze it.</string>
+    <string name="battery_report_traffic">Traffic</string>
+    <string name="battery_report_used_ago">used</string>
+    <string name="battery_report_days_ago">%1$dd ago</string>
+    <string name="battery_report_hours_ago">%1$dh ago</string>
+    <string name="battery_report_min_ago">%1$dmin ago</string>
+    <string name="battery_report_open">Battery drain report</string>
 </resources>

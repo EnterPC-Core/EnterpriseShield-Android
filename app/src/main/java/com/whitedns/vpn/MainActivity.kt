@@ -161,6 +161,8 @@ class MainActivity : Activity() {
     private var deviceStatusTextView: TextView? = null
     private lateinit var sharesTabContent: View
     private var connectionTestingPageVisible: Boolean = false
+    private lateinit var batteryReportPageHost: FrameLayout
+    private var batteryReportPageVisible: Boolean = false
     private var activeChainPickerSlot: ConnectionChainSlot? = null
     private var activeChainPickerSubscriptionId: String? = null
     private var renderChainSettingsPage: (() -> Unit)? = null
@@ -485,6 +487,11 @@ class MainActivity : Activity() {
             insets
         }
         root.addView(connectionTestingPageHost, FrameLayout.LayoutParams(-1, -1))
+        batteryReportPageHost = FrameLayout(this).apply {
+            visibility = View.GONE
+            setBackgroundColor(BACKGROUND)
+        }
+        root.addView(batteryReportPageHost, FrameLayout.LayoutParams(-1, -1))
         runCatching { TvUi.attachAutoStyling(root) }
         return root
     }
@@ -555,6 +562,25 @@ class MainActivity : Activity() {
         setConnectionTestingPageVisible(visible = false, animate = animate)
         activeChainPickerSlot = null
         activeChainPickerSubscriptionId = null
+    }
+
+    fun showBatteryReportPage() {
+        if (batteryReportPageVisible) return
+        batteryReportPageHost.removeAllViews()
+        val page = BatteryReportBuilder.buildScreen(this)
+        batteryReportPageHost.addView(page, FrameLayout.LayoutParams(-1, -1))
+        batteryReportPageHost.visibility = View.VISIBLE
+        batteryReportPageHost.translationX = 0f
+        batteryReportPageVisible = true
+        appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+    }
+
+    fun closeBatteryReportPage() {
+        if (!batteryReportPageVisible) return
+        batteryReportPageHost.visibility = View.GONE
+        batteryReportPageHost.removeAllViews()
+        batteryReportPageVisible = false
+        appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
     }
 
     private fun showAppTab(position: Int) {
@@ -1405,6 +1431,7 @@ class MainActivity : Activity() {
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
         when {
+            batteryReportPageVisible -> closeBatteryReportPage()
             connectionTestingPageVisible -> closeConnectionTestingPage()
             advancedSettingsBackAction != null -> advancedSettingsBackAction?.invoke()
             else -> super.onBackPressed()
@@ -2110,6 +2137,14 @@ class MainActivity : Activity() {
         )
 buildDeviceSectionContent(deviceSettings)
                 var connectionTestSettings = connectionTestSettingsPreferenceStore.read()
+        testingSettings.addView(advancedSectionLabel(getString(R.string.battery_report_open)))
+        testingSettings.addView(
+            com.google.android.material.button.MaterialButton(this).apply {
+                text = getString(R.string.battery_report_open)
+                setOnClickListener { showBatteryReportPage() }
+            },
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) },
+        )
         testingSettings.addView(
             advancedSectionLabel(getString(R.string.diag_title)),
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(32) },
