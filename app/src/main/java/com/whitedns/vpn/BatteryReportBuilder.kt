@@ -23,6 +23,15 @@ import kotlin.math.min
  * Страница «Статистика смартфона»: табы Батарея / Система / Приложения.
  */
 object BatteryReportBuilder {
+    private var refreshHandler: android.os.Handler? = null
+    private var refreshRunnable: Runnable? = null
+    private const val REFRESH_INTERVAL_MS = 3000L
+
+    fun stopRefresh() {
+        refreshRunnable?.let { refreshHandler?.removeCallbacks(it) }
+        refreshRunnable = null
+        refreshHandler = null
+    }
 
     fun buildScreen(activity: Activity): View {
         val bg = paletteColor(activity, "background", 0xFF101418)
@@ -106,16 +115,19 @@ object BatteryReportBuilder {
         activity: Activity, holder: LinearLayout, surface: Int, tp: Int, ts: Int, teal: Int, amber: Int, red: Int,
     ) {
         BatteryUsageTracker.startBatteryMonitor(activity)
-        val battery = BatteryUsageTracker.getBatteryInfo()
-
-        // ===== Главный индикатор =====
-        if (battery != null) {
+        stopRefresh()
+        val live = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        holder.addView(live)
+        fun drawLive() {
+            val battery = BatteryUsageTracker.getBatteryInfo()
+            live.removeAllViews()
+            if (battery == null) return
             val battColor = when {
                 battery.level <= 15 -> red
                 battery.level <= 30 -> amber
                 else -> teal
             }
-            holder.addView(TextView(activity).apply {
+            live.addView(TextView(activity).apply {
                 text = "${battery.level}%"
                 textSize = 56f
                 typeface = Typeface.create("sans-serif-light", Typeface.BOLD)
@@ -123,7 +135,7 @@ object BatteryReportBuilder {
                 gravity = Gravity.CENTER
                 setPadding(0, dp(activity, 20), 0, 0)
             })
-            holder.addView(ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply {
+            live.addView(ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply {
                 max = 100
                 progress = battery.level
                 progressTintList = android.content.res.ColorStateList.valueOf(battColor)
@@ -131,117 +143,88 @@ object BatteryReportBuilder {
                     setMargins(dp(activity, 20), dp(activity, 8), dp(activity, 20), dp(activity, 4))
                 }
             })
-            holder.addView(TextView(activity).apply {
-                text = "${battery.status} · ${battery.chargingType}"
+            live.addView(TextView(activity).apply {
+                text = "${battery.status} - ${battery.chargingType}"
                 textSize = 14f
                 setTextColor(ts)
                 gravity = Gravity.CENTER
-                setPadding(0, dp(activity, 4), 0, dp(activity, 12))
+                setPadding(0, dp(activity, 4), 0, dp(activity, 8))
             })
-
-            // ===== Время до разряда/заряда =====
-            if (battery.timeRemainingLabel != "—") {
-                holder.addView(card(activity, surface) { c ->
-                    c.addView(statRow(activity, "⏳", "Оценка", battery.timeRemainingLabel, tp, ts))
+            if (battery.isCharging || battery.isFull) {
+                live.addView(card(activity, surface) { c ->
+                    c.addView(statRow(activity, "⚡", "Мощность", String.format("%.1f W", battery.powerW), tp, ts))
+                    val curMa = battery.currentUa / 1000
+                    if (curMa != 0) {
+                        c.addView(statRow(activity, "🔌", "Ток", "+${curMa} мА", tp, ts))
+                    }
+                    val voltV = battery.voltageMv / 1000.0
+                    if (voltV > 0) {
+                        c.addView(statRow(activity, "🔋", "Напряжение", String.format("%.2f В", voltV), tp, ts))
+                    }
+                    if (battery.timeRemainingLabel != "—") {
+                        c.addView(statRow(activity, "⏳", "До полного", battery.timeRemainingLabel, tp, ts))
+                    }
+                    val tc = if (battery.temperature >= 40) red else if (battery.temperature >= 35) amber else teal
+                    c.addView(statRowColor(activity, "🌡️", "Температура", "${battery.temperature}°C", tc, ts))
+                })
+            } else if (battery.timeRemainingLabel != "—" || battery.currentUa != 0) {
+                live.addView(card(activity, surface) { c ->
+                    if (battery.timeRemainingLabel != "—") {
+                        c.addView(statRow(activity, "⏳", "Осталось", battery.timeRemainingLabel.replace("до разряда: ", ""), tp, ts))
+                    }
+                    if (battery.currentUa != 0) {
+                        val cm = battery.currentUa / 1000
+                        c.addView(statRow(activity, "🔌", "Ток разряда", "${cm} мА", tp, ts))
+                    }
                     if (battery.powerW > 0.1) {
-                        c.addView(statRow(activity, "⚡", "Мощность", String.format("%.2f W", battery.powerW), tp, ts))
+                        c.addView(statRow(activity, "⚡", "Потребление", String.format("%.2f W", battery.powerW), tp, ts))
                     }
                 })
             }
-
-            // ===== Аккумулятор =====
-            holder.addView(sectionLabel(activity, activity.getString(R.string.sys_battery_section), ts))
-            holder.addView(card(activity, surface) { c ->
-                val tempColor = when {
-                    battery.temperature >= 40 -> red
-                    battery.temperature >= 35 -> amber
-                    else -> teal
-                }
-                c.addView(statRowColor(activity, "🌡", "Температура", "${battery.temperature}°C", tempColor, ts))
+            live.addView(sectionLabel(activity, activity.getString(R.string.sys_battery_section), ts))
+            live.addView(card(activity, surface) { c ->
+                val tempColor = when { battery.temperature >= 40 -> red; battery.temperature >= 35 -> amber; else -> teal }
+                c.addView(statRowColor(activity, "🌡️", "Температура", "${battery.temperature}°C", tempColor, ts))
                 c.addView(statRow(activity, "❤️", "Здоровье", battery.health, tp, ts))
-                c.addView(statRow(activity, "⚡", "Напряжение", "${battery.voltageMv}мВ", tp, ts))
+                c.addView(statRow(activity, "⚡", "Напряжение", String.format("%.2f В", battery.voltageMv / 1000.0), tp, ts))
                 c.addView(statRow(activity, "🔋", "Технология", battery.technology, tp, ts))
                 if (battery.currentUa != 0) {
                     val cur = battery.currentUa / 1000
-                    val label = if (cur > 0) "+${cur}мА (заряд)" else "${cur}мА (разряд)"
-                    c.addView(statRow(activity, "🔌", "Ток", label, tp, ts))
+                    c.addView(statRow(activity, "🔌", "Ток", "${cur} мА", tp, ts))
                 }
                 if (battery.cycleCount > 0) {
-                    val cycleColor = when {
-                        battery.cycleCount > 800 -> red
-                        battery.cycleCount > 500 -> amber
-                        else -> teal
-                    }
-                    c.addView(statRowColor(activity, "🔄", "Циклов зарядки", "${battery.cycleCount}", cycleColor, ts))
+                    val cc = when { battery.cycleCount > 800 -> red; battery.cycleCount > 500 -> amber; else -> teal }
+                    c.addView(statRowColor(activity, "🔄", "Циклов зарядки", "${battery.cycleCount}", cc, ts))
                 }
                 if (battery.healthPercent > 0) {
-                    val hpColor = when {
-                        battery.healthPercent <= 70 -> red
-                        battery.healthPercent <= 85 -> amber
-                        else -> teal
-                    }
-                    c.addView(statRowColor(activity, "📊", "Ёмкость (износ)", "${battery.healthPercent}% от заводской", hpColor, ts))
+                    val hp = when { battery.healthPercent <= 70 -> red; battery.healthPercent <= 85 -> amber; else -> teal }
+                    c.addView(statRowColor(activity, "📊", "Ёмкость (износ)", "${battery.healthPercent}% от заводской", hp, ts))
                     c.addView(ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply {
-                        max = 100
-                        progress = battery.healthPercent
-                        progressTintList = android.content.res.ColorStateList.valueOf(hpColor)
+                        max = 100; progress = battery.healthPercent
+                        progressTintList = android.content.res.ColorStateList.valueOf(hp)
                         layoutParams = LinearLayout.LayoutParams(-1, dp(activity, 8)).apply { topMargin = dp(activity, 8) }
                     })
                 }
                 if (battery.chargeFullUah > 0) {
-                    c.addView(statRow(activity, "📦", "Реальная ёмкость", String.format("%d мАч", battery.chargeFullUah / 1000), tp, ts))
+                    c.addView(statRow(activity, "📦", "Реальная ёмкость", "${battery.chargeFullUah / 1000} мАч", tp, ts))
                 }
                 if (battery.designCapacityUah > 0) {
-                    c.addView(statRow(activity, "🏭", "Заводская ёмкость", String.format("%d мАч", battery.designCapacityUah / 1000), tp, ts))
+                    c.addView(statRow(activity, "🏭", "Заводская ёмкость", "${battery.designCapacityUah / 1000} мАч", tp, ts))
                 }
             })
         }
-
-        // ===== Аналитика приложений =====
-        if (!BatteryUsageTracker.hasUsageAccess(activity)) {
-            holder.addView(sectionLabel(activity, activity.getString(R.string.battery_report_summary), ts))
-            holder.addView(card(activity, surface) { c ->
-                c.addView(TextView(activity).apply {
-                    text = activity.getString(R.string.battery_report_need_access)
-                    textSize = 14f
-                    setTextColor(tp)
-                })
-                c.addView(TextView(activity).apply {
-                    text = activity.getString(R.string.battery_report_access_hint)
-                    textSize = 12f
-                    setTextColor(ts)
-                    setPadding(0, dp(activity, 8), 0, dp(activity, 12))
-                })
-                c.addView(button(activity, teal, activity.getString(R.string.battery_report_grant)) {
-                    BatteryUsageTracker.requestUsageAccess(activity)
-                })
-            })
-            return
-        }
-
-        holder.addView(TextView(activity).apply {
-            text = activity.getString(R.string.battery_report_loading)
-            textSize = 13f
-            setTextColor(ts)
-            setPadding(0, dp(activity, 12), 0, dp(activity, 12))
-        })
-
-        Thread {
-            val usage = BatteryUsageTracker.collect(activity)
-            activity.runOnUiThread {
-                if (holder.childCount > 0) {
-                    // Удаляем loading indicator (последний добавленный)
-                    for (i in holder.childCount - 1 downTo 0) {
-                        val v = holder.getChildAt(i)
-                        if (v is TextView && v.text.toString() == activity.getString(R.string.battery_report_loading)) {
-                            holder.removeViewAt(i)
-                            break
-                        }
-                    }
-                }
-                renderAppStats(activity, holder, usage, surface, tp, ts, teal, amber, red)
+        drawLive()
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        val runnable = object : Runnable {
+            override fun run() {
+                BatteryUsageTracker.startBatteryMonitor(activity)
+                drawLive()
+                handler.postDelayed(this, REFRESH_INTERVAL_MS)
             }
-        }.apply { isDaemon = true }.start()
+        }
+        refreshHandler = handler
+        refreshRunnable = runnable
+        handler.postDelayed(runnable, REFRESH_INTERVAL_MS)
     }
 
     private fun renderAppStats(

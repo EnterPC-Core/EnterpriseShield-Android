@@ -140,7 +140,7 @@ object BatteryUsageTracker {
         val tech = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY) ?: "Li-ion"
         val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
         val chargingType = when (plugged) {
-            BatteryManager.BATTERY_PLUGGED_AC -> "от сети 220В"
+            BatteryManager.BATTERY_PLUGGED_AC -> "от сети"
             BatteryManager.BATTERY_PLUGGED_USB -> "USB"
             BatteryManager.BATTERY_PLUGGED_WIRELESS -> "беспроводная"
             else -> if (isCharging) "зарядка" else "батарея"

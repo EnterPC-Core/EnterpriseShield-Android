@@ -585,6 +585,7 @@ class MainActivity : Activity() {
     }
 
     fun closeBatteryReportPage() {
+        BatteryReportBuilder.stopRefresh()
         if (!batteryReportPageVisible) return
         batteryReportPageHost.visibility = View.GONE
         batteryReportPageHost.removeAllViews()
