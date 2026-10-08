@@ -2137,14 +2137,6 @@ class MainActivity : Activity() {
         )
 buildDeviceSectionContent(deviceSettings)
                 var connectionTestSettings = connectionTestSettingsPreferenceStore.read()
-        testingSettings.addView(advancedSectionLabel(getString(R.string.battery_report_open)))
-        testingSettings.addView(
-            com.google.android.material.button.MaterialButton(this).apply {
-                text = getString(R.string.battery_report_open)
-                setOnClickListener { showBatteryReportPage() }
-            },
-            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) },
-        )
         testingSettings.addView(
             advancedSectionLabel(getString(R.string.diag_title)),
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(32) },
@@ -2170,6 +2162,17 @@ buildDeviceSectionContent(deviceSettings)
 testingSettings.addView(
             diagPanel,
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
+        )
+        testingSettings.addView(
+            advancedSectionLabel(getString(R.string.battery_report_open)),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(24) },
+        )
+        testingSettings.addView(
+            com.google.android.material.button.MaterialButton(this).apply {
+                text = getString(R.string.battery_report_open)
+                setOnClickListener { showBatteryReportPage() }
+            },
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) },
         )
         connectionSettings.addView(
             advancedSectionLabel(getString(R.string.tls_integrity_section)),

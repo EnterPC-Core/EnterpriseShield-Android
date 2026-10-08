@@ -4,16 +4,19 @@ import android.app.AppOpsManager
 import android.app.usage.NetworkStats
 import android.app.usage.NetworkStatsManager
 import android.app.usage.UsageStatsManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.NetworkCapabilities
+import android.os.BatteryManager
 import android.os.Build
 
 /**
- * Сбор статистики по приложениям: время использования, фоновое время,
- * трафик (моб. + Wi-Fi). Без root — через UsageStatsManager + NetworkStatsManager.
- * Требует special access PACKAGE_USAGE_STATS (юзер выдаёт одним тапом).
+ * Сбор статистики по приложениям + батарее.
+ * Требует PACKAGE_USAGE_STATS для статистики приложений.
  */
 object BatteryUsageTracker {
 
@@ -21,16 +24,16 @@ object BatteryUsageTracker {
         val packageName: String,
         val appName: String,
         val isSystem: Boolean,
-        val foregroundMs: Long,      // время на экране
-        val lastUsed: Long,          // когда последний раз использовался
-        val mobileRxBytes: Long,     // мобильный приём
-        val mobileTxBytes: Long,     // мобильная отправка
-        val wifiRxBytes: Long,       // Wi-Fi приём
-        val wifiTxBytes: Long,       // Wi-Fi отправка
+        val foregroundMs: Long,
+        val lastUsed: Long,
+        val mobileRxBytes: Long,
+        val mobileTxBytes: Long,
+        val wifiRxBytes: Long,
+        val wifiTxBytes: Long,
     ) {
         val totalTrafficBytes: Long get() = mobileRxBytes + mobileTxBytes + wifiRxBytes + wifiTxBytes
+        val totalMobileBytes: Long get() = mobileRxBytes + mobileTxBytes
         val backgroundScore: Int get() {
-            // Оценка фонового вредительства: трафик без использования экрана
             val trafficMb = totalTrafficBytes / 1_048_576.0
             val ageHours = (System.currentTimeMillis() - lastUsed) / 3_600_000.0
             val idleTraffic = if (foregroundMs < 60_000 && trafficMb > 1) trafficMb else 0.0
@@ -38,6 +41,19 @@ object BatteryUsageTracker {
             return score
         }
     }
+
+    data class BatteryInfo(
+        val level: Int,
+        val isCharging: Boolean,
+        val health: String,
+        val temperature: Float,
+        val voltage: Int,
+        val technology: String,
+        val chargingType: String,
+    )
+
+    private var batteryReceiver: BroadcastReceiver? = null
+    @Volatile private var cachedBattery: BatteryInfo? = null
 
     fun hasUsageAccess(context: Context): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager ?: return false
@@ -55,6 +71,62 @@ object BatteryUsageTracker {
         })
     }
 
+    fun startBatteryMonitor(context: Context) {
+        if (batteryReceiver != null) return
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        batteryReceiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                cachedBattery = parseBattery(intent)
+            }
+        }
+        // ACTION_BATTERY_CHANGED is sticky — registerReceiver returns the last value
+        val sticky = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(batteryReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(batteryReceiver, filter)
+        }
+        if (sticky != null) cachedBattery = parseBattery(sticky)
+    }
+
+    fun stopBatteryMonitor(context: Context) {
+        batteryReceiver?.let { rec ->
+            runCatching { context.unregisterReceiver(rec) }
+        }
+        batteryReceiver = null
+    }
+
+    fun getBatteryInfo(): BatteryInfo? = cachedBattery
+
+    private fun parseBattery(intent: Intent?): BatteryInfo? {
+        if (intent == null) return null
+        val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100)
+        val pct = if (scale > 0) (level * 100 / scale) else level
+        val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
+        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
+        val healthCode = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN)
+        val health = when (healthCode) {
+            BatteryManager.BATTERY_HEALTH_GOOD -> "Хорошо"
+            BatteryManager.BATTERY_HEALTH_OVERHEAT -> "Перегрев"
+            BatteryManager.BATTERY_HEALTH_DEAD -> "Мёртвая"
+            BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> "Перенапряжение"
+            BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> "Сбой"
+            BatteryManager.BATTERY_HEALTH_COLD -> "Холодная"
+            else -> "Неизвестно"
+        }
+        val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) / 10.0f
+        val volt = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)
+        val tech = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY) ?: "Li-ion"
+        val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
+        val chargingType = when (plugged) {
+            BatteryManager.BATTERY_PLUGGED_AC -> "от сети"
+            BatteryManager.BATTERY_PLUGGED_USB -> "USB"
+            BatteryManager.BATTERY_PLUGGED_WIRELESS -> "беспроводная"
+            else -> if (isCharging) "зарядка" else "—"
+        }
+        return BatteryInfo(pct, isCharging, health, temp, volt, tech, chargingType)
+    }
+
     fun collect(context: Context, sinceMs: Long = System.currentTimeMillis() - 24 * 3_600_000L): List<AppUsage> {
         if (!hasUsageAccess(context)) return emptyList()
         val pm = context.packageManager
@@ -64,20 +136,10 @@ object BatteryUsageTracker {
         val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, sinceMs, System.currentTimeMillis())
         val result = mutableListOf<AppUsage>()
 
-        val bucketMobile = try { nsm?.querySummaryForDevice(
-            NetworkCapabilities.TRANSPORT_CELLULAR, null, sinceMs, System.currentTimeMillis()
-        ) } catch (_: Exception) { null }
-        val bucketWifi = try { nsm?.querySummaryForDevice(
-            NetworkCapabilities.TRANSPORT_WIFI, null, sinceMs, System.currentTimeMillis()
-        ) } catch (_: Exception) { null }
-
-        // Собираем per-app трафик через querySummary (нужен uid)
-        val uidTraffic = mutableMapOf<Int, LongArray>() // uid -> [rxMob, txMob, rxWifi, txWifi]
+        val uidTraffic = mutableMapOf<Int, LongArray>()
         if (nsm != null) {
             try {
-                val mobile = nsm.querySummary(
-                    NetworkCapabilities.TRANSPORT_CELLULAR, null, sinceMs, System.currentTimeMillis()
-                )
+                val mobile = nsm.querySummary(NetworkCapabilities.TRANSPORT_CELLULAR, null, sinceMs, System.currentTimeMillis())
                 while (mobile.hasNextBucket()) {
                     val b = NetworkStats.Bucket()
                     if (!mobile.getNextBucket(b)) break
@@ -87,9 +149,7 @@ object BatteryUsageTracker {
                 mobile.close()
             } catch (_: Exception) { }
             try {
-                val wifi = nsm.querySummary(
-                    NetworkCapabilities.TRANSPORT_WIFI, null, sinceMs, System.currentTimeMillis()
-                )
+                val wifi = nsm.querySummary(NetworkCapabilities.TRANSPORT_WIFI, null, sinceMs, System.currentTimeMillis())
                 while (wifi.hasNextBucket()) {
                     val b = NetworkStats.Bucket()
                     if (!wifi.getNextBucket(b)) break
@@ -111,19 +171,17 @@ object BatteryUsageTracker {
                 continue
             }
             val traffic = uidTraffic[appInfo.uid] ?: LongArray(4)
-            result.add(
-                AppUsage(
-                    packageName = pkg,
-                    appName = appInfo.loadLabel(pm)?.toString() ?: pkg,
-                    isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0,
-                    foregroundMs = foregroundMs,
-                    lastUsed = stat.lastTimeUsed,
-                    mobileRxBytes = traffic[0],
-                    mobileTxBytes = traffic[1],
-                    wifiRxBytes = traffic[2],
-                    wifiTxBytes = traffic[3],
-                )
-            )
+            result.add(AppUsage(
+                packageName = pkg,
+                appName = appInfo.loadLabel(pm)?.toString() ?: pkg,
+                isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0,
+                foregroundMs = foregroundMs,
+                lastUsed = stat.lastTimeUsed,
+                mobileRxBytes = traffic[0],
+                mobileTxBytes = traffic[1],
+                wifiRxBytes = traffic[2],
+                wifiTxBytes = traffic[3],
+            ))
         }
         return result.sortedByDescending { it.foregroundMs }
     }

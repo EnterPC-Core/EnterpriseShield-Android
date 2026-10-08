@@ -478,4 +478,21 @@
     <string name="battery_report_hours_ago">%1$dh ago</string>
     <string name="battery_report_min_ago">%1$dmin ago</string>
     <string name="battery_report_open">Battery drain report</string>
+    <string name="battery_tab_battery">Battery</string>
+    <string name="battery_tab_system">System</string>
+    <string name="battery_tab_apps">Apps</string>
+    <string name="battery_status_section">Battery status</string>
+    <string name="battery_charging">Charging</string>
+    <string name="battery_discharging">Discharging</string>
+    <string name="battery_temp">Temperature</string>
+    <string name="battery_health">Health</string>
+    <string name="battery_voltage">Voltage</string>
+    <string name="battery_tech">Technology</string>
+    <string name="sys_device_section">Device</string>
+    <string name="sys_battery_section">Battery</string>
+    <string name="sys_memory_section">Memory (RAM)</string>
+    <string name="sys_storage_section">Storage</string>
+    <string name="sys_display_section">Display</string>
+    <string name="sys_uptime_section">Uptime</string>
+    <string name="apps_count">apps</string>
 </resources>

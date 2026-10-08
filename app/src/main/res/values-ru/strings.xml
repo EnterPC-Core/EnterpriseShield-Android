@@ -467,4 +467,21 @@
     <string name="battery_report_hours_ago">%1$d ч назад</string>
     <string name="battery_report_min_ago">%1$d мин назад</string>
     <string name="battery_report_open">Кто жрёт батарею</string>
+    <string name="battery_tab_battery">Батарея</string>
+    <string name="battery_tab_system">Система</string>
+    <string name="battery_tab_apps">Приложения</string>
+    <string name="battery_status_section">Состояние батареи</string>
+    <string name="battery_charging">Заряжается</string>
+    <string name="battery_discharging">Разряжается</string>
+    <string name="battery_temp">Температура</string>
+    <string name="battery_health">Здоровье</string>
+    <string name="battery_voltage">Напряжение</string>
+    <string name="battery_tech">Технология</string>
+    <string name="sys_device_section">Устройство</string>
+    <string name="sys_battery_section">Батарея</string>
+    <string name="sys_memory_section">Память (ОЗУ)</string>
+    <string name="sys_storage_section">Хранилище</string>
+    <string name="sys_display_section">Экран</string>
+    <string name="sys_uptime_section">Время работы</string>
+    <string name="apps_count">приложений</string>
 </resources>
