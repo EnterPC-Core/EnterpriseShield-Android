@@ -443,4 +443,6 @@
     <string name="chat_link_title">Наш чат</string>
     <string name="quic_block_title">Блокировать QUIC (HTTP/3)</string>
     <string name="quic_block_detail">Заставляет сайты использовать TCP. Экономит батарею, YouTube стабильнее через прокси</string>
+    <string name="smart_sleep_title">Умный сон VPN</string>
+    <string name="smart_sleep_detail">VPN засыпает при выключенном экране 10 мин, мгновенно просыпается при разблокировке. Экономит батарею ночью</string>
 </resources>

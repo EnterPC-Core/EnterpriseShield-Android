@@ -300,6 +300,9 @@ internal fun vpnAlwaysOnEnabled(context: android.content.Context, fallback: Bool
     }.getOrDefault(fallback)
 
 class WhiteDnsVpnService : VpnService() {
+    private var smartSleepReceiver: android.content.BroadcastReceiver? = null
+    private val smartSleepHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    @Volatile private var smartSleepPending = false
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private lateinit var configRepository: ConfigRepository
@@ -495,6 +498,7 @@ class WhiteDnsVpnService : VpnService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val appInitiated = intent?.getBooleanExtra(Actions.EXTRA_APP_INITIATED, false) == true
+        ensureSmartSleepReceiver()
         updateAlwaysOnMode(appInitiated)
         DiagnosticLogger.info(
             this,
@@ -575,6 +579,11 @@ class WhiteDnsVpnService : VpnService() {
         subscriptionRefreshJob?.cancel()
         cancelPostConnectHealthWatchdog()
         runCatching { networkMonitor.stop() }
+        smartSleepHandler.removeCallbacksAndMessages(null)
+        smartSleepReceiver?.let { rec ->
+            runCatching { unregisterReceiver(rec) }
+        }
+        smartSleepReceiver = null
         runCatching { BlockStatsTracker.stopPolling(this) }
         stopCoreImmediately()
         scope.cancel()
@@ -4207,6 +4216,62 @@ class WhiteDnsVpnService : VpnService() {
             transport = "",
             validationHost = MihomoRuntimeDefaults.CONTROLLER_HOST,
         )
+    }
+
+    private fun ensureSmartSleepReceiver() {
+        if (smartSleepReceiver != null) return
+        if (!SmartSleepPolicy.readEnabled(this)) return
+        val filter = android.content.IntentFilter().apply {
+            addAction(android.content.Intent.ACTION_SCREEN_OFF)
+            addAction(android.content.Intent.ACTION_SCREEN_ON)
+            addAction(android.content.Intent.ACTION_USER_PRESENT)
+        }
+        val receiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: android.content.Context, intent: android.content.Intent) {
+                when (intent.action) {
+                    android.content.Intent.ACTION_SCREEN_OFF -> onScreenOff()
+                    android.content.Intent.ACTION_SCREEN_ON, android.content.Intent.ACTION_USER_PRESENT -> onScreenOn()
+                }
+            }
+        }
+        registerReceiver(receiver, filter)
+        smartSleepReceiver = receiver
+        DiagnosticLogger.info(this, "smart_sleep.receiver_registered")
+    }
+
+    private fun onScreenOff() {
+        if (!SmartSleepPolicy.readEnabled(this)) return
+        if (state != VpnState.Started) return
+        if (alwaysOnActive) return
+        smartSleepPending = true
+        DiagnosticLogger.info(this, "smart_sleep.screen_off", "delayMin=${SmartSleepPolicy.SLEEP_DELAY_MINUTES}")
+        smartSleepHandler.removeCallbacksAndMessages(null)
+        smartSleepHandler.postDelayed({
+            if (smartSleepPending && state == VpnState.Started && SmartSleepPolicy.readEnabled(this)) {
+                SmartSleepPolicy.saveAutoResume(this, true)
+                DiagnosticLogger.info(this, "smart_sleep.sleeping")
+                stopVpn()
+            }
+        }, SmartSleepPolicy.SLEEP_DELAY_MINUTES * 60_000)
+    }
+
+    private fun onScreenOn() {
+        smartSleepPending = false
+        smartSleepHandler.removeCallbacksAndMessages(null)
+        if (!SmartSleepPolicy.readAutoResume(this)) return
+        if (!SmartSleepPolicy.readEnabled(this)) {
+            SmartSleepPolicy.saveAutoResume(this, false)
+            return
+        }
+        SmartSleepPolicy.saveAutoResume(this, false)
+        if (state == VpnState.Stopped) {
+            DiagnosticLogger.info(this, "smart_sleep.resuming")
+            startService(
+                Intent(this, WhiteDnsVpnService::class.java)
+                    .setAction(Actions.CONNECT)
+                    .putExtra(Actions.EXTRA_APP_INITIATED, true),
+            )
+        }
     }
 
     private fun stopVpn(force: Boolean = false) {

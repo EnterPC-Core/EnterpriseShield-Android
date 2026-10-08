@@ -454,4 +454,6 @@
     <string name="chat_link_title">Наш чат</string>
     <string name="quic_block_title">Block QUIC (HTTP/3)</string>
     <string name="quic_block_detail">Forces sites to use TCP. Saves battery, YouTube is more stable through proxy</string>
+    <string name="smart_sleep_title">Smart VPN sleep</string>
+    <string name="smart_sleep_detail">VPN sleeps when screen is off for 10 min, resumes instantly on unlock. Saves battery overnight</string>
 </resources>

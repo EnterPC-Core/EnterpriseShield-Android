@@ -239,6 +239,7 @@ class MainActivity : Activity() {
     private lateinit var shieldGuardCheckbox: MaterialSwitch
     private lateinit var adBlockCheckbox: MaterialSwitch
     private lateinit var quicBlockCheckbox: MaterialSwitch
+    private lateinit var smartSleepCheckbox: MaterialSwitch
     private lateinit var dnsPrivacyRow: LinearLayout
     private lateinit var dnsPrivacyValueText: TextView
     private lateinit var dnsPrivacyDetailText: TextView
@@ -2627,6 +2628,22 @@ testingSettings.addView(
                 title = getString(R.string.quic_block_title),
                 detail = getString(R.string.quic_block_detail),
                 toggle = quicBlockCheckbox,
+            ),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) },
+        )
+        smartSleepCheckbox = MaterialSwitch(this).apply {
+            isChecked = SmartSleepPolicy.readEnabled(this@MainActivity)
+            contentDescription = getString(R.string.smart_sleep_title)
+            setOnClickListener {
+                SmartSleepPolicy.saveEnabled(this@MainActivity, isChecked)
+                if (!isChecked) SmartSleepPolicy.saveAutoResume(this@MainActivity, false)
+            }
+        }
+        routingPanel.addView(
+            advancedToggleRow(
+                title = getString(R.string.smart_sleep_title),
+                detail = getString(R.string.smart_sleep_detail),
+                toggle = smartSleepCheckbox,
             ),
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) },
         )
