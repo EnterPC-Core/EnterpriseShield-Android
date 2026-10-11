@@ -3171,6 +3171,12 @@ class WhiteDnsVpnService : VpnService() {
         publishState(VpnState.Started, notice)
         runCatching { BlockStatsTracker.startPolling(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret) }
         runCatching {
+            getSharedPreferences("white_dns_runtime_state", MODE_PRIVATE).edit()
+                .putInt("control_port", startedRuntime.paths.controlPort)
+                .putString("control_secret", startedRuntime.paths.secret)
+                .apply()
+        }
+        runCatching {
             val universal = ConnectionLocationPreferenceStore(this).readSelectedCountryCode() ==
                 com.whitedns.vpn.ConnectionLocationPolicy.UNIVERSAL_CODE
             if (universal) {

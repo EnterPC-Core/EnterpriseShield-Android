@@ -335,53 +335,96 @@ object NetworkMonitorBuilder {
         fun runUrlTest() {
             urlCard.removeAllViews()
             val started = isShieldStarted(activity)
+            val prefs = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE)
+            val controlPort = prefs.getInt("control_port", 0)
+            val secret = prefs.getString("control_secret", "").orEmpty()
             val placeHolder = TextView(activity).apply {
                 text = activity.getString(R.string.monitor_testing)
                 textSize = 13f; setTextColor(ts)
             }
             urlCard.addView(placeHolder)
-            val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
-            TEST_URLS.forEach { url ->
-                pool.submit {
-                    val t0 = System.nanoTime()
-                    val code = runCatching {
-                        val conn = (URL(url).let { u ->
-                            val p = if (started) Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)) else null
-                            p?.let { u.openConnection(it) } ?: u.openConnection()
-                        }) as HttpURLConnection
-                        conn.connectTimeout = 4000; conn.readTimeout = 6000
-                        conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
-                        conn.setRequestProperty("Connection", "close")
-                        val c = conn.responseCode
+
+            // активный сервер юзера (через ядро — честный тест с DNS через прокси)
+            fun activeProxyName(cb: (String?) -> Unit) {
+                GlobalScope.launch(Dispatchers.IO) {
+                    val name = runCatching {
+                        val conn = (URL("http://127.0.0.1:$controlPort/proxies/" +
+                                java.net.URLEncoder.encode("🚀 Каналы", "UTF-8")).openConnection() as HttpURLConnection).apply {
+                            setRequestProperty("Authorization", "Bearer $secret"); connectTimeout = 3000; readTimeout = 5000
+                        }
+                        val now = org.json.JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).optString("now")
                         conn.disconnect()
-                        c
-                    }.getOrDefault(-1)
-                    val ms = (System.nanoTime() - t0) / 1e6
-                    GlobalScope.launch(Dispatchers.Main) {
-                        if (placeHolder.isAttachedToWindow && urlCard.childCount == 1 && urlCard.getChildAt(0) === placeHolder) urlCard.removeView(placeHolder)
-                        val ok = code in 200..399
-                        val color = if (ok) teal else red
-                        val host = runCatching { URL(url).host }.getOrDefault(url)
-                        val r = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-                        r.addView(TextView(activity).apply {
-                            text = if (ok) "✓" else "✗"; textSize = 15f; setTextColor(color)
-                            typeface = Typeface.DEFAULT_BOLD
-                        })
-                        r.addView(TextView(activity).apply {
-                            text = host; textSize = 13f; setTextColor(tp)
-                            setPadding(dp(activity, 10), 0, 0, 0)
-                            maxLines = 1
-                            ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
-                        }, LinearLayout.LayoutParams(0, -2, 1f))
-                        r.addView(TextView(activity).apply {
-                            text = if (ok) "${ms.toInt()} ${activity.getString(R.string.monitor_ms)}" else "HTTP $code"
-                            textSize = 12f; setTextColor(if (ok) ts else amber)
-                        })
-                        urlCard.addView(r, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 8) })
-                    }
+                        now.takeIf { it.isNotBlank() }
+                    }.getOrNull()
+                    launch(Dispatchers.Main) { cb(name) }
                 }
             }
-            pool.shutdown()
+
+            fun runTests(activeName: String?) {
+                val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
+                TEST_URLS.forEach { url ->
+                    pool.submit {
+                        val t0 = System.nanoTime()
+                        val code: Int = if (started && controlPort > 0 && secret.isNotEmpty()) {
+                            // честный тест: ядро резолвит и коннектит через активный сервер
+                            val path = if (activeName != null)
+                                "/proxies/" + java.net.URLEncoder.encode(activeName, "UTF-8") + "/delay"
+                            else
+                                "/group/" + java.net.URLEncoder.encode("🚀 Каналы", "UTF-8") + "/delay"
+                            val ok = runCatching {
+                                val conn = (URL("http://127.0.0.1:$controlPort$path?url=" +
+                                        java.net.URLEncoder.encode(url, "UTF-8") + "&timeout=6000").openConnection() as HttpURLConnection).apply {
+                                    setRequestProperty("Authorization", "Bearer $secret"); connectTimeout = 5000; readTimeout = 9000
+                                }
+                                val r = conn.responseCode
+                                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                                conn.disconnect()
+                                r == 200 && org.json.JSONObject(body).optInt("delay", 0) > 0
+                            }.getOrDefault(false)
+                            if (ok) 204 else -1
+                        } else {
+                            runCatching {
+                                val conn = (URL(url).let { u ->
+                                    val p = if (started) Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)) else null
+                                    p?.let { u.openConnection(it) } ?: u.openConnection()
+                                }) as HttpURLConnection
+                                conn.connectTimeout = 4000; conn.readTimeout = 6000
+                                conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
+                                conn.setRequestProperty("Connection", "close")
+                                val c = conn.responseCode
+                                conn.disconnect()
+                                c
+                            }.getOrDefault(-1)
+                        }
+                        val ms = (System.nanoTime() - t0) / 1e6
+                        GlobalScope.launch(Dispatchers.Main) {
+                            if (placeHolder.isAttachedToWindow && urlCard.childCount == 1 && urlCard.getChildAt(0) === placeHolder) urlCard.removeView(placeHolder)
+                            val ok = code in 200..399
+                            val color = if (ok) teal else red
+                            val host = runCatching { URL(url).host }.getOrDefault(url)
+                            val r = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+                            r.addView(TextView(activity).apply {
+                                text = if (ok) "✓" else "✗"; textSize = 15f; setTextColor(color)
+                                typeface = Typeface.DEFAULT_BOLD
+                            })
+                            r.addView(TextView(activity).apply {
+                                text = host; textSize = 13f; setTextColor(tp)
+                                setPadding(dp(activity, 10), 0, 0, 0)
+                                maxLines = 1
+                                ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+                            }, LinearLayout.LayoutParams(0, -2, 1f))
+                            r.addView(TextView(activity).apply {
+                                text = if (ok) "${ms.toInt()} ${activity.getString(R.string.monitor_ms)}" else "—"
+                                textSize = 12f; setTextColor(if (ok) ts else amber)
+                            })
+                            urlCard.addView(r, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 8) })
+                        }
+                    }
+                }
+                pool.shutdown()
+            }
+
+            if (started && controlPort > 0) activeProxyName { runTests(it) } else runTests(null)
         }
 
         fun loadGeo() {

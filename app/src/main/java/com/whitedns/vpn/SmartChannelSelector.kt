@@ -114,7 +114,7 @@ object SmartChannelSelector {
                 /** быстрый скрининг одного сервера через REST */
                 suspend fun screen(name: String): Pair<Long, Int> = withContext(Dispatchers.IO) {
                     var sum = 0L; var passed = 0
-                    for (u in SCREEN_URLS) {
+                    for (u in LIVE_URLS) {
                         val d = api("/proxies/${enc(name)}/delay?url=${enc(u)}&timeout=5000")
                         val delay = d?.optInt("delay", 0) ?: 0
                         if (delay > 0) { passed++; sum += delay }
@@ -122,22 +122,15 @@ object SmartChannelSelector {
                     sum to passed
                 }
 
-                /** живой тест текущего сервера через SOCKS (реальный клиент, как мониторинг) */
-                fun liveTest(): Pair<Long, Int> {
+                /** честный тест сервера через ядро: DNS через прокси, реальный TLS, код ответа.
+                 *  name=null -> тест активного выбора группы. */
+                fun coreTest(name: String?): Pair<Long, Int> {
                     var sum = 0L; var passed = 0
                     for (u in LIVE_URLS) {
-                        val ok = runCatching {
-                            val conn = (URL(u).let { it.openConnection(Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT))) }) as HttpURLConnection
-                            conn.connectTimeout = 4000; conn.readTimeout = 6000
-                            conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
-                            conn.setRequestProperty("Connection", "close")
-                            val t0 = System.nanoTime()
-                            val code = conn.responseCode
-                            val ms = (System.nanoTime() - t0) / 1_000_000
-                            conn.disconnect()
-                            if (code in 200..399) { sum += ms; true } else false
-                        }.getOrDefault(false)
-                        if (ok) passed++
+                        val path = if (name == null) "/group/${enc(GROUP)}/delay" else "/proxies/${enc(name)}/delay"
+                        val d = api("$path?url=${enc(u)}&timeout=6000")
+                        val delay = d?.optInt("delay", 0) ?: 0
+                        if (delay > 0) { passed++; sum += delay }
                     }
                     return sum to passed
                 }
@@ -178,20 +171,18 @@ object SmartChannelSelector {
                         }.awaitAll()
                     }
 
-                    val fullPass = screened.filter { it.third == SCREEN_URLS.size }
+                    val fullPass = screened.filter { it.third == LIVE_URLS.size }
                     if (fullPass.isEmpty()) {
                         switchTo(GROUP)
                         prefs.edit().putString("last_server", "").putInt("last_passed", 0).apply()
                         return false
                     }
 
-                    // ЭТАП 2: живой перебор топ-5 через реальный туннель
-                    val finalists = fullPass.sortedBy { it.second }.take(5)
+                    // ЭТАП 2: повторная проверка топ-8 финалистов через ядро (стабильность)
+                    val finalists = fullPass.sortedBy { it.second }.take(8)
                     var bestName: String? = null; var bestSum = Long.MAX_VALUE
                     for ((name, _, _) in finalists) {
-                        if (!switchTo(name)) continue
-                        delay(1200)   // дать соединениям подняться на новом сервере
-                        val (sum, passed) = liveTest()
+                        val (sum, passed) = coreTest(name)
                         prefs.edit().putString("candidate_$name", "$passed/${LIVE_URLS.size}").apply()
                         if (passed == LIVE_URLS.size && sum < bestSum) {
                             bestSum = sum; bestName = name
@@ -202,7 +193,7 @@ object SmartChannelSelector {
                         prefs.edit().putString("last_server", "").putInt("last_passed", 0).apply()
                         return false
                     }
-                    val finalOk = switchTo(bestName ?: return false)
+                    val finalOk = switchTo(bestName)
                     if (finalOk) {
                         prefs.edit()
                             .putString("last_server", bestName)
@@ -226,7 +217,7 @@ object SmartChannelSelector {
                         delay(HEALTH_INTERVAL_MS)
                         val cur = currentOfGroup() ?: break
                         if (cur == GROUP) continue
-                        val (_, passed) = liveTest()
+                        val (_, passed) = coreTest(cur)
                         if (passed < LIVE_URLS.size) {
                             runCatching { switchTo(GROUP) }
                             runCatching { fullRun() }
