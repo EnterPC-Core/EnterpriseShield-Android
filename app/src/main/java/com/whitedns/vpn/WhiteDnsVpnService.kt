@@ -3170,7 +3170,6 @@ class WhiteDnsVpnService : VpnService() {
         sessionStartedAtElapsedMs = SystemClock.elapsedRealtime()
         publishState(VpnState.Started, notice)
         runCatching { BlockStatsTracker.startPolling(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret) }
-        runCatching { SmartChannelSelector.start(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret) }
         getSystemService(NotificationManager::class.java)
             .notify(NOTIFICATION_ID, serviceNotification(connectedNotificationText()))
         DiagnosticLogger.info(
