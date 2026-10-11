@@ -230,33 +230,6 @@ object NetworkMonitorBuilder {
             textSize = 13f; setTextColor(ts)
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
 
-        // ===== умный выбор =====
-        val smartPrefs = activity.getSharedPreferences("white_dns_smart_selector", Activity.MODE_PRIVATE)
-        val smartCard = styledCard(activity).apply { setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12)) }
-        smartCard.addView(TextView(activity).apply {
-            text = activity.getString(R.string.monitor_smart_title)
-            textSize = 12f; setTextColor(ts)
-        })
-        val smartValue = TextView(activity).apply {
-            val srv = smartPrefs.getString("last_server", "") ?: ""
-            val passed = smartPrefs.getInt("last_passed", 0)
-            val total = smartPrefs.getInt("last_total", 4)
-            val at = smartPrefs.getLong("last_at", 0L)
-            val mins = if (at > 0) (System.currentTimeMillis() - at) / 60000 else -1
-            text = when {
-                srv.isEmpty() -> activity.getString(R.string.monitor_smart_searching)
-                else -> {
-                    val ago = if (mins >= 0) " · ${mins} мин" else ""
-                    val mark = if (passed == total) "✓ $passed/$total" else "$passed/$total"
-                    "$srv · $mark$ago"
-                }
-            }
-            textSize = 14f; setTextColor(if (passed == total && total > 0) teal else tp)
-            typeface = Typeface.DEFAULT_BOLD
-        }
-        smartCard.addView(smartValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
-        content.addView(smartCard, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 12) })
-
         // ===== Универсал (виден только в режиме Универсал) =====
         val universalMode = activity.getSharedPreferences("white_dns_connection_location", Activity.MODE_PRIVATE)
             .getString("country_code", "") == "UN"
@@ -371,19 +344,35 @@ object NetworkMonitorBuilder {
             }
             urlCard.addView(placeHolder)
 
-            // активный сервер юзера (через ядро — честный тест с DNS через прокси)
+            // реальный сервер юзера: спускаемся по группам (Каналы -> Авто-выбор -> сервер)
+            fun fetchNow(name: String): String? = runCatching {
+                val conn = (URL("http://127.0.0.1:$controlPort/proxies/" +
+                        java.net.URLEncoder.encode(name, "UTF-8")).openConnection() as HttpURLConnection).apply {
+                    setRequestProperty("Authorization", "Bearer $secret"); connectTimeout = 3000; readTimeout = 5000
+                }
+                val j = org.json.JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
+                conn.disconnect()
+                val type = j.optString("type", "")
+                val now = j.optString("now", "")
+                when {
+                    now.isBlank() -> name.takeIf { type.isNotBlank() }   // конкретный прокси
+                    type.equals("Selector", true) || type.equals("URLTest", true) ||
+                        type.equals("Fallback", true) || type.equals("LoadBalance", true) -> now
+                    else -> name   // дошли до конкретного сервера
+                }
+            }.getOrNull()
+
             fun activeProxyName(cb: (String?) -> Unit) {
                 GlobalScope.launch(Dispatchers.IO) {
-                    val name = runCatching {
-                        val conn = (URL("http://127.0.0.1:$controlPort/proxies/" +
-                                java.net.URLEncoder.encode("🚀 Каналы", "UTF-8")).openConnection() as HttpURLConnection).apply {
-                            setRequestProperty("Authorization", "Bearer $secret"); connectTimeout = 3000; readTimeout = 5000
-                        }
-                        val now = org.json.JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).optString("now")
-                        conn.disconnect()
-                        now.takeIf { it.isNotBlank() }
-                    }.getOrNull()
-                    launch(Dispatchers.Main) { cb(name) }
+                    var cur = "🚀 Каналы"
+                    var server: String? = null
+                    repeat(4) {
+                        val next = fetchNow(cur) ?: return@repeat
+                        if (next == cur) { server = cur; return@repeat }
+                        cur = next
+                        server = cur
+                    }
+                    launch(Dispatchers.Main) { cb(server) }
                 }
             }
 
@@ -394,10 +383,7 @@ object NetworkMonitorBuilder {
                         val t0 = System.nanoTime()
                         val code: Int = if (started && controlPort > 0 && secret.isNotEmpty()) {
                             // честный тест: ядро резолвит и коннектит через активный сервер
-                            val path = if (activeName != null)
-                                "/proxies/" + java.net.URLEncoder.encode(activeName, "UTF-8") + "/delay"
-                            else
-                                "/group/" + java.net.URLEncoder.encode("🚀 Каналы", "UTF-8") + "/delay"
+                            val path = "/proxies/" + java.net.URLEncoder.encode(activeName ?: "🚀 Каналы", "UTF-8") + "/delay"
                             val ok = runCatching {
                                 val conn = (URL("http://127.0.0.1:$controlPort$path?url=" +
                                         java.net.URLEncoder.encode(url, "UTF-8") + "&timeout=6000").openConnection() as HttpURLConnection).apply {
