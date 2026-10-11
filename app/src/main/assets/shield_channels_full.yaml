@@ -25708,11 +25708,7 @@ proxy-groups:
       - "🇳🇱 Enterprise SS 217"
       - "🇺🇸 Enterprise SS 218"
   - name: "♻️ Авто-выбор"
-    type: url-test
-    url: "https://speed.cloudflare.com/__down?bytes=10000"
-    interval: 900
-    lazy: true
-    tolerance: 120
+    type: select
     proxies:
       - "Enterprise 12"
       - "Enterprise 8"

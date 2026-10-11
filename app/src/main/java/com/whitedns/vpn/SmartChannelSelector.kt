@@ -3,20 +3,22 @@ package com.whitedns.vpn
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Умный выбор сервера для «♻️ Авто-выбор»: тестирует кандидатов НЕ по одному URL,
- * а по набору сервисов (YouTube, Telegram, Instagram, Cloudflare) через REST ядра
- * (GET /proxies/{name}/delay?url=...). Выбирает серверы, прошедшие ВСЕ проверки,
- * из них — с минимальной суммарной задержкой, и переключает группу на лучший.
+ * Умный выбор сервера для «♻️ Авто-выбор» (теперь select-группа — ядро её не трогает).
+ * Логика: полный прогон кандидатов (мульти-URL: YouTube, Telegram, Instagram, CF),
+ * побеждает прошедший ВСЕ с минимальной суммой задержек; если таковых нет — максимум проверок.
+ * Между прогонами — быстрая проверка активного сервера (3 мин); упал → мгновенный полный прогон.
+ * Решение пишется в prefs (smart_selector_last) для отображения в UI.
  */
 object SmartChannelSelector {
 
@@ -27,31 +29,24 @@ object SmartChannelSelector {
         "https://www.instagram.com",
         "https://cp.cloudflare.com/generate_204",
     )
+    private const val FULL_INTERVAL_MS = 15 * 60 * 1000L
+    private const val HEALTH_INTERVAL_MS = 3 * 60 * 1000L
 
-    fun interface Logger { fun log(line: String) }
+    private val running = AtomicBoolean(false)
 
-    private val running = java.util.concurrent.atomic.AtomicBoolean(false)
-    private const val RECHECK_MS = 45 * 60 * 1000L
-
-    /**
-     * @param controlPort REST-порт ядра
-     * @param secret секрет ядра
-     * @param candidates сколько лучших по последнему пингу серверов проверять (напр. 25)
-     */
-    fun selectBest(context: Context, controlPort: Int, secret: String, candidates: Int = 60, log: Logger? = null) {
+    fun start(context: Context, controlPort: Int, secret: String, candidates: Int = 60) {
         if (!running.compareAndSet(false, true)) return
         GlobalScope.launch(Dispatchers.IO) {
             try {
-              while (true) {
-                delay(20_000)   // дать ядру подняться
-                runCatching {
                 val base = "http://127.0.0.1:$controlPort"
-                fun api(path: String, method: String = "GET", body: String? = null): JSONObject? {
+                val prefs = context.getSharedPreferences("white_dns_smart_selector", Context.MODE_PRIVATE)
+
+                fun api(path: String, method: String = "GET", body: String? = null): JSONObject? = runCatching {
                     val conn: HttpURLConnection = (URL(base + path).openConnection() as HttpURLConnection).apply {
                         requestMethod = method
                         setRequestProperty("Authorization", "Bearer $secret")
-                        connectTimeout = 5000
-                        readTimeout = 12000
+                        connectTimeout = 4000
+                        readTimeout = 9000
                     }
                     if (body != null) {
                         conn.doOutput = true
@@ -59,68 +54,100 @@ object SmartChannelSelector {
                     }
                     val text = conn.inputStream.bufferedReader().use { it.readText() }
                     conn.disconnect()
-                    return if (text.isBlank()) null else runCatching { JSONObject(text) }.getOrNull()
-                }
+                    if (text.isBlank()) null else runCatching { JSONObject(text) }.getOrNull()
+                }.getOrNull()
 
-                // 1) члены группы + их текущие задержки
-                val groupJson = api("/proxies/" + java.net.URLEncoder.encode(GROUP, "UTF-8")) ?: return@runCatching
-                val all = groupJson.optJSONArray("all") ?: return@runCatching
-                val scored = mutableListOf<Pair<String, Long>>()   // name -> известный delay
-                for (i in 0 until all.length()) {
-                    val n = all.optString(i)
-                    if (n == GROUP || n.startsWith("📶") || n.startsWith("📹") || n.startsWith("✈") ||
-                        n.startsWith("🧱") || n.startsWith("🤖")) continue
-                    val pj = api("/proxies/" + java.net.URLEncoder.encode(n, "UTF-8")) ?: continue
-                    val history = pj.optJSONArray("history")
-                    var lastDelay = Long.MAX_VALUE
-                    if (history != null && history.length() > 0) {
-                        for (h in history.length() - 1 downTo 0) {
-                            val d = history.optJSONObject(h)?.optLong("delay", 0) ?: 0
-                            if (d > 0) { lastDelay = d; break }
-                        }
+                fun currentOfGroup(): String? =
+                    api("/proxies/" + enc(GROUP))?.optString("now")?.takeIf { it.isNotBlank() }
+
+                fun switchTo(name: String): Boolean = runCatching {
+                    val r: HttpURLConnection = URL("$base/proxies/${enc(GROUP)}").openConnection() as HttpURLConnection
+                    r.requestMethod = "PUT"
+                    r.setRequestProperty("Authorization", "Bearer $secret")
+                    r.setRequestProperty("Content-Type", "application/json")
+                    r.doOutput = true
+                    r.outputStream.use { it.write("""{"name":"$name"}""".toByteArray()) }
+                    val code = r.responseCode
+                    r.disconnect()
+                    code in 200..299
+                }.getOrDefault(false)
+
+                /** проверка одного сервера: (сумма задержек, сколько прошёл) */
+                suspend fun checkServer(name: String): Pair<Long, Int> = withContext(Dispatchers.IO) {
+                    var sum = 0L; var passed = 0
+                    for (u in CHECK_URLS) {
+                        val d = api("/proxies/${enc(name)}/delay?url=${enc(u)}&timeout=5000")
+                        val delay = d?.optInt("delay", 0) ?: 0
+                        if (delay > 0) { passed++; sum += delay }
                     }
-                    scored.add(n to lastDelay)
+                    sum to passed
                 }
-                val pool = scored.sortedBy { it.second }.take(candidates).map { it.first }
-                log?.log("кандидатов: ${pool.size}")
-                if (pool.isEmpty()) return@runCatching
 
-                // 2) мульти-проверка: сервер должен пройти ВСЕ URL
-                data class Cand(val name: String, val sumDelay: Long, val passed: Int)
-                val results = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                    pool.map { name ->
+                /** полный прогон и переключение */
+                suspend fun fullRun(): Boolean {
+                    val groupJson = api("/proxies/" + enc(GROUP)) ?: return false
+                    val all = groupJson.optJSONArray("all") ?: return false
+                    val members = (0 until all.length()).mapNotNull { all.optString(it) }
+                        .filter { it != GROUP && !it.startsWith("📶") && !it.startsWith("📹") &&
+                                  !it.startsWith("✈") && !it.startsWith("🧱") && !it.startsWith("🤖") }
+                    if (members.isEmpty()) return false
+
+                    // кандидаты: по последней известной задержке
+                    val scored = members.map { n ->
+                        val hist = api("/proxies/" + enc(n))?.optJSONArray("history")
+                        var last = Long.MAX_VALUE
+                        if (hist != null) for (h in hist.length() - 1 downTo 0) {
+                            val d = hist.optJSONObject(h)?.optLong("delay", 0) ?: 0
+                            if (d > 0) { last = d; break }
+                        }
+                        n to last
+                    }
+                    val pool = scored.sortedBy { it.second }.take(candidates).map { it.first }
+
+                    val results = pool.map { name ->
                         async(Dispatchers.IO) {
-                            var sum = 0L; var passed = 0
-                            for (u in CHECK_URLS) {
-                                val d = api("/proxies/" + java.net.URLEncoder.encode(name, "UTF-8") +
-                                        "/delay?url=" + java.net.URLEncoder.encode(u, "UTF-8") + "&timeout=5000")
-                                val delay = d?.optInt("delay", 0) ?: 0
-                                if (delay > 0) { passed++; sum += delay }
-                            }
-                            Cand(name, sum, passed)
+                            val r = checkServer(name)
+                            Triple(name, r.first, r.second)
                         }
                     }.awaitAll()
+
+                    val maxPassed = results.maxOfOrNull { it.third } ?: 0
+                    if (maxPassed == 0) return false
+                    val best = results.filter { it.third == maxPassed }.minByOrNull { it.second } ?: return false
+                    val ok = switchTo(best.first)
+                    if (ok) {
+                        prefs.edit()
+                            .putString("last_server", best.first)
+                            .putInt("last_passed", best.third)
+                            .putInt("last_total", CHECK_URLS.size)
+                            .putLong("last_at", System.currentTimeMillis())
+                            .apply()
+                    }
+                    return ok
                 }
-                val maxPassed = results.maxOfOrNull { it.passed } ?: 0
-                log?.log("лучший кандидат прошёл $maxPassed/${CHECK_URLS.size} проверок")
-                if (maxPassed == 0) return@runCatching
-                // приоритет: все проверки -> максимум проверок -> минимум суммы задержек
-                val universal = results.filter { it.passed == maxPassed }
-                val best = universal.minByOrNull { it.sumDelay } ?: return@runCatching
-                val enc = java.net.URLEncoder.encode(GROUP, "UTF-8")
-                val r = URL("$base/proxies/$enc").openConnection() as HttpURLConnection
-                r.requestMethod = "PUT"
-                r.setRequestProperty("Authorization", "Bearer $secret")
-                r.setRequestProperty("Content-Type", "application/json")
-                r.doOutput = true
-                r.outputStream.use { it.write("""{"name":"${best.name.replace("\"", "")}"}""".toByteArray()) }
-                val code = r.responseCode
-                r.disconnect()
-                log?.log("выбран: ${best.name} (HTTP $code)")
-            }.onFailure { log?.log("ошибка: ${it.message}") }
-                delay(RECHECK_MS)
-              }
-            } finally { running.set(false) }
+
+                while (true) {
+                    delay(15_000)   // дать ядру подняться
+                    runCatching { fullRun() }
+
+                    // быстрый health активного между полными прогонами
+                    val startedAt = System.currentTimeMillis()
+                    while (System.currentTimeMillis() - startedAt < FULL_INTERVAL_MS) {
+                        delay(HEALTH_INTERVAL_MS)
+                        val cur = currentOfGroup() ?: break
+                        val (sum, passed) = checkServer(cur)
+                        if (passed < CHECK_URLS.size) {
+                            runCatching { fullRun() }   // упал частично — немедленная замена
+                            break
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+            } finally {
+                running.set(false)
+            }
         }
     }
+
+    private fun enc(s: String): String = java.net.URLEncoder.encode(s, "UTF-8")
 }

@@ -1871,9 +1871,10 @@ class MainActivity : Activity() {
             gravity = Gravity.END
             layoutDirection = View.LAYOUT_DIRECTION_LTR
             textDirection = View.TEXT_DIRECTION_LTR
-            textSize = 12.5f
+            textSize = 11f
             typeface = WhiteDnsDataTypeface
             setTextColor(TEXT_PRIMARY)
+            maxLines = 1
             includeFontPadding = false
         }
         uploadSpeedText = TextView(this).apply {
@@ -1881,9 +1882,10 @@ class MainActivity : Activity() {
             gravity = Gravity.END
             layoutDirection = View.LAYOUT_DIRECTION_LTR
             textDirection = View.TEXT_DIRECTION_LTR
-            textSize = 12.5f
+            textSize = 11f
             typeface = WhiteDnsDataTypeface
             setTextColor(TEXT_PRIMARY)
+            maxLines = 1
             includeFontPadding = false
         }
         connectionCountryText = TextView(this).apply {
@@ -1951,10 +1953,11 @@ class MainActivity : Activity() {
                 addView(arrowIcon, LinearLayout.LayoutParams(dp(13), dp(13)))
                 addView(TextView(this@MainActivity).apply {
                     text = label
-                    textSize = 10f
+                    textSize = 9f
                     typeface = WhiteDnsBodyTypeface
                     setTextColor(TEXT_SECONDARY)
                     includeFontPadding = false
+                    maxLines = 1
                 }, LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(6) })
             }, LinearLayout.LayoutParams(0, -2, 1f))
             // Value on right
@@ -1978,8 +1981,8 @@ class MainActivity : Activity() {
             )
             addView(
                 TextView(this@MainActivity).apply {
-                    text = "🗺 " + getString(R.string.map_page_title)
-                    textSize = 10f
+                    text = "🗺"
+                    textSize = 11f
                     typeface = WhiteDnsBodyTypeface
                     setTextColor(TEXT_SECONDARY)
                     includeFontPadding = false
@@ -1989,7 +1992,7 @@ class MainActivity : Activity() {
                     setOnClickListener { showMapPage() }
                     setPadding(dp(4), dp(6), dp(4), dp(6))
                 },
-                LinearLayout.LayoutParams(0, -2, 0.75f),
+                LinearLayout.LayoutParams(0, -2, 0.35f),
             )
         }
 

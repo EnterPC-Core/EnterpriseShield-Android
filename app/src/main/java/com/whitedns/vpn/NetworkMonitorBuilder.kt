@@ -93,11 +93,12 @@ object NetworkMonitorBuilder {
         }
         val status = TextView(activity).apply {
             text = activity.getString(R.string.monitor_checking)
-            textSize = 9.5f
+            textSize = 9f
             typeface = WhiteDnsBodyTypeface
             setTextColor(ts)
             includeFontPadding = false
             maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
         }
         cell.addView(icon, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = dp(activity, 4) })
         cell.addView(status, LinearLayout.LayoutParams(0, -2, 1f))
