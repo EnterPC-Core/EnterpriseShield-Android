@@ -164,9 +164,11 @@ class MainActivity : Activity() {
     private lateinit var batteryReportPageHost: FrameLayout
     private lateinit var mapPageHost: FrameLayout
     private lateinit var speedTestPageHost: FrameLayout
+    private lateinit var networkMonitorPageHost: FrameLayout
     private var batteryReportPageVisible: Boolean = false
     private var mapPageVisible: Boolean = false
     private var speedTestPageVisible: Boolean = false
+    private var networkMonitorPageVisible: Boolean = false
     private var activeChainPickerSlot: ConnectionChainSlot? = null
     private var activeChainPickerSubscriptionId: String? = null
     private var renderChainSettingsPage: (() -> Unit)? = null
@@ -357,6 +359,7 @@ class MainActivity : Activity() {
         )
         configureSystemBars()
         setContentView(buildAppShell())
+        maybeAutoRefreshChannels()
         renderState(VpnState.Stopped)
         refreshLocationOptions()
         fetchPrivateSubscriptionOnLoad()
@@ -381,6 +384,21 @@ class MainActivity : Activity() {
         mainHandler.post {
             val checkUpdatesAfterStartup = { if (savedInstanceState == null) checkForUpdates() }
             if (!showPrivacyPolicyIfNeeded(checkUpdatesAfterStartup)) checkUpdatesAfterStartup()
+        }
+    }
+
+    private fun maybeAutoRefreshChannels() {
+        // тихое фоновое обновление встроенной подписки «Щит каналы» не чаще раза в 6 часов
+        runCatching {
+            val prefs = getSharedPreferences("white_dns_channels_autorefresh", MODE_PRIVATE)
+            val last = prefs.getLong("last_refresh_at", 0L)
+            val now = System.currentTimeMillis()
+            if (now - last < 6 * 3600_000L) return
+            prefs.edit().putLong("last_refresh_at", now).apply()
+            activityScope.launch(Dispatchers.IO) {
+                runCatching { ConfigRepository(this@MainActivity).refreshBuiltInMihomoConfig(SubscriptionStore.PRIVATE_SUBSCRIPTION_ID) }
+                    .onFailure { DiagnosticLogger.warn(this@MainActivity, "channels.autorefresh.failed", error = it) }
+            }
         }
     }
 
@@ -533,6 +551,20 @@ class MainActivity : Activity() {
             insets
         }
         root.addView(speedTestPageHost, FrameLayout.LayoutParams(-1, -1))
+        networkMonitorPageHost = FrameLayout(this).apply {
+            visibility = View.GONE
+            setBackgroundColor(BACKGROUND)
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(networkMonitorPageHost) { view, insets ->
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or
+                    WindowInsetsCompat.Type.navigationBars() or
+                    WindowInsetsCompat.Type.displayCutout(),
+            )
+            view.setPadding(0, systemBars.top, 0, systemBars.bottom)
+            insets
+        }
+        root.addView(networkMonitorPageHost, FrameLayout.LayoutParams(-1, -1))
         runCatching { TvUi.attachAutoStyling(root) }
         return root
     }
@@ -641,6 +673,25 @@ class MainActivity : Activity() {
         mapPageHost.visibility = View.GONE
         mapPageHost.removeAllViews()
         mapPageVisible = false
+        appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
+    }
+
+    fun showNetworkMonitorPage() {
+        if (networkMonitorPageVisible) return
+        networkMonitorPageHost.removeAllViews()
+        val page = NetworkMonitorBuilder.buildScreen(this)
+        networkMonitorPageHost.addView(page, FrameLayout.LayoutParams(-1, -1))
+        networkMonitorPageHost.visibility = View.VISIBLE
+        networkMonitorPageHost.translationX = 0f
+        networkMonitorPageVisible = true
+        appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+    }
+
+    fun closeNetworkMonitorPage() {
+        if (!networkMonitorPageVisible) return
+        networkMonitorPageHost.visibility = View.GONE
+        networkMonitorPageHost.removeAllViews()
+        networkMonitorPageVisible = false
         appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
     }
 
@@ -1512,6 +1563,7 @@ class MainActivity : Activity() {
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
         when {
+            networkMonitorPageVisible -> closeNetworkMonitorPage()
             speedTestPageVisible -> closeSpeedTestPage()
             mapPageVisible -> closeMapPage()
             batteryReportPageVisible -> closeBatteryReportPage()
@@ -2122,6 +2174,10 @@ class MainActivity : Activity() {
             )
             addView(
                 dataRows,
+                contentParams(dp(16)),
+            )
+            addView(
+                NetworkMonitorBuilder.buildCard(this@MainActivity) { showNetworkMonitorPage() },
                 contentParams(dp(16)),
             )
         }

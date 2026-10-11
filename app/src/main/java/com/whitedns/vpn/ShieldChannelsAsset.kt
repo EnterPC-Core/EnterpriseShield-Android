@@ -1,7 +1,28 @@
 package com.whitedns.vpn
 
+internal val appContext: android.content.Context? by lazy {
+    runCatching {
+        Class.forName("android.app.ActivityThread")
+            .getMethod("currentApplication")
+            .invoke(null) as? android.content.Context
+    }.getOrNull()
+}
+
 internal object ShieldChannelsAsset {
-    val yaml: String = """# Enterprise Shield - All servers (offline)
+    @Volatile private var cachedFull: String? = null
+
+    /** Полный каталог: assets/shield_channels_full.yaml, при отсутствии — зашитый офлайн-набор. */
+    val yaml: String
+        get() = (cachedFull ?: fromAssetOrNull()) ?: embedded
+
+    private fun fromAssetOrNull(): String? = runCatching {
+        val ctx = appContext ?: return@runCatching null
+        val text = ctx.assets.open("shield_channels_full.yaml").bufferedReader().use { it.readText() }
+        cachedFull = text
+        text
+    }.getOrNull()
+
+    private val embedded: String = """# Enterprise Shield - All servers (offline)
 proxies:
   - name: Enterprise 12
     type: vless

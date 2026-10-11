@@ -6,165 +6,244 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.abs
 import kotlin.math.roundToLong
 
 /**
- * Спид-тест Щита через ядро (SOCKS5 127.0.0.1:socksPort).
- * Методика (Cloudflare): адаптивное расписание параллельных загрузок/отдач,
- * замер unloaded/loaded latency -> bufferbloat.
+ * Спид-тест — точная методика оригинала (Cloudflare):
+ * 9 волн: 100КБ(1) → 100КБ(9) → 1МБ(8) → ↑100КБ(8) → ↑1МБ(6) → 10МБ(6) → ↑10МБ(4) → 25МБ(4) → ↑25МБ(4)
+ * Скорость волны = 90-й перцентиль всех сэмплов волны.
+ * Учёт TTFB и Server-Timing (заголовок CF), пинг idle/под нагрузкой, джиттер, bufferbloat.
  */
 class SpeedTestEngine(private val socksPort: Int?) {
 
+    data class SpeedSample(val mbps: Double)
+
     data class State(
         val phase: Phase = Phase.Idle,
-        val downMbps: Double = 0.0,
-        val upMbps: Double = 0.0,
-        val idlePingMs: Long = 0,
-        val loadedPingMs: Long = 0,
-        val transferredMb: Double = 0.0
+        val downloadMbps: Double? = null,
+        val uploadMbps: Double? = null,
+        val pingMs: Double? = null,
+        val loadedPingMs: Double? = null,
+        val jitterMs: Double? = null,
+        val downSamples: List<SpeedSample> = emptyList(),
+        val upSamples: List<SpeedSample> = emptyList(),
+        val spentBytes: Long = 0,
+        val viaTunnel: Boolean = false,
     ) {
-        val bufferbloatMs: Long get() = (loadedPingMs - idlePingMs).coerceAtLeast(0)
+        val bufferbloatMs: Double? get() = loadedPingMs?.let { l -> pingMs?.let { i -> (l - i).coerceAtLeast(0.0) } }
     }
 
-    enum class Phase { Idle, Warmup, Download, Upload, Done, Failed }
+    enum class Phase { Idle, Ping, Download, Upload, Done, Stopped }
+
+    /** (upload, bytes, threads, warmup) — как в оригинале */
+    private val schedule = listOf(
+        Wave(false, 100_000L, 1, true),
+        Wave(false, 100_000L, 9, false),
+        Wave(false, 1_000_000L, 8, false),
+        Wave(true, 100_000L, 8, false),
+        Wave(true, 1_000_000L, 6, false),
+        Wave(false, 10_000_000L, 6, false),
+        Wave(true, 10_000_000L, 4, false),
+        Wave(false, 25_000_000L, 4, false),
+        Wave(true, 25_000_000L, 4, false),
+    )
+
+    class Wave(val upload: Boolean, val bytes: Long, val threads: Int, val warmup: Boolean)
+
+    class HttpTiming(val bytes: Long, val ttfbNanos: Long, val wallNanos: Long, val serverMillis: Double)
+    class Sample(val bps: Double, val mbps: Double)
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val stopped = AtomicBoolean(false)
     var onState: ((State) -> Unit)? = null
-    @Volatile private var state = State()
+
+    @Volatile private var state = State(viaTunnel = socksPort != null)
         set(v) { field = v; onState?.invoke(v) }
 
-    fun socksProxy(): Proxy? = socksPort?.let {
-        Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", it))
-    }
+    private var spentBytes = 0L
+    private val idlePings = mutableListOf<Double>()
+    private val loadedPings = mutableListOf<Double>()
 
-    private fun push(phase: Phase = state.phase, down: Double = state.downMbps,
-                     up: Double = state.upMbps, idle: Long = state.idlePingMs,
-                     loaded: Long = state.loadedPingMs, mb: Double = state.transferredMb) {
-        state = State(phase, down, up, idle, loaded, mb)
-    }
+    fun proxy(): Proxy? = socksPort?.let { Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", it)) }
 
-    fun stop() { stopped.set(true) }
+    private fun push(transform: State.() -> State) { state = state.transform() }
+
+    fun stop() {
+        if (stopped.getAndSet(true)) return
+        push { copy(phase = Phase.Stopped) }
+    }
 
     fun start() {
         stopped.set(false)
+        spentBytes = 0
+        idlePings.clear(); loadedPings.clear()
         scope.launch {
-            push(Phase.Warmup)
-            // unloaded latency
-            var idle = 0L
-            repeat(4) { idle = maxOf(idle, ping()) }
-            if (stopped.get()) { push(Phase.Idle); return@launch }
-            push(Phase.Warmup, idle = idle)
+            // ===== фаза пинга (idle) =====
+            push { copy(phase = Phase.Ping, downloadMbps = null, uploadMbps = null, pingMs = null, loadedPingMs = null, jitterMs = null, downSamples = emptyList(), upSamples = emptyList(), spentBytes = 0) }
+            repeat(4) {
+                val p = probeLatency()
+                if (p != null) {
+                    idlePings.add(p)
+                    push { copy(pingMs = idlePings.median(), jitterMs = idlePings.jitter()) }
+                }
+            }
 
-            // === DOWNLOAD ===
-            push(Phase.Download, idle = idle)
-            val downBytes = arrayOf(100_000L, 1_000_000L, 10_000_000L, 25_000_000L)
-            val downThreads = intArrayOf(1, 4, 6, 6)
-            var totalDown = 0.0
-            var samplesDown = mutableListOf<Double>()
-            for (i in downBytes.indices) {
+            // ===== loaded latency loop параллельно =====
+            val loadedJob = scope.launch {
+                while (!stopped.get()) {
+                    val p = probeLatency()
+                    if (p != null) {
+                        loadedPings.add(p)
+                        push { copy(loadedPingMs = loadedPings.takeLast(5).median()) }
+                    }
+                    delay(700)
+                }
+            }
+
+            // ===== волны =====
+            for (wave in schedule) {
                 if (stopped.get()) break
-                val res = parallelRound(isDown = true, bytes = downBytes[i], threads = downThreads[i])
-                totalDown += res.first
-                if (res.second > 0) samplesDown.add(res.second)
-                if (samplesDown.isNotEmpty()) {
-                    val best = samplesDown.max()
-                    push(Phase.Download, down = best, idle = idle, mb = totalDown)
-                }
+                runWave(wave)
             }
+            loadedJob.cancel()
 
-            // === UPLOAD ===
-            if (!stopped.get()) {
-                push(Phase.Upload, idle = idle, mb = totalDown)
-                var totalUp = 0.0
-                val samplesUp = mutableListOf<Double>()
-                val upBytes = arrayOf(100_000L, 1_000_000L, 5_000_000L)
-                val upThreads = intArrayOf(1, 4, 4)
-                for (i in upBytes.indices) {
-                    if (stopped.get()) break
-                    val res = parallelRound(isDown = false, bytes = upBytes[i], threads = upThreads[i])
-                    totalUp += res.first
-                    if (res.second > 0) samplesUp.add(res.second)
-                    if (samplesUp.isNotEmpty()) push(Phase.Upload, down = state.downMbps, up = samplesUp.max(), idle = idle, mb = totalDown + totalUp)
-                }
-            }
-
-            // === loaded latency during last download was tracked separately ===
-            push(if (stopped.get()) Phase.Idle else Phase.Done,
-                 down = state.downMbps, up = state.upMbps, idle = idle, loaded = state.loadedPingMs, mb = state.transferredMb)
+            if (!stopped.get()) push { copy(phase = Phase.Done) }
         }
     }
 
-    /** Одна «волна»: threads параллельных запросов; возвращает (МБ, Мбит/с). */
-    private fun parallelRound(isDown: Boolean, bytes: Long, threads: Int): Pair<Double, Double> {
-        val start = System.nanoTime()
-        var total = 0L
-        runBlocking {
-            val jobs = (0 until threads).map {
-                launch(Dispatchers.IO) {
-                    total += if (isDown) downloadChunk(bytes) else uploadChunk(bytes)
-                    if (isDown && it == 0) {
-                        // loaded latency: меряем на фоне параллельной загрузки
-                        val loaded = ping()
-                        if (loaded > 0) push(state.phase, loaded = loaded)
+    private class HttpTimingResult(val ok: Boolean, val t: HttpTiming?)
+
+    private fun open(url: String, post: Long?): Pair<java.net.HttpURLConnection, HttpTimingBuilder> {
+        val conn = (URL(url).let { u -> proxy()?.let { p -> u.openConnection(p) } ?: u.openConnection() }) as java.net.HttpURLConnection
+        conn.connectTimeout = 8000
+        conn.readTimeout = 20000
+        val b = HttpTimingBuilder()
+        b.start = System.nanoTime()
+        if (post != null) {
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", "application/octet-stream")
+            conn.setFixedLengthStreamingMode(post.toInt())
+        }
+        return conn to b
+    }
+
+    class HttpTimingBuilder { var start = 0L; var ttfb = 0L; var end = 0L; var bytes = 0L; var serverMs = 0.0 }
+
+    private fun timing(conn: java.net.HttpURLConnection, b: HttpTimingBuilder, post: Long?): HttpTiming? {
+        try {
+            if (post != null) {
+                val payload = ByteArray(32 * 1024)
+                conn.outputStream.use { outs ->
+                    var sent = 0L
+                    while (sent < post && !stopped.get()) {
+                        val chunk = minOf(payload.size.toLong(), post - sent).toInt()
+                        outs.write(payload, 0, chunk); sent += chunk
                     }
+                    outs.flush()
+                }
+                b.ttfb = System.nanoTime()
+                conn.inputStream.use { it.read(ByteArray(256)) }
+                b.end = System.nanoTime()
+                b.bytes = post
+            } else {
+                conn.inputStream.use { ins ->
+                    val buf = ByteArray(64 * 1024)
+                    var n: Int
+                    while (ins.read(buf).also { n = it } >= 0 && !stopped.get()) {
+                        if (b.ttfb == 0L) b.ttfb = System.nanoTime()
+                        b.bytes += n
+                    }
+                    if (b.ttfb == 0L) b.ttfb = System.nanoTime()
+                }
+                b.end = System.nanoTime()
+            }
+            // Server-Timing: cfRequestDuration;dur=123.4
+            val st = conn.getHeaderField("Server-Timing")
+            if (st != null) {
+                val m = Regex("dur=([0-9.]+)").find(st)
+                if (m != null) b.serverMs = m.groupValues[1].toDouble()
+            }
+            return HttpTiming(b.bytes, b.ttfb - b.start, b.end - b.start, b.serverMs)
+        } catch (_: Exception) {
+            return null
+        }
+    }
+
+    private fun runWave(wave: Wave) {
+        push { copy(phase = if (wave.upload) Phase.Upload else Phase.Download) }
+        val results = mutableListOf<HttpTiming>()
+        runBlocking {
+            val jobs = (0 until wave.threads).map {
+                launch(Dispatchers.IO) {
+                    val (conn, b) = open(
+                        if (wave.upload) "https://speed.cloudflare.com/__up" else "https://speed.cloudflare.com/__down?bytes=${wave.bytes}",
+                        if (wave.upload) wave.bytes else null
+                    )
+                    val t = timing(conn, b, if (wave.upload) wave.bytes else null)
+                    if (t != null) synchronized(results) { results.add(t) }
+                    conn.disconnect()
                 }
             }
             jobs.joinAll()
         }
-        val secs = (System.nanoTime() - start) / 1e9
-        val mb = total / 1048576.0
-        val mbps = if (secs > 0) (total * 8.0 / 1e6 / secs) else 0.0
-        return mb to mbps
-    }
+        if (stopped.get()) return
 
-    private fun openStream(url: String): InputStream {
-        val conn = URL(url).let { u ->
-            socksProxy()?.let { p -> u.openConnection(p) } ?: u.openConnection()
+        // ===== расчёт как в оригинале =====
+        val samples = mutableListOf<Sample>()
+        for (t in results) {
+            var ttfbMs = t.ttfbNanos / 1e6
+            val server = t.serverMillis
+            val netTtfb = maxOf(0.0, ttfbMs - server)
+            val rest = maxOf(0.0, (t.wallNanos / 1e6) - ttfbMs)
+            var elapsed = if (!wave.upload) netTtfb + rest else ttfbMs
+            if (elapsed <= 0) ttfbMs = Double.MAX_VALUE.also { elapsed = 1.0 }
+            if (elapsed <= 0) continue
+            val bytes: Double = if (wave.upload) wave.bytes * 1.005 else (if (t.bytes > 0) t.bytes.toDouble() else wave.bytes.toDouble())
+            val secs = elapsed / 1000.0
+            val bps = bytes * 8.0 / secs
+            samples.add(Sample(bps, bps / 1e6))
+            spentBytes += maxOf(t.bytes, wave.bytes)
         }
-        conn.connectTimeout = 8000
-        conn.readTimeout = 15000
-        return conn.getInputStream()
+        push { copy(spentBytes = spentBytes) }
+        if (samples.isEmpty()) return
+
+        val p90 = percentile(samples.map { it.bps }, 0.9) ?: return
+        val mbps = p90 / 1e6
+        val newSamples = samples.map { SpeedSample(it.mbps) }
+        if (wave.warmup) return
+        if (wave.upload) {
+            val ups = state.upSamples + newSamples
+            push { copy(uploadMbps = maxOf(uploadMbps ?: 0.0, mbps), upSamples = ups) }
+        } else {
+            val downs = state.downSamples + newSamples
+            push { copy(downloadMbps = maxOf(downloadMbps ?: 0.0, mbps), downSamples = downs) }
+        }
     }
 
-    private fun downloadChunk(bytes: Long): Long {
-        return runCatching {
-            openStream("https://speed.cloudflare.com/__down?bytes=$bytes").use { ins ->
-                val buf = ByteArray(64 * 1024); var n: Int; var t = 0L
-                while (ins.read(buf).also { n = it } >= 0 && !stopped.get()) { t += n }
-                t
-            }
-        }.getOrDefault(0L)
-    }
-
-    private fun uploadChunk(bytes: Long): Long {
-        return runCatching {
-            val conn = (URL("https://speed.cloudflare.com/__up").let { u ->
-                socksProxy()?.let { p -> u.openConnection(p) } ?: u.openConnection()
-            }) as java.net.HttpURLConnection
-            conn.connectTimeout = 8000; conn.readTimeout = 15000
-            conn.doOutput = true
-            conn.setRequestProperty("Content-Type", "application/octet-stream")
-            conn.setFixedLengthStreamingMode(bytes.toInt())
-            val payload = ByteArray(64 * 1024) { 'E'.code.toByte() }
-            conn.outputStream.use { outs ->
-                var sent = 0L
-                while (sent < bytes && !stopped.get()) {
-                    val chunk = minOf(payload.size.toLong(), bytes - sent).toInt()
-                    outs.write(payload, 0, chunk); sent += chunk
-                }
-                outs.flush()
-            }
-            conn.inputStream.use { it.read(ByteArray(256)) }
-            bytes
-        }.getOrDefault(0L)
-    }
-
-    private fun ping(): Long {
+    private fun probeLatency(): Double? {
         return runCatching {
             val t0 = System.nanoTime()
-            openStream("https://speed.cloudflare.com/__down?bytes=0").use { it.read(ByteArray(128)) }
-            ((System.nanoTime() - t0) / 1e6).roundToLong()
-        }.getOrDefault(0L)
+            val (conn, b) = open("https://speed.cloudflare.com/__down?bytes=0", null)
+            conn.inputStream.use { it.read(ByteArray(128)) }
+            val dt = (System.nanoTime() - t0) / 1e6
+            conn.disconnect()
+            dt
+        }.getOrNull()
+    }
+
+    private fun percentile(list: List<Double>, p: Double): Double? {
+        if (list.isEmpty()) return null
+        val sorted = list.sorted()
+        val idx = ((sorted.size - 1) * p).toInt().coerceIn(0, sorted.size - 1)
+        return sorted[idx]
+    }
+
+    private fun List<Double>.median(): Double = percentile(this, 0.5) ?: 0.0
+
+    private fun List<Double>.jitter(): Double? {
+        if (size < 2) return null
+        val diffs = zipWithNext { a, b -> abs(b - a) }
+        return diffs.average()
     }
 }

@@ -95,6 +95,7 @@ class WorldMapView(context: Context) : View(context) {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             val whole = wholeWorldScale()
             val newScale = (scale * detector.scaleFactor).coerceIn(whole, whole * 24f)
+            didZoom = true
             val k = newScale / scale
             // зум к точке фокуса (в экранных координатах относительно центра мира)
             val focusX = detector.focusX - baseOffsetX()
@@ -220,9 +221,17 @@ class WorldMapView(context: Context) : View(context) {
     private fun sx(wx: Float) = wx * scale + baseOffsetX() + offX
     private fun sy(wy: Float) = wy * scale + baseOffsetY() + offY
 
+    private var didZoom = false
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        if (scale <= 0f || worldPath == null) resetView() else { minScale = wholeWorldScale(); clampPan() }
+        minScale = wholeWorldScale()
+        if (!didZoom || scale < minScale) {
+            scale = minScale
+            offX = 0f; offY = 0f
+        }
+        clampPan()
+        postInvalidateOnAnimation()
     }
 
     override fun onDraw(canvas: Canvas) {
