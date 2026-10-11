@@ -3178,6 +3178,13 @@ class WhiteDnsVpnService : VpnService() {
         }
         runCatching {
             val universal = ConnectionLocationPreferenceStore(this).readSelectedCountryCode() ==
+                ConnectionLocationPolicy.UNIVERSAL_CODE
+            if (universal) {
+                UniversalPin.pinBestOnce(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret)
+            }
+        }
+        runCatching {
+            val universal = ConnectionLocationPreferenceStore(this).readSelectedCountryCode() ==
                 com.whitedns.vpn.ConnectionLocationPolicy.UNIVERSAL_CODE
             if (universal) {
             } else {
