@@ -167,21 +167,28 @@ object SmartChannelSelector {
                                   !it.startsWith("✈") && !it.startsWith("🧱") && !it.startsWith("🤖") }
                     if (members.isEmpty()) return false
 
-                    val scored = members.mapNotNull { n ->
-                        val pj = api("/proxies/" + enc(n)) ?: return@mapNotNull null
-                        // блок-лист по имени канала (438/439 удалены из ассета; страховка)
-                        if (BANNED_NAMES.any { b -> n.contains(b) }) return@mapNotNull null
-                        val hist = pj.optJSONArray("history")
-                        var last = Long.MAX_VALUE
-                        if (hist != null) for (h in hist.length() - 1 downTo 0) {
-                            val d = hist.optJSONObject(h)?.optLong("delay", 0) ?: 0
-                            if (d > 0) { last = d; break }
-                        }
-                        n to last
+                    // ЖИВОЙ СКРИН: в select-режиме история пустая (ядро не тестирует само),
+                    // поэтому сначала быстрый одиночный тест каждого (лёгкий URL, параллельно),
+                    // отбираем живых — только их проверяем глубоко.
+                    val candidates = members.filter { n -> BANNED_NAMES.none { b -> n.contains(b) } }
+                    val pingUrl = "https://cp.cloudflare.com/generate_204"
+                    val aliveList = mutableListOf<Pair<String, Long>>()
+                    for (chunk in candidates.chunked(12)) {
+                        if (stopped || aliveList.size >= 60) break
+                        val res = chunk.map { n ->
+                            async(Dispatchers.IO) {
+                                val d = api("/proxies/${enc(n)}/delay?url=${enc(pingUrl)}&timeout=4000")
+                                n to (d?.optInt("delay", 0) ?: 0).toLong()
+                            }
+                        }.awaitAll()
+                        aliveList += res.filter { it.second > 0 }
                     }
-                    val alive = scored.filter { it.second != Long.MAX_VALUE }.sortedBy { it.second }
-                    if (alive.isEmpty()) { switchTo(GROUP); return false }
-                    val pool = alive.take(40).map { it.first }
+                    if (aliveList.isEmpty()) {
+                        switchTo(GROUP)
+                        prefs.edit().putString("last_server", "").putInt("last_passed", 0).apply()
+                        return false
+                    }
+                    val pool = aliveList.sortedBy { it.second }.take(40).map { it.first }
 
                     // ЭТАП 1: параллельный скрининг (чанки по 8)
                     val screened = pool.chunked(8).flatMap { chunk ->

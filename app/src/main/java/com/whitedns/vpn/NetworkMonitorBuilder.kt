@@ -266,13 +266,15 @@ object NetworkMonitorBuilder {
                 text = activity.getString(R.string.monitor_smart_title)
                 textSize = 12f; setTextColor(ts)
             })
-            smartCard.addView(TextView(activity).apply {
+            val smartValue = TextView(activity).apply { textSize = 14f; typeface = Typeface.DEFAULT_BOLD }
+            smartCard.addView(smartValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
+            fun renderSmart() {
                 val srv = smartPrefs.getString("last_server", "") ?: ""
                 val passed = smartPrefs.getInt("last_passed", 0)
                 val total = smartPrefs.getInt("last_total", 8)
                 val at = smartPrefs.getLong("last_at", 0L)
                 val mins = if (at > 0) (System.currentTimeMillis() - at) / 60000 else -1
-                text = when {
+                smartValue.text = when {
                     srv.isEmpty() -> activity.getString(R.string.monitor_smart_searching)
                     else -> {
                         val ago = if (mins >= 0) " · ${mins} мин" else ""
@@ -280,9 +282,21 @@ object NetworkMonitorBuilder {
                         "$srv · $passed/$total$mark$ago"
                     }
                 }
-                textSize = 14f; setTextColor(if (passed == total && total > 0) teal else tp)
-                typeface = Typeface.DEFAULT_BOLD
-            }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
+                smartValue.setTextColor(if (passed == total && total > 0) teal else tp)
+            }
+            renderSmart()
+            val smartTick = object : Runnable {
+                override fun run() {
+                    if (smartValue.isAttachedToWindow) {
+                        renderSmart()
+                        smartValue.postDelayed(this, 5000)
+                    }
+                }
+            }
+            smartValue.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) { v.post(smartTick) }
+                override fun onViewDetachedFromWindow(v: View) { v.removeCallbacks(smartTick) }
+            })
             content.addView(smartCard, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 12) })
         }
 
