@@ -28,12 +28,12 @@ object SpeedTestPageBuilder {
     private var engine: SpeedTestEngine? = null
 
     fun buildScreen(activity: Activity): View {
-        val bg = paletteColor(activity, "background", 0xFF101418)
-        val surface = paletteColor(activity, "surface", 0xFF1A2028)
-        val tp = paletteColor(activity, "textPrimary", 0xFFE8EDF2)
-        val ts = paletteColor(activity, "textSecondary", 0xFF8A94A0)
-        val teal = paletteColor(activity, "teal", 0xFF4DD0C4)
-        val amber = paletteColor(activity, "amber", 0xFFFFB74D)
+        val bg = pal(activity).background
+        val surface = pal(activity).surface
+        val tp = pal(activity).textPrimary
+        val ts = pal(activity).textSecondary
+        val teal = pal(activity).teal
+        val amber = pal(activity).amber
 
         val started = isStarted(activity)
 
@@ -274,18 +274,8 @@ object SpeedTestPageBuilder {
         }
     }
 
-    private fun paletteColor(activity: Activity, name: String, default: Long): Int {
-        return try {
-            val field = activity.javaClass.getDeclaredField("palette")
-            field.isAccessible = true
-            val palette = field.get(activity)
-            val getter = palette.javaClass.getMethod("get" + name[0].uppercaseChar() + name.substring(1))
-            getter.isAccessible = true
-            (getter.invoke(palette) as? Int) ?: default.toInt()
-        } catch (_: Exception) {
-            default.toInt()
-        }
-    }
+    private fun pal(activity: Activity): com.whitedns.vpn.WhiteDnsPalette =
+        com.whitedns.vpn.WhiteDnsDesignTokens.forContext(activity)
 
     private fun dp(activity: Activity, v: Int): Int = (v * activity.resources.displayMetrics.density).toInt()
 }

@@ -28,11 +28,19 @@ object NetworkMonitorBuilder {
     private val TEST_URLS = listOf(
         "https://cp.cloudflare.com/generate_204",
         "https://www.gstatic.com/generate_204",
-        "https://connectivitycheck.gstatic.com/generate_204",
-        "https://api.ip.sb/geoip",
-        "https://dns.google/resolve?name=example.com",
+        "https://api.telegram.org",
+        "https://web.telegram.org",
+        "https://www.instagram.com",
+        "https://www.facebook.com",
+        "https://www.linkedin.com",
+        "https://x.com",
+        "https://discord.com",
+        "https://chatgpt.com",
+        "https://gemini.google.com",
         "https://www.youtube.com/generate_204",
         "https://api.github.com/",
+        "https://rutracker.org",
+        "https://dns.google/resolve?name=example.com",
     )
 
     class GeoInfo(val ip: String, val country: String, val cc: String, val city: String, val asn: String)
@@ -45,8 +53,8 @@ object NetworkMonitorBuilder {
         cornerRadius = -1f // задаётся снаружи через cornerRadius(dp)
     }
 
-    private fun surfaceC(activity: Activity): Int = paletteColor(activity, "surface", 0xFF1A2028)
-    private fun outlineC(activity: Activity): Int = paletteColor(activity, "outline", 0xFF2A323C)
+    private fun surfaceC(activity: Activity): Int = pal(activity).surface
+    private fun outlineC(activity: Activity): Int = pal(activity).outline
 
     private fun styledCard(activity: Activity, cornerDp: Int = 16): LinearLayout {
         val surface = surfaceC(activity); val outline = outlineC(activity)
@@ -67,9 +75,9 @@ object NetworkMonitorBuilder {
 
     // ===== карточка на главный экран =====
     fun buildCard(activity: Activity, openPage: () -> Unit): View {
-        val tp = paletteColor(activity, "textPrimary", 0xFFE8EDF2)
-        val ts = paletteColor(activity, "textSecondary", 0xFF8A94A0)
-        val teal = paletteColor(activity, "teal", 0xFF4DD0C4)
+        val tp = pal(activity).textPrimary
+        val ts = pal(activity).textSecondary
+        val teal = pal(activity).teal
 
         val card = styledCard(activity).apply {
             setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12))
@@ -133,12 +141,12 @@ object NetworkMonitorBuilder {
 
     // ===== страница мониторинга =====
     fun buildScreen(activity: Activity): View {
-        val bg = paletteColor(activity, "background", 0xFF101418)
-        val tp = paletteColor(activity, "textPrimary", 0xFFE8EDF2)
-        val ts = paletteColor(activity, "textSecondary", 0xFF8A94A0)
-        val teal = paletteColor(activity, "teal", 0xFF4DD0C4)
-        val red = paletteColor(activity, "red", 0xFFEF5350)
-        val amber = paletteColor(activity, "amber", 0xFFFFB74D)
+        val bg = pal(activity).background
+        val tp = pal(activity).textPrimary
+        val ts = pal(activity).textSecondary
+        val teal = pal(activity).teal
+        val red = pal(activity).red
+        val amber = pal(activity).amber
 
         val root = FrameLayout(activity).apply { setBackgroundColor(bg) }
         val scroll = ScrollView(activity).apply { setBackgroundColor(bg); isFillViewport = true }
@@ -335,18 +343,8 @@ object NetworkMonitorBuilder {
         return sb.toString()
     }
 
-    private fun paletteColor(activity: Activity, name: String, default: Long): Int {
-        return try {
-            val field = activity.javaClass.getDeclaredField("palette")
-            field.isAccessible = true
-            val palette = field.get(activity)
-            val getter = palette.javaClass.getMethod("get" + name[0].uppercaseChar() + name.substring(1))
-            getter.isAccessible = true
-            (getter.invoke(palette) as? Int) ?: default.toInt()
-        } catch (_: Exception) {
-            default.toInt()
-        }
-    }
+    private fun pal(activity: Activity): com.whitedns.vpn.WhiteDnsPalette =
+        com.whitedns.vpn.WhiteDnsDesignTokens.forContext(activity)
 
     private fun dp(activity: Activity, v: Int): Int = (v * activity.resources.displayMetrics.density).toInt()
 }
