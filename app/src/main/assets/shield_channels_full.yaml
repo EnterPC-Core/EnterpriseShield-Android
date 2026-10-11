@@ -5312,35 +5312,6 @@ proxies:
     reality-opts:
       public-key: "sVtMU2ZA5W6TLnBCZdgfXqDnOwWePrGVjSNnueDlYmM"
       short-id: "789d7b5ed35fef93"
-  - name: "Enterprise 438"
-    type: vless
-    server: "144.225.65.205"
-    port: 443
-    uuid: "4fb30f87-a9c2-43de-994f-9228fe4dac17"
-    udp: true
-    tls: true
-    servername: "yahoo.com"
-    client-fingerprint: "chrome"
-    network: "grpc"
-    grpc-opts:
-      grpc-service-name: "xyz"
-    reality-opts:
-      public-key: "MhOa-Fkr656VVRcxXd27gam263cdXF_uyGiHZZEISUA"
-      short-id: "ce741cbe468babc7"
-  - name: "🇷🇺 Enterprise 439"
-    type: vless
-    server: "176.108.244.219"
-    port: 9882
-    uuid: "5d16ac22-6eea-426f-b778-6f4c2961faef"
-    udp: true
-    tls: true
-    servername: "dl.google.com"
-    client-fingerprint: "safari"
-    network: "grpc"
-    grpc-opts:
-      grpc-service-name: "grpc-tunnel"
-    reality-opts:
-      public-key: "bnRIb3Er1i-K6NGGByCO9UbGfOvu43ZoiK7ulPd1SzU"
   - name: "🇷🇺 Enterprise 440"
     type: vless
     server: "176.108.244.219"
@@ -24155,8 +24126,6 @@ proxy-groups:
       - "🇨🇦 Enterprise 435"
       - "Enterprise 436"
       - "Enterprise 437"
-      - "Enterprise 438"
-      - "🇷🇺 Enterprise 439"
       - "🇷🇺 Enterprise 440"
       - "🇷🇺 Enterprise 441"
       - "🇷🇺 Enterprise 442"
@@ -26285,8 +26254,6 @@ proxy-groups:
       - "🇨🇦 Enterprise 435"
       - "Enterprise 436"
       - "Enterprise 437"
-      - "Enterprise 438"
-      - "🇷🇺 Enterprise 439"
       - "🇷🇺 Enterprise 440"
       - "🇷🇺 Enterprise 441"
       - "🇷🇺 Enterprise 442"
@@ -27844,7 +27811,6 @@ proxy-groups:
     lazy: true
     tolerance: 120
     proxies:
-      - "🇷🇺 Enterprise 439"
       - "🇷🇺 Enterprise 440"
       - "🇷🇺 Enterprise 441"
       - "🇷🇺 Enterprise 442"
@@ -28458,8 +28424,6 @@ proxy-groups:
       - "🇨🇦 Enterprise 435"
       - "Enterprise 436"
       - "Enterprise 437"
-      - "Enterprise 438"
-      - "🇷🇺 Enterprise 439"
       - "🇷🇺 Enterprise 440"
       - "🇷🇺 Enterprise 441"
       - "🇷🇺 Enterprise 442"
@@ -30588,8 +30552,6 @@ proxy-groups:
       - "🇨🇦 Enterprise 435"
       - "Enterprise 436"
       - "Enterprise 437"
-      - "Enterprise 438"
-      - "🇷🇺 Enterprise 439"
       - "🇷🇺 Enterprise 440"
       - "🇷🇺 Enterprise 441"
       - "🇷🇺 Enterprise 442"
@@ -32718,8 +32680,6 @@ proxy-groups:
       - "🇨🇦 Enterprise 435"
       - "Enterprise 436"
       - "Enterprise 437"
-      - "Enterprise 438"
-      - "🇷🇺 Enterprise 439"
       - "🇷🇺 Enterprise 440"
       - "🇷🇺 Enterprise 441"
       - "🇷🇺 Enterprise 442"
@@ -34848,8 +34808,6 @@ proxy-groups:
       - "🇨🇦 Enterprise 435"
       - "Enterprise 436"
       - "Enterprise 437"
-      - "Enterprise 438"
-      - "🇷🇺 Enterprise 439"
       - "🇷🇺 Enterprise 440"
       - "🇷🇺 Enterprise 441"
       - "🇷🇺 Enterprise 442"

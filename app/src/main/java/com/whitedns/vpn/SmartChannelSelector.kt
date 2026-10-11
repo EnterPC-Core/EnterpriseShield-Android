@@ -30,6 +30,9 @@ object SmartChannelSelector {
     private const val MAIN_GROUP = "🚀 Каналы"
 
 
+    /** Хосты, забракованные пользователем. Серверы с ними навсегда исключены из автоматики. */
+    private val BANNED_NAMES = setOf("Enterprise 438", "Enterprise 439")
+
     private val SCREEN_URLS = listOf(
         "https://www.youtube.com/generate_204",
         "https://api.telegram.org",
@@ -149,8 +152,11 @@ object SmartChannelSelector {
                                   !it.startsWith("✈") && !it.startsWith("🧱") && !it.startsWith("🤖") }
                     if (members.isEmpty()) return false
 
-                    val scored = members.map { n ->
-                        val hist = api("/proxies/" + enc(n))?.optJSONArray("history")
+                    val scored = members.mapNotNull { n ->
+                        val pj = api("/proxies/" + enc(n)) ?: return@mapNotNull null
+                        // блок-лист по имени канала (438/439 удалены из ассета; страховка)
+                        if (BANNED_NAMES.any { b -> n.contains(b) }) return@mapNotNull null
+                        val hist = pj.optJSONArray("history")
                         var last = Long.MAX_VALUE
                         if (hist != null) for (h in hist.length() - 1 downTo 0) {
                             val d = hist.optJSONObject(h)?.optLong("delay", 0) ?: 0
