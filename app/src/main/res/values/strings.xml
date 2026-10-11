@@ -495,7 +495,6 @@
     <string name="sys_display_section">Display</string>
     <string name="sys_uptime_section">Uptime</string>
     <string name="apps_count">apps</string>
-    <string name="map_page_title">Channel map</string>
     <string name="map_page_open">Channel map</string>
     <string name="map_active_connection">Active connection</string>
     <string name="map_no_active">Shield is off</string>
@@ -526,4 +525,10 @@
     <string name="map_to">To</string>
     <string name="map_unknown">Unknown</string>
     <string name="map_russia">Russia</string>
+    <string name="map_page_title">Map</string>
+    <string name="map_subtitle_orig">Where you connect from and where you exit</string>
+    <string name="map_you">You are here</string>
+    <string name="map_exit">Exit</string>
+    <string name="map_offline_here">Not connected — this is where you are visible from right now.</string>
+    <string name="map_locating">Locating…</string>
 </resources>

@@ -55,11 +55,11 @@ object WorldMapAsset {
         return out
     }
 
-    /** ISO-код страны -> якорь (0..1), или null. */
+    /** ISO-код страны -> мировые координаты якоря (0..65535 / 0..32767.5), или null. */
     fun anchorOf(code: String?, list: List<Country>): FloatArray? {
         if (code == null || code.length != 2) return null
         val target = code.uppercase()
-        for (c in list) if (c.code == target) return floatArrayOf(c.anchorX / 65535f, c.anchorY / 32767.5f)
+        for (c in list) if (c.code == target) return floatArrayOf(c.anchorX, c.anchorY)
         return null
     }
 

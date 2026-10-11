@@ -18,70 +18,91 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Полноэкранная карта мира в стиле Cybershield: pinch-зум (1..24x), панорамирование,
- * неоновые контуры стран (тройной stroke), glow-точки с пульсацией, флажки-маркеры,
- * подписи морей, glow-дуга подключения с бегущей точкой.
- * Координаты стран: 0..65535 x 0..32767 (после *0.5), нормализуются в базовое поле.
+ * Карта мира в стиле оригинала Cybershield:
+ *  - мировые координаты 0..65535 x 0..32767.5, wholeWorldScale + центрирование (пропорции!)
+ *  - страны: только неоновые контуры (тройной stroke)
+ *  - подсветка заливкой: страна юзера + страна сервера
+ *  - два пин-маркера: флаг-эмодзи + подпись города
+ *  - крупные пульсирующие гало (26..34 dp), ядро 16 dp
+ *  - glow-дуга с бегущей точкой, подписи морей
+ *  - pinch-зум 1..24x, пан с ограничением
  */
 class WorldMapView(context: Context) : View(context) {
 
-    class Node(val label: String, val iso: String?, val flag: String, val active: Boolean, val big: Boolean = false)
-
-    var nodes: List<Node> = emptyList()
-        set(value) { field = value; postInvalidateOnAnimation() }
-
-    /** Точка юзера (по GeoIP или RU по умолчанию) — старт дуги. */
-    var myPoint: Pair<Float, Float>? = null   // 0..1
-        set(value) { field = value; postInvalidateOnAnimation() }
-    var myFlag: String = "🇷🇺"
-    var myCity: String = ""
-
     class SeaLabel(val x: Float, val y: Float, val text: String, val sizeSp: Float)
+
+    /** Маркер: мировые координаты (0..65535 / 0..32767.5), флаг, подпись */
+    class Pin(val wx: Float, val wy: Float, val flag: String, val label: String, val accent: Boolean = false)
+
+    var myPin: Pin? = null
+        set(v) { field = v; homeCountryPath = null; postInvalidateOnAnimation() }
+    var serverPin: Pin? = null
+        set(v) { field = v; serverCountryPath = null; postInvalidateOnAnimation() }
 
     var seaLabels: List<SeaLabel> = emptyList()
 
+    var colorBg: Int = Color.parseColor("#0A0E14")
+    var colorNeon: Int = Color.parseColor("#4FC3D9")
+    var colorAccent: Int = Color.parseColor("#7FE8D8")
+    var colorText: Int = Color.parseColor("#93A3B0")
+
     private var countries: List<WorldMapAsset.Country> = emptyList()
     private var mapLoaded = false
-    private var highlightIso: String? = null
+    private var worldPath: Path? = null
+    private var homeCountryPath: Path? = null
+    private var serverCountryPath: Path? = null
 
-    // палитра (подгоняется из билдера)
-    var colorBg: Int = Color.parseColor("#070B10")
-    var colorLand: Int = Color.parseColor("#14202B")
-    var colorNeon: Int = Color.parseColor("#5AC8D4")
-    var colorAccent: Int = Color.parseColor("#7FE3D2")
-    var colorDim: Int = Color.parseColor("#6E7B88")
-
+    private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val strokeW = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val arcPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         pathEffect = DashPathEffect(floatArrayOf(7f, 7f), 0f)
     }
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = colorDim; typeface = Typeface.create("sans-serif-light", Typeface.ITALIC)
-    }
     private val flagPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = Typeface.DEFAULT }
-    private val path = Path()
+    private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = colorText; typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        textAlign = Paint.Align.CENTER
+    }
+    private val seaPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        typeface = Typeface.create("sans-serif-light", Typeface.ITALIC)
+        textAlign = Paint.Align.CENTER
+    }
+    private val density = resources.displayMetrics.density
 
-    // === view-состояние (зум/пан) ===
+    // === зум/пан ===
     private var scale = 1f
     private var offX = 0f
     private var offY = 0f
-    private var baseW = 1f
-    private var baseH = 1f
+    private var minScale = 1f
+
+    private fun wholeWorldScale(): Float {
+        if (width <= 0 || height <= 0) return 1f
+        return min(width / 65535f, height / 32767.5f)
+    }
+
+    private fun baseOffsetX(): Float = (width - 65535f * scale) / 2f
+    private fun baseOffsetY(): Float = (height - 32767.5f * scale) / 2f
+
+    private fun clampPan() {
+        val marginX = width * 0.25f * scale / minScale
+        val marginY = height * 0.25f * scale / minScale
+        offX = offX.coerceIn(-marginX, marginX)
+        offY = offY.coerceIn(-marginY, marginY)
+    }
 
     private val scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             val whole = wholeWorldScale()
             val newScale = (scale * detector.scaleFactor).coerceIn(whole, whole * 24f)
-            val focusX = detector.focusX
-            val focusY = detector.focusY
-            val k = if (scale == 0f) 1f else newScale / scale
+            val k = newScale / scale
+            // зум к точке фокуса (в экранных координатах относительно центра мира)
+            val focusX = detector.focusX - baseOffsetX()
+            val focusY = detector.focusY - baseOffsetY()
             offX = focusX - k * (focusX - offX)
             offY = focusY - k * (focusY - offY)
             scale = newScale
-            clampOffset()
+            clampPan()
             postInvalidateOnAnimation()
             return true
         }
@@ -90,27 +111,11 @@ class WorldMapView(context: Context) : View(context) {
         override fun onDown(e: MotionEvent): Boolean = true
         override fun onScroll(e1: MotionEvent?, e2: MotionEvent, dx: Float, dy: Float): Boolean {
             offX -= dx; offY -= dy
-            clampOffset()
+            clampPan()
             postInvalidateOnAnimation()
             return true
         }
     })
-
-    private fun wholeWorldScale(): Float {
-        if (width == 0 || height == 0) return 1f
-        baseW = width.toFloat(); baseH = height.toFloat()
-        // карта занимает весь экран при scale = wholeWorldScale
-        return max(baseW / (baseW * 1f), 1f).coerceAtLeast(1f)
-    }
-
-    private fun clampOffset() {
-        val maxX = 0f
-        val minX = width - width * scale
-        val maxY = 0f
-        val minY = height - height * scale
-        offX = offX.coerceIn(minX, maxX)
-        offY = offY.coerceIn(minY, maxY)
-    }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(event)
@@ -119,7 +124,9 @@ class WorldMapView(context: Context) : View(context) {
     }
 
     fun resetView() {
-        scale = wholeWorldScale(); offX = 0f; offY = 0f
+        scale = wholeWorldScale()
+        minScale = scale
+        offX = 0f; offY = 0f
         postInvalidateOnAnimation()
     }
 
@@ -128,14 +135,16 @@ class WorldMapView(context: Context) : View(context) {
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (scale <= 0f || scale == 1f) resetView()
-        animator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 2000; repeatCount = ValueAnimator.INFINITE; interpolator = LinearInterpolator()
-            addUpdateListener {
-                pulse = it.animatedValue as Float
-                if (isAttachedToWindow) invalidate()
+        if (scale <= 0f || worldPath == null) resetView()
+        if (animator == null) {
+            animator = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 1800; repeatCount = ValueAnimator.INFINITE; interpolator = LinearInterpolator()
+                addUpdateListener {
+                    pulse = it.animatedValue as Float
+                    if (isAttachedToWindow) invalidate()
+                }
+                start()
             }
-            start()
         }
     }
 
@@ -147,155 +156,167 @@ class WorldMapView(context: Context) : View(context) {
     fun loadMap(context: Context) {
         countries = WorldMapAsset.countries(context)
         mapLoaded = countries.isNotEmpty()
-        highlightIso = nodes.firstOrNull { it.active }?.iso
+        // единый путь мира
+        val p = Path()
+        for (c in countries) for (ring in c.rings) {
+            if (ring.size < 6) continue
+            p.moveTo(ring[0], ring[1])
+            var i = 2
+            while (i < ring.size) { p.lineTo(ring[i], ring[i + 1]); i += 2 }
+            p.close()
+        }
+        worldPath = p
+        rebuildCountryPaths()
+        resetView()
         postInvalidateOnAnimation()
     }
 
-    /** 0..1 координата -> экранные пиксели с учётом зума/пана */
-    private fun px(nx: Float) = (nx * width) * scale + offX
-    private fun py(ny: Float) = (ny * height) * scale + offY
+    /** путь страны, в которой стоит пин (мировые координаты) */
+    private fun countryPathAt(wx: Float, wy: Float): Path? {
+        for (c in countries) {
+            for (ring in c.rings) {
+                if (pointInRing(wx, wy, ring)) return ringToPath(ring)
+            }
+        }
+        return null
+    }
+
+    private fun ringToPath(ring: FloatArray): Path {
+        val p = Path()
+        p.moveTo(ring[0], ring[1])
+        var i = 2
+        while (i < ring.size) { p.lineTo(ring[i], ring[i + 1]); i += 2 }
+        p.close()
+        return p
+    }
+
+    private fun pointInRing(x: Float, y: Float, ring: FloatArray): Boolean {
+        var inside = false
+        var j = ring.size - 2
+        var i = 0
+        while (i < ring.size) {
+            val xi = ring[i]; val yi = ring[i + 1]
+            val xj = ring[j]; val yj = ring[j + 1]
+            if ((yi > y) != (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside
+            j = i
+            i += 2
+        }
+        return inside
+    }
+
+    private fun rebuildCountryPaths() {
+        homeCountryPath = myPin?.let { countryPathAt(it.wx, it.wy) }
+        serverCountryPath = serverPin?.let { countryPathAt(it.wx, it.wy) }
+    }
+
+    fun pinsUpdated() { rebuildCountryPaths(); postInvalidateOnAnimation() }
+
+    fun anchorOf(code: String?): Pair<Float, Float>? {
+        val a = WorldMapAsset.anchorOf(code, countries) ?: return null
+        return a[0] to a[1]   // мировые координаты уже: ax / 65535 — НЕТ, anchorOf возвращает нормализованные
+    }
+
+    /** экранные координаты для мировых (0..65535) */
+    private fun sx(wx: Float) = wx * scale + baseOffsetX() + offX
+    private fun sy(wy: Float) = wy * scale + baseOffsetY() + offY
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (scale <= 0f || worldPath == null) resetView() else { minScale = wholeWorldScale(); clampPan() }
+    }
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawColor(colorBg)
-        if (!mapLoaded || width == 0) return
+        val world = worldPath ?: return
+        if (width == 0 || height == 0) return
         canvas.save()
-        canvas.translate(offX, offY)
+        canvas.translate(baseOffsetX() + offX, baseOffsetY() + offY)
         canvas.scale(scale, scale)
 
-        val w = width.toFloat()
-        val h = height.toFloat()
+        // ===== контуры мира: тройной неон (мировые px -> ширина штриха делится на scale) =====
+        strokePaint.strokeCap = Paint.Cap.ROUND
+        strokePaint.color = withAlpha(colorNeon, 0.10f); strokePaint.strokeWidth = 9f
+        canvas.drawPath(world, strokePaint)
+        strokePaint.color = withAlpha(colorNeon, 0.40f); strokePaint.strokeWidth = 3.2f
+        canvas.drawPath(world, strokePaint)
+        strokePaint.color = withAlpha(colorNeon, 0.90f); strokePaint.strokeWidth = 1.3f
+        canvas.drawPath(world, strokePaint)
 
-        // ===== полигоны стран: заливка + неоновый тройной контур =====
-        fillPaint.color = colorLand
-        strokeW.strokeCap = Paint.Cap.ROUND
-        for (c in countries) {
-            val active = c.code == highlightIso
-            for (ring in c.rings) {
-                path.reset()
-                var i = 2
-                path.moveTo(ring[0] / 65535f * w, ring[1] / 32767.5f * h)
-                while (i < ring.size) {
-                    path.lineTo(ring[i] / 65535f * w, ring[i + 1] / 32767.5f * h)
-                    i += 2
-                }
-                path.close()
-                fillPaint.alpha = if (active) 255 else 200
-                if (active) fillPaint.color = blend(colorLand, colorNeon, 0.28f) else fillPaint.color = colorLand
-                canvas.drawPath(path, fillPaint)
-                // неон: широкий тусклый -> средний -> тонкий яркий
-                strokeW.color = withAlpha(colorNeon, 0.12f); strokeW.strokeWidth = 9f
-                canvas.drawPath(path, strokeW)
-                strokeW.color = withAlpha(colorNeon, 0.45f); strokeW.strokeWidth = 3.4f
-                canvas.drawPath(path, strokeW)
-                strokeW.color = withAlpha(colorNeon, 0.95f); strokeW.strokeWidth = 1.4f
-                canvas.drawPath(path, strokeW)
-            }
+        // ===== подсветка страны юзера и страны сервера =====
+        for (hl in listOfNotNull(homeCountryPath, serverCountryPath)) {
+            fillPaint.color = withAlpha(colorAccent, 0.16f)
+            canvas.drawPath(hl, fillPaint)
+            strokePaint.color = withAlpha(colorAccent, 0.30f); strokePaint.strokeWidth = 6f
+            canvas.drawPath(hl, strokePaint)
+            strokePaint.color = withAlpha(colorAccent, 0.85f); strokePaint.strokeWidth = 1.6f
+            canvas.drawPath(hl, strokePaint)
         }
 
         // ===== подписи морей =====
         for (s in seaLabels) {
-            textPaint.textSize = s.sizeSp * resources.displayMetrics.scaledDensity
-            textPaint.alpha = 150
-            canvas.drawText(s.text, s.x / 100f * w, s.y / 100f * h, textPaint)
+            seaPaint.textSize = s.sizeSp * resources.displayMetrics.scaledDensity
+            seaPaint.alpha = 140
+            canvas.drawText(s.text, s.x / 100f * 65535f, s.y / 100f * 32767.5f, seaPaint)
         }
 
-        // ===== точки каналов =====
-        for (n in nodes) {
-            val anchor = WorldMapAsset.anchorOf(n.iso, countries) ?: continue
-            val cx = anchor[0] * w
-            val cy = anchor[1] * h
-            if (!n.big) {
-                // halo + ядро
-                dotPaint.color = withAlpha(colorNeon, 0.22f)
-                canvas.drawCircle(cx, cy, 10f, dotPaint)
-                dotPaint.color = withAlpha(colorNeon, 0.9f)
-                canvas.drawCircle(cx, cy, 3.4f, dotPaint)
-                // флажок при достаточном зуме
-                if (scale > 2.2f) {
-                    flagPaint.textSize = 13f
-                    flagPaint.alpha = 220
-                    canvas.drawText(n.flag, cx - 7f, cy - 16f, flagPaint)
-                }
-            }
-        }
-
-        // ===== активная точка (пульс) =====
-        val activeNode = nodes.firstOrNull { it.active }
-        if (activeNode != null) {
-            val anchor = WorldMapAsset.anchorOf(activeNode.iso, countries)
-            if (anchor != null) {
-                val cx = anchor[0] * w
-                val cy = anchor[1] * h
-                val pr = 14f + 10f * pulse
-                dotPaint.color = withAlpha(colorAccent, (0.35f * (1f - pulse)).coerceIn(0f, 1f))
-                canvas.drawCircle(cx, cy, pr, dotPaint)
-                dotPaint.color = withAlpha(colorAccent, 0.25f)
-                canvas.drawCircle(cx, cy, 18f, dotPaint)
-                dotPaint.color = colorAccent
-                canvas.drawCircle(cx, cy, 4.5f, dotPaint)
-                flagPaint.textSize = 15f; flagPaint.alpha = 255
-                canvas.drawText(activeNode.flag, cx - 8f, cy - 24f, flagPaint)
-            }
-        }
-
-        // ===== точка юзера =====
-        var homeX: Float? = null
-        var homeY: Float? = null
-        myPoint?.let { (nx, ny) ->
-            homeX = nx * w; homeY = ny * h
-            val pr = 9f + 7f * pulse
-            dotPaint.color = withAlpha(colorDim, (0.3f * (1f - pulse)).coerceIn(0f, 1f))
-            canvas.drawCircle(homeX!!, homeY!!, pr, dotPaint)
-            dotPaint.color = withAlpha(colorAccent, 0.85f)
-            canvas.drawCircle(homeX!!, homeY!!, 3.6f, dotPaint)
-            flagPaint.textSize = 15f; flagPaint.alpha = 255
-            canvas.drawText(myFlag, homeX!! - 8f, homeY!! - 24f, flagPaint)
-            if (myCity.isNotEmpty()) {
-                textPaint.textSize = 11f * resources.displayMetrics.scaledDensity
-                textPaint.alpha = 200
-                canvas.drawText(myCity, homeX!! - textPaint.measureText(myCity) / 2f, homeY!! + 26f, textPaint)
-            }
-        }
-
-        // ===== glow-дуга юзер -> активный сервер =====
-        val target = activeNode?.let { WorldMapAsset.anchorOf(it.iso, countries) }
-        if (target != null && homeX != null) {
-            val x1 = homeX!!; val y1 = homeY!!
-            val x2 = target[0] * w; val y2 = target[1] * h
-            val mx = (x1 + x2) / 2f
-            val my = (y1 + y2) / 2f - max(kotlin.math.abs(x2 - x1) * 0.24f, 30f)
-            path.reset()
-            path.moveTo(x1, y1)
-            path.quadTo(mx, my, x2, y2)
-            arcPaint.strokeWidth = 8f; arcPaint.color = withAlpha(colorAccent, 0.10f)
-            canvas.drawPath(path, arcPaint)
-            arcPaint.strokeWidth = 3.4f; arcPaint.color = withAlpha(colorAccent, 0.45f)
-            canvas.drawPath(path, arcPaint)
-            arcPaint.strokeWidth = 1.6f; arcPaint.color = withAlpha(colorAccent, 0.95f)
-            canvas.drawPath(path, arcPaint)
-            // бегущая точка
-            val pm = PathMeasure(path, false)
-            val len = pm.length
-            if (len > 0) {
-                val pos = FloatArray(2)
-                if (pm.getPosTan(len * pulse, pos, null)) {
-                    dotPaint.color = colorAccent
-                    canvas.drawCircle(pos[0], pos[1], 4.2f, dotPaint)
-                    dotPaint.color = withAlpha(colorAccent, 0.3f)
-                    canvas.drawCircle(pos[0], pos[1], 9f, dotPaint)
-                }
-            }
-        }
         canvas.restore()
+
+        // ===== маркеры, дуга — в экранных координатах (текст не масштабируем зумом) =====
+        val my = myPin
+        val sv = serverPin
+
+        // дуга юзер -> сервер
+        if (my != null && sv != null) {
+            val x1 = sx(my.wx); val y1 = sy(my.wy)
+            val x2 = sx(sv.wx); val y2 = sy(sv.wy)
+            val mx = (x1 + x2) / 2f
+            val myy = (y1 + y2) / 2f - max(kotlin.math.abs(x2 - x1) * 0.22f, 24f * density)
+            val p = Path()
+            p.moveTo(x1, y1); p.quadTo(mx, myy, x2, y2)
+            arcPaint.strokeWidth = 7f; arcPaint.color = withAlpha(colorAccent, 0.10f)
+            canvas.drawPath(p, arcPaint)
+            arcPaint.strokeWidth = 3.2f; arcPaint.color = withAlpha(colorAccent, 0.45f)
+            canvas.drawPath(p, arcPaint)
+            arcPaint.strokeWidth = 1.5f; arcPaint.color = withAlpha(colorAccent, 0.95f)
+            canvas.drawPath(p, arcPaint)
+            val pm = PathMeasure(p, false)
+            if (pm.length > 0) {
+                val pos = FloatArray(2)
+                if (pm.getPosTan(pm.length * pulse, pos, null)) {
+                    dotPaint.color = withAlpha(colorAccent, 0.30f)
+                    canvas.drawCircle(pos[0], pos[1], 8f * density, dotPaint)
+                    dotPaint.color = colorAccent
+                    canvas.drawCircle(pos[0], pos[1], 3.4f * density, dotPaint)
+                }
+            }
+        }
+
+        // ===== пин: гало 16dp + пульс до 34dp + ядро + флаг + подпись =====
+        fun drawPin(pin: Pin, accent: Boolean) {
+            val cx = sx(pin.wx); val cy = sy(pin.wy)
+            val c = if (accent) colorAccent else colorNeon
+            val pr = (26f + 8f * pulse) * density
+            dotPaint.color = withAlpha(c, 0.10f + 0.08f * pulse)
+            canvas.drawCircle(cx, cy, pr, dotPaint)
+            dotPaint.color = withAlpha(c, 0.22f)
+            canvas.drawCircle(cx, cy, 16f * density, dotPaint)
+            dotPaint.color = c
+            canvas.drawCircle(cx, cy, 4.6f * density, dotPaint)
+            // флаг над точкой
+            flagPaint.textSize = 17f * density
+            flagPaint.alpha = 255
+            canvas.drawText(pin.flag, cx - flagPaint.measureText(pin.flag) / 2f, cy - 22f * density, flagPaint)
+            // подпись под точкой
+            if (pin.label.isNotEmpty()) {
+                labelPaint.textSize = 11.5f * resources.displayMetrics.scaledDensity
+                labelPaint.color = withAlpha(colorText, 0.95f)
+                canvas.drawText(pin.label, cx, cy + 30f * density, labelPaint)
+            }
+        }
+        my?.let { drawPin(it, accent = false) }
+        sv?.let { drawPin(it, accent = true) }
     }
 
     private fun withAlpha(c: Int, a: Float): Int =
         (c and 0x00FFFFFF) or ((a.coerceIn(0f, 1f) * 255).toInt() shl 24)
-
-    private fun blend(a: Int, b: Int, t: Float): Int {
-        val ar = (a shr 16 and 0xFF); val ag = (a shr 8 and 0xFF); val ab = (a and 0xFF)
-        val br = (b shr 16 and 0xFF); val bg = (b shr 8 and 0xFF); val bb = (b and 0xFF)
-        val r = (ar + (br - ar) * t).toInt(); val g = (ag + (bg - ag) * t).toInt(); val bl = (ab + (bb - ab) * t).toInt()
-        return (0xFF shl 24) or (r shl 16) or (g shl 8) or bl
-    }
 }

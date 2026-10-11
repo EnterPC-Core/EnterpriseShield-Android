@@ -17,8 +17,8 @@ import java.net.Proxy
 import java.net.URL
 
 /**
- * Экран «Карта каналов» — полноэкранная интерактивная карта в стиле оригинала:
- * заголовок сверху, RouteBadge с городами внизу (GeoIP), pinch-зум, неон, дуга маршрута.
+ * Экран «Карта» как в оригинале: чистая неоновая карта мира, два пина (юзер + выход),
+ * glow-дуга, внизу карточка «Вы здесь / Выход» с городами и GeoIP.
  */
 object ServerMapPageBuilder {
 
@@ -36,139 +36,136 @@ object ServerMapPageBuilder {
 
         val root = FrameLayout(activity).apply { setBackgroundColor(bg) }
 
-        // ===== Карта на весь экран =====
+        // ===== карта =====
         val mapView = WorldMapView(activity).apply {
             colorBg = bg
-            colorLand = blendHex(surface, 0xFF14202B.toInt(), 0.5f)
             colorNeon = teal
-            colorAccent = 0xFF9FE8DB.toInt()
-            colorDim = ts
+            colorAccent = 0xFF8FE8D8.toInt()
+            colorText = tp
             seaLabels = listOf(
                 WorldMapView.SeaLabel(51.8f, 26.8f, activity.getString(R.string.map_sea_persian_gulf), 6.5f),
                 WorldMapView.SeaLabel(50.9f, 41.6f, activity.getString(R.string.map_sea_caspian), 4.0f),
             )
         }
-        root.addView(mapView, FrameLayout.LayoutParams(-1, -1))
-
-        // ===== Данные каналов =====
-        val names = mutableListOf<String>()
-        runCatching {
-            for (line in ShieldChannelsAsset.yaml.lineSequence()) {
-                val t = line.trim()
-                if (t.startsWith("- name: ") && !t.contains("Каналы") && !t.contains("Авто")) {
-                    names.add(t.removePrefix("- name: ").trim().trim('"'))
-                }
-            }
-        }
-        val nodes = names.mapNotNull { n ->
-            val f = WorldMapAsset.flagFromName(n) ?: return@mapNotNull null
-            WorldMapView.Node(n, WorldMapAsset.flagToCode(f), f, stateStarted && f == activeFlag && activeTag.isNotEmpty())
-        }
-        mapView.nodes = nodes
         mapView.loadMap(activity)
 
-        // точка юзера: RU по умолчанию; уточняется GeoIP ниже
-        mapView.myPoint = anchorNorm(activity, "RU")
-        val myCityBox = arrayOf<String?>(null)
-        val exitBox = arrayOf<String?>(null)   // город/страна выхода (GeoIP)
+        // пин юзера: RU по умолчанию (наш юзер — РФ); уточнение GeoIP если Щит выключен
+        var myAnchor = anchorOf(activity, "RU")
+        mapView.myPin = WorldMapView.Pin(myAnchor.first, myAnchor.second, "🇷🇺", activity.getString(R.string.map_russia))
+        // пин выхода: по флагу активного канала
+        val exitIso = WorldMapAsset.flagToCode(activeFlag)
+        val exitAnchor = if (stateStarted && exitIso != null) anchorOf(activity, exitIso) else null
+        if (exitAnchor != null) {
+            mapView.serverPin = WorldMapView.Pin(exitAnchor.first, exitAnchor.second, activeFlag, countryNameFromFlag(activeFlag), accent = true)
+        }
 
-        // ===== Заголовок (полупрозрачный поверх карты) =====
+        // ===== заголовок =====
         val header = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(activity, 20), dp(activity, 12), dp(activity, 20), 0)
+            setPadding(dp(activity, 20), dp(activity, 10), dp(activity, 20), 0)
         }
         header.addView(TextView(activity).apply {
             text = activity.getString(R.string.map_page_title)
-            textSize = 24f
+            textSize = 26f
             typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             setTextColor(tp)
-            setShadowLayer(8f, 0f, 0f, bg)
+            setShadowLayer(10f, 0f, 0f, bg)
         })
         header.addView(TextView(activity).apply {
-            text = activity.getString(R.string.map_subtitle, nodes.size)
+            text = activity.getString(R.string.map_subtitle_orig)
             textSize = 13f; setTextColor(ts)
-            setShadowLayer(6f, 0f, 0f, bg)
+            setShadowLayer(8f, 0f, 0f, bg)
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
         root.addView(header, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.START))
 
-        // ===== RouteBadge внизу =====
-        val badge = LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            background = GradientDrawable().apply {
-                cornerRadius = dp(activity, 18).toFloat(); setColor(surface)
-                setStroke(dp(activity, 1).toInt(), (teal and 0x33FFFFFF))
-            }
-            setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12))
-        }
-        fun badgeCol(titleRes: Int, flag: String, place: String): LinearLayout {
-            val col = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-            col.addView(TextView(activity).apply {
-                text = activity.getString(titleRes); textSize = 11f; setTextColor(ts)
-            })
-            col.addView(TextView(activity).apply {
-                text = if (place.isEmpty()) activity.getString(R.string.map_unknown) else "$flag $place"
-                textSize = 15f
-                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-                setTextColor(tp)
-            }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
-            return col
-        }
-        val fromFlag = "🇷🇺"
-        val fromText = arrayOf(activity.getString(R.string.map_russia))
-        val toFlag = arrayOf(if (activeFlag.isNotEmpty()) activeFlag else "🌐")
-        val toText = arrayOf(if (stateStarted && activeTag.isNotEmpty()) countryNameFromFlag(activeFlag) else activity.getString(R.string.map_no_active))
-        val fromCol = badgeCol(R.string.map_from, fromFlag, fromText[0])
-        val toCol = badgeCol(R.string.map_to, toFlag[0], toText[0])
-
-        // линия-коннектор между колонками
-        val connector = View(activity).apply {
-            background = GradientDrawable().apply {
-                cornerRadius = dp(activity, 2).toFloat(); setColor(teal and 0x55FFFFFF)
-            }
-        }
-        badge.addView(fromCol, LinearLayout.LayoutParams(0, -2, 1f))
-        badge.addView(connector, LinearLayout.LayoutParams(dp(activity, 46), dp(activity, 2)).apply {
-            setMargins(dp(activity, 10), 0, dp(activity, 10), 0)
-        })
-        badge.addView(toCol, LinearLayout.LayoutParams(0, -2, 1f))
-
-        val badgeWrap = LinearLayout(activity).apply {
+        // ===== нижняя карточка =====
+        val bottom = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(activity, 16), 0, dp(activity, 16), dp(activity, 14))
+            setPadding(dp(activity, 16), 0, dp(activity, 16), dp(activity, 12))
         }
-        badgeWrap.addView(badge, LinearLayout.LayoutParams(-1, -2))
-        root.addView(badgeWrap, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM))
+        val card = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            background = GradientDrawable().apply {
+                cornerRadius = dp(activity, 24).toFloat()
+                setColor((surface.toLong() and 0xFFFFFFD1L).toInt())
+                setStroke(dp(activity, 1).toInt(), teal and 0x26FFFFFF)
+            }
+            setPadding(dp(activity, 18), dp(activity, 16), dp(activity, 18), dp(activity, 16))
+        }
+        bottom.addView(card, LinearLayout.LayoutParams(-1, -2))
+        root.addView(bottom, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM))
 
-        // ===== GeoIP: страна/город юзера и выхода (как в оригинале) =====
-        fun fetchGeo(): JSONObject? = runCatching {
-            val proxy = if (stateStarted) Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)) else null
+        fun endpointRow(icon: String, title: String, value: TextView): LinearLayout {
+            val row = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            row.addView(TextView(activity).apply {
+                text = icon; textSize = 17f
+                setPadding(0, 0, dp(activity, 10), 0)
+            })
+            val col = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+            col.addView(TextView(activity).apply { text = title; textSize = 12f; setTextColor(ts) })
+            value.textSize = 15f
+            value.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            value.setTextColor(tp)
+            col.addView(value, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 1) })
+            row.addView(col, LinearLayout.LayoutParams(0, -2, 1f))
+            return row
+        }
+
+        val youValue = TextView(activity).apply { text = activity.getString(R.string.map_russia) }
+        val exitValue = TextView(activity).apply {
+            text = if (stateStarted && exitIso != null) "$activeFlag ${countryNameFromFlag(activeFlag)}"
+            else activity.getString(R.string.map_no_active)
+            setTextColor(if (stateStarted) teal else ts)
+        }
+        card.addView(endpointRow("📍", activity.getString(R.string.map_you), youValue))
+        card.addView(endpointRow("🌐", activity.getString(R.string.map_exit), exitValue),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 14) })
+
+        // статус-строка как в оригинале
+        val statusLine = TextView(activity).apply {
+            textSize = 12f; setTextColor(ts)
+            text = if (stateStarted) "" else activity.getString(R.string.map_offline_here)
+        }
+        card.addView(statusLine, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 12) })
+
+        // ===== GeoIP =====
+        fun fetchGeo(useSocks: Boolean): JSONObject? = runCatching {
+            val proxy = if (useSocks) Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)) else null
             val conn = (URL("https://api.ip.sb/geoip").let { u -> proxy?.let { p -> u.openConnection(p) } ?: u.openConnection() }) as java.net.HttpURLConnection
             conn.connectTimeout = 6000; conn.readTimeout = 8000
             JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
         }.getOrNull()
 
         GlobalScope.launch(Dispatchers.IO) {
-            val geo = fetchGeo()
-            if (geo != null) {
-                val cc = geo.optString("country_code", "")
-                val city = geo.optString("city", "")
+            if (stateStarted) {
+                // под Щитом: geoip покажет точку выхода — уточняем город сервера
+                val geo = fetchGeo(useSocks = true)
+                val city = geo?.optString("city").orEmpty()
+                val country = geo?.optString("country").orEmpty()
                 launch(Dispatchers.Main) {
-                    if (cc.length == 2) {
-                        val anchor = anchorNorm(activity, cc)
-                        if (anchor != null) {
-                            mapView.myPoint = anchor
-                            mapView.myFlag = codeToFlag(cc)
-                            mapView.myCity = city
+                    if (city.isNotEmpty() || country.isNotEmpty()) {
+                        exitValue.text = "$activeFlag $city${if (city.isNotEmpty() && country.isNotEmpty()) ", " else ""}$country"
+                        if (exitAnchor != null && mapView.serverPin != null) {
+                            mapView.serverPin = WorldMapView.Pin(
+                                exitAnchor.first, exitAnchor.second, activeFlag,
+                                city.ifEmpty { country }, accent = true
+                            )
+                            mapView.pinsUpdated()
                         }
                     }
-                    // точка выхода: если под Щитом — это страна активного канала, geoip подтверждает город
-                    val exitCity = city
-                    if (exitCity.isNotEmpty() && stateStarted) {
-                        toText[0] = countryNameFromFlag(activeFlag).ifEmpty { geo.optString("country", cc) }
-                        (toCol.getChildAt(1) as? TextView)?.text = "$toFlag[0] $exitCity · ${toText[0]}"
-                    } else if (cc.length == 2 && !stateStarted) {
-                        // Щит выключен: показываем реальную страну юзера справа как «нет маршрута»
+                }
+            } else {
+                // Щит выключен: определяем реальное местоположение юзера
+                val geo = fetchGeo(useSocks = false)
+                val cc = geo?.optString("country_code").orEmpty()
+                val city = geo?.optString("city").orEmpty()
+                launch(Dispatchers.Main) {
+                    if (cc.length == 2) {
+                        val a = anchorOf(activity, cc) ?: return@launch
+                        mapView.myPin = WorldMapView.Pin(a.first, a.second, codeToFlag(cc),
+                            city.ifEmpty { geo?.optString("country").orEmpty().ifEmpty { cc } })
+                        mapView.pinsUpdated()
+                        youValue.text = "${codeToFlag(cc)} $city${if (city.isNotEmpty()) ", " else ""}${geo?.optString("country").orEmpty()}"
                     }
                 }
             }
@@ -177,10 +174,10 @@ object ServerMapPageBuilder {
         return root
     }
 
-    private fun anchorNorm(activity: Activity, code: String): Pair<Float, Float>? {
+    private fun anchorOf(activity: Activity, code: String): Pair<Float, Float> {
         val list = WorldMapAsset.countries(activity)
-        val a = WorldMapAsset.anchorOf(code, list) ?: return null
-        return a[0] to a[1]
+        val a = WorldMapAsset.anchorOf(code, list)
+        return (a?.get(0) ?: 32767f) to (a?.get(1) ?: 16383f)
     }
 
     private fun codeToFlag(cc: String): String {
@@ -204,13 +201,6 @@ object ServerMapPageBuilder {
             "MY" to "Малайзия", "NO" to "Норвегия", "PT" to "Португалия", "RS" to "Сербия",
             "VN" to "Вьетнам", "AR" to "Аргентина",
         )[code] ?: code
-    }
-
-    private fun blendHex(a: Int, b: Int, t: Float): Int {
-        val ar = (a shr 16 and 0xFF); val ag = (a shr 8 and 0xFF); val ab = (a and 0xFF)
-        val br = (b shr 16 and 0xFF); val bg = (b shr 8 and 0xFF); val bb = (b and 0xFF)
-        val r = (ar + (br - ar) * t).toInt(); val g = (ag + (bg - ag) * t).toInt(); val bl = (ab + (bb - ab) * t).toInt()
-        return (0xFF shl 24) or (r shl 16) or (g shl 8) or bl
     }
 
     private fun paletteColor(activity: Activity, name: String, default: Long): Int {

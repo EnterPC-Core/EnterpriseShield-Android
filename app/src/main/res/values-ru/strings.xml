@@ -484,7 +484,6 @@
     <string name="sys_display_section">Экран</string>
     <string name="sys_uptime_section">Время работы</string>
     <string name="apps_count">приложений</string>
-    <string name="map_page_title">Карта каналов</string>
     <string name="map_page_open">Карта каналов</string>
     <string name="map_active_connection">Активное подключение</string>
     <string name="map_no_active">Щит выключен</string>
@@ -515,4 +514,10 @@
     <string name="map_to">Куда</string>
     <string name="map_unknown">Неизвестно</string>
     <string name="map_russia">Россия</string>
+    <string name="map_page_title">Карта</string>
+    <string name="map_subtitle_orig">Откуда вы подключаетесь и где выходите</string>
+    <string name="map_you">Вы здесь</string>
+    <string name="map_exit">Выход</string>
+    <string name="map_offline_here">Не подключено — сейчас вы видны из этого места.</string>
+    <string name="map_locating">Определение местоположения…</string>
 </resources>
