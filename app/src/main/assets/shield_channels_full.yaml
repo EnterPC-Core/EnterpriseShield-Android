@@ -25678,10 +25678,10 @@ proxy-groups:
       - "🇺🇸 Enterprise SS 218"
   - name: "♻️ Авто-выбор"
     type: url-test
-    url: "https://speed.cloudflare.com/__down?bytes=10000"
-    interval: 900
+    url: "https://www.instagram.com"
+    interval: 300
     lazy: true
-    tolerance: 120
+    tolerance: 80
     proxies:
       - "Enterprise 12"
       - "Enterprise 8"

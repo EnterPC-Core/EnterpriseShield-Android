@@ -800,21 +800,9 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                     // Режим «🌐 Универсал»: «Авто-выбор» становится select-группой,
                     // которой управляет SmartChannelSelector (живой мульти-сервисный тест).
                     // В обычном режиме (страна/авто) остаётся url-test — ядро само выбирает.
-                    val universal = runCatching {
-                        val ctx = appContext
-                        ctx != null && ConnectionLocationPreferenceStore(ctx).readSelectedCountryCode() ==
-                            ConnectionLocationPolicy.UNIVERSAL_CODE
-                    }.getOrDefault(false)
-                    if (!universal) yaml else yaml.replace(
-                        """  - name: "♻️ Авто-выбор"
-    type: url-test
-    url: "https://speed.cloudflare.com/__down?bytes=10000"
-    interval: 900
-    lazy: true
-    tolerance: 120""",
-                        """  - name: "♻️ Авто-выбор"
-    type: select""",
-                    )
+                    // Универсал: ядро САМО выбирает живой сервер через url-test по Instagram.
+                    // Никакого select/селектора — проверенный механизм ядра.
+                    yaml
                 }
             val dnsProxyGroup = if (routingMode == RoutingMode.Subscription) {
                 routingTarget

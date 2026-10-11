@@ -3180,9 +3180,7 @@ class WhiteDnsVpnService : VpnService() {
             val universal = ConnectionLocationPreferenceStore(this).readSelectedCountryCode() ==
                 com.whitedns.vpn.ConnectionLocationPolicy.UNIVERSAL_CODE
             if (universal) {
-                SmartChannelSelector.start(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret)
             } else {
-                SmartChannelSelector.stop()
             }
         }
         getSystemService(NotificationManager::class.java)
