@@ -1866,7 +1866,7 @@ class MainActivity : Activity() {
             gravity = Gravity.END
             layoutDirection = View.LAYOUT_DIRECTION_LTR
             textDirection = View.TEXT_DIRECTION_LTR
-            textSize = 15f
+            textSize = 12.5f
             typeface = WhiteDnsDataTypeface
             setTextColor(TEXT_PRIMARY)
             includeFontPadding = false
@@ -1876,7 +1876,7 @@ class MainActivity : Activity() {
             gravity = Gravity.END
             layoutDirection = View.LAYOUT_DIRECTION_LTR
             textDirection = View.TEXT_DIRECTION_LTR
-            textSize = 15f
+            textSize = 12.5f
             typeface = WhiteDnsDataTypeface
             setTextColor(TEXT_PRIMARY)
             includeFontPadding = false
@@ -1937,7 +1937,7 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             layoutDirection = View.LAYOUT_DIRECTION_LOCALE
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(6), dp(6), dp(6), dp(6))
+            setPadding(dp(4), dp(6), dp(2), dp(6))
             // Arrow icon + label on left
             addView(LinearLayout(this@MainActivity).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -1946,7 +1946,7 @@ class MainActivity : Activity() {
                 addView(arrowIcon, LinearLayout.LayoutParams(dp(13), dp(13)))
                 addView(TextView(this@MainActivity).apply {
                     text = label
-                    textSize = 11.5f
+                    textSize = 10f
                     typeface = WhiteDnsBodyTypeface
                     setTextColor(TEXT_SECONDARY)
                     includeFontPadding = false
@@ -1970,6 +1970,21 @@ class MainActivity : Activity() {
             addView(
                 NetworkMonitorBuilder.buildInlineStat(this@MainActivity) { showNetworkMonitorPage() },
                 LinearLayout.LayoutParams(0, -2, 1.15f),
+            )
+            addView(
+                TextView(this@MainActivity).apply {
+                    text = "🗺 " + getString(R.string.map_page_title)
+                    textSize = 10f
+                    typeface = WhiteDnsBodyTypeface
+                    setTextColor(TEXT_SECONDARY)
+                    includeFontPadding = false
+                    maxLines = 1
+                    gravity = Gravity.CENTER
+                    isClickable = true
+                    setOnClickListener { showMapPage() }
+                    setPadding(dp(4), dp(6), dp(4), dp(6))
+                },
+                LinearLayout.LayoutParams(0, -2, 0.75f),
             )
         }
 

@@ -82,18 +82,18 @@ object NetworkMonitorBuilder {
             orientation = LinearLayout.HORIZONTAL
             layoutDirection = View.LAYOUT_DIRECTION_LOCALE
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(activity, 6), dp(activity, 6), dp(activity, 6), dp(activity, 6))
+            setPadding(dp(activity, 4), dp(activity, 6), dp(activity, 2), dp(activity, 6))
             isClickable = true
             setOnClickListener { openPage() }
         }
         val icon = TextView(activity).apply {
             text = "📡"
-            textSize = 12f
+            textSize = 10f
             includeFontPadding = false
         }
         val status = TextView(activity).apply {
             text = activity.getString(R.string.monitor_checking)
-            textSize = 11.5f
+            textSize = 9.5f
             typeface = WhiteDnsBodyTypeface
             setTextColor(ts)
             includeFontPadding = false
