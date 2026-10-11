@@ -30,7 +30,7 @@ object SpeedTestPageBuilder {
         val teal = paletteColor(activity, "teal", 0xFF4DD0C4)
 
         val prefs = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE)
-        val stateStarted = prefs.getString("state", "") == "started"
+        val stateStarted = prefs.getString("state", "") == "Started"
 
         val root = FrameLayout(activity).apply { setBackgroundColor(bg) }
         val scroll = ScrollView(activity).apply { setBackgroundColor(bg); isFillViewport = true }

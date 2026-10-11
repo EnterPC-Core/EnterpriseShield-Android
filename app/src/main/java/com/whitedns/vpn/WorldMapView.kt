@@ -41,7 +41,8 @@ class WorldMapView(context: Context) : View(context) {
 
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE; strokeWidth = 1f; color = colorStroke
+        style = Paint.Style.STROKE; strokeWidth = 0.8f; color = colorStroke
+        alpha = 110
     }
     private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val arcPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -99,7 +100,7 @@ class WorldMapView(context: Context) : View(context) {
                 }
                 path.close()
                 canvas.drawPath(path, fillPaint)
-                if (active) canvas.drawPath(path, strokePaint)
+                canvas.drawPath(path, strokePaint)
             }
         }
 

@@ -52,9 +52,9 @@ object ServerMapPageBuilder {
         // ===== Карта =====
         val mapView = WorldMapView(activity).apply {
             colorBg = bg
-            colorLand = surface
-            colorLandActive = teal and 0x30FFFFFF or (teal ushr 1) and 0x007F7F7F or 0x001A3A40
-            colorStroke = teal and 0x66FFFFFF
+            colorLand = 0xFF22313D.toInt()
+            colorLandActive = 0xFF2E6570.toInt()
+            colorStroke = (teal and 0x55FFFFFF) or 0x00204048
             colorDot = teal
             colorDotActive = 0xFFB7F0E3.toInt()
             colorArc = teal
@@ -86,7 +86,7 @@ object ServerMapPageBuilder {
 
         // данные: активный канал + флаг из рантайм-стора
         val prefs = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE)
-        val stateStarted = prefs.getString("state", "") == "started"
+        val stateStarted = prefs.getString("state", "") == "Started"
         val activeFlag = prefs.getString("connection_country_flag", "").orEmpty()
         val activeTag = prefs.getString("active_connection_tag", "").orEmpty()
 
