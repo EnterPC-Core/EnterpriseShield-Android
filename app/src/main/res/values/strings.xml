@@ -519,4 +519,11 @@
     <string name="speedtest_phase_done">Done</string>
     <string name="speedtest_phase_failed">Failed</string>
     <string name="speedtest_offline">Turn the Shield on first</string>
+    <string name="map_subtitle">%1$d channels on the world map · pinch to zoom</string>
+    <string name="map_sea_persian_gulf">Persian Gulf</string>
+    <string name="map_sea_caspian">Caspian Sea</string>
+    <string name="map_from">From</string>
+    <string name="map_to">To</string>
+    <string name="map_unknown">Unknown</string>
+    <string name="map_russia">Russia</string>
 </resources>

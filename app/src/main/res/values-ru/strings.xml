@@ -508,4 +508,11 @@
     <string name="speedtest_phase_done">Готово</string>
     <string name="speedtest_phase_failed">Не получилось</string>
     <string name="speedtest_offline">Сначала включи Щит</string>
+    <string name="map_subtitle">%1$d каналов на карте мира · щипок — зум</string>
+    <string name="map_sea_persian_gulf">Персидский залив</string>
+    <string name="map_sea_caspian">Каспийское море</string>
+    <string name="map_from">Откуда</string>
+    <string name="map_to">Куда</string>
+    <string name="map_unknown">Неизвестно</string>
+    <string name="map_russia">Россия</string>
 </resources>
