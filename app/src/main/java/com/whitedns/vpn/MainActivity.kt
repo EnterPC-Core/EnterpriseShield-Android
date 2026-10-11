@@ -659,13 +659,18 @@ class MainActivity : Activity() {
 
     fun showMapPage() {
         if (mapPageVisible) return
-        mapPageHost.removeAllViews()
-        val page = ServerMapPageBuilder.buildScreen(this)
-        mapPageHost.addView(page, FrameLayout.LayoutParams(-1, -1))
-        mapPageHost.visibility = View.VISIBLE
-        mapPageHost.translationX = 0f
-        mapPageVisible = true
-        appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        runCatching {
+            mapPageHost.removeAllViews()
+            val page = ServerMapPageBuilder.buildScreen(this)
+            mapPageHost.addView(page, FrameLayout.LayoutParams(-1, -1))
+            mapPageHost.visibility = View.VISIBLE
+            mapPageHost.translationX = 0f
+            mapPageVisible = true
+            appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        }.onFailure { err ->
+            android.widget.Toast.makeText(this, "Карта: ${err.javaClass.simpleName}: ${err.message}", android.widget.Toast.LENGTH_LONG).show()
+            DiagnosticLogger.warn(this, "map.open.failed", error = err)
+        }
     }
 
     fun closeMapPage() {

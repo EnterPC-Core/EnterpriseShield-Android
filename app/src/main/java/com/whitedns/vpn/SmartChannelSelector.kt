@@ -4,7 +4,10 @@ import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -35,7 +38,7 @@ object SmartChannelSelector {
      * @param secret секрет ядра
      * @param candidates сколько лучших по последнему пингу серверов проверять (напр. 25)
      */
-    fun selectBest(context: Context, controlPort: Int, secret: String, candidates: Int = 25, log: Logger? = null) {
+    fun selectBest(context: Context, controlPort: Int, secret: String, candidates: Int = 60, log: Logger? = null) {
         if (!running.compareAndSet(false, true)) return
         GlobalScope.launch(Dispatchers.IO) {
             try {
@@ -68,11 +71,13 @@ object SmartChannelSelector {
                     if (n == GROUP || n.startsWith("📶") || n.startsWith("📹") || n.startsWith("✈") ||
                         n.startsWith("🧱") || n.startsWith("🤖")) continue
                     val pj = api("/proxies/" + java.net.URLEncoder.encode(n, "UTF-8")) ?: continue
-                    val history = pj.optJSONArray("extra")?.optJSONObject(0)?.optJSONArray("history")
+                    val history = pj.optJSONArray("history")
                     var lastDelay = Long.MAX_VALUE
                     if (history != null && history.length() > 0) {
-                        lastDelay = history.optJSONObject(history.length() - 1).optLong("delay", 0)
-                        if (lastDelay <= 0) lastDelay = Long.MAX_VALUE
+                        for (h in history.length() - 1 downTo 0) {
+                            val d = history.optJSONObject(h)?.optLong("delay", 0) ?: 0
+                            if (d > 0) { lastDelay = d; break }
+                        }
                     }
                     scored.add(n to lastDelay)
                 }
@@ -81,24 +86,26 @@ object SmartChannelSelector {
                 if (pool.isEmpty()) return@runCatching
 
                 // 2) мульти-проверка: сервер должен пройти ВСЕ URL
-                data class Cand(val name: String, val sumDelay: Long)
-                val universal = mutableListOf<Cand>()
-                for (name in pool) {
-                    var sum = 0L
-                    var allOk = true
-                    for (u in CHECK_URLS) {
-                        val d = api("/proxies/" + java.net.URLEncoder.encode(name, "UTF-8") +
-                                "/delay?url=" + java.net.URLEncoder.encode(u, "UTF-8") + "&timeout=5000")
-                        val delay = d?.optInt("delay", 0) ?: 0
-                        if (delay <= 0) { allOk = false; break }
-                        sum += delay
-                    }
-                    if (allOk) universal.add(Cand(name, sum))
+                data class Cand(val name: String, val sumDelay: Long, val passed: Int)
+                val results = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    pool.map { name ->
+                        async(Dispatchers.IO) {
+                            var sum = 0L; var passed = 0
+                            for (u in CHECK_URLS) {
+                                val d = api("/proxies/" + java.net.URLEncoder.encode(name, "UTF-8") +
+                                        "/delay?url=" + java.net.URLEncoder.encode(u, "UTF-8") + "&timeout=5000")
+                                val delay = d?.optInt("delay", 0) ?: 0
+                                if (delay > 0) { passed++; sum += delay }
+                            }
+                            Cand(name, sum, passed)
+                        }
+                    }.awaitAll()
                 }
-                log?.log("универсальных: ${universal.size}")
-                if (universal.isEmpty()) return@runCatching
-
-                // 3) переключить группу на лучшего (минимальная сумма задержек)
+                val maxPassed = results.maxOfOrNull { it.passed } ?: 0
+                log?.log("лучший кандидат прошёл $maxPassed/${CHECK_URLS.size} проверок")
+                if (maxPassed == 0) return@runCatching
+                // приоритет: все проверки -> максимум проверок -> минимум суммы задержек
+                val universal = results.filter { it.passed == maxPassed }
                 val best = universal.minByOrNull { it.sumDelay } ?: return@runCatching
                 val enc = java.net.URLEncoder.encode(GROUP, "UTF-8")
                 val r = URL("$base/proxies/$enc").openConnection() as HttpURLConnection

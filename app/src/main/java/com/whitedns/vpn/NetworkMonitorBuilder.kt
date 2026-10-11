@@ -122,7 +122,7 @@ object NetworkMonitorBuilder {
             override fun run() {
                 if (cell.isAttachedToWindow) {
                     refresh()
-                    cell.postDelayed(this, 15_000)
+                    cell.postDelayed(this, 10_000)
                 }
             }
         }
@@ -282,21 +282,26 @@ object NetworkMonitorBuilder {
             })
             val started = isShieldStarted(activity)
             GlobalScope.launch(Dispatchers.IO) {
-                val results = TEST_URLS.map { url ->
-                    val t0 = System.nanoTime()
-                    val code = runCatching {
-                        val conn = (URL(url).let { u ->
-                            val p = if (started) Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)) else null
-                            p?.let { u.openConnection(it) } ?: u.openConnection()
-                        }) as HttpURLConnection
-                        conn.connectTimeout = 8000; conn.readTimeout = 10000
-                        conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
-                        val c = conn.responseCode
-                        conn.disconnect()
-                        c
-                    }.getOrDefault(-1)
-                    Triple(url, code, (System.nanoTime() - t0) / 1e6)
-                }
+                val pool = java.util.concurrent.Executors.newFixedThreadPool(6)
+                val results: List<Triple<String, Int, Double>> = TEST_URLS.map { url ->
+                    pool.submit<Pair<Triple<String, Int, Double>, Long>> {
+                        val t0 = System.nanoTime()
+                        val code = runCatching {
+                            val conn = (URL(url).let { u ->
+                                val p = if (started) Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)) else null
+                                p?.let { u.openConnection(it) } ?: u.openConnection()
+                            }) as HttpURLConnection
+                            conn.connectTimeout = 4000; conn.readTimeout = 6000
+                            conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
+                            conn.setRequestProperty("Connection", "close")
+                            val c = conn.responseCode
+                            conn.disconnect()
+                            c
+                        }.getOrDefault(-1)
+                        Triple(url, code, (System.nanoTime() - t0) / 1e6) to System.nanoTime()
+                    }
+                }.map { it.get().first }
+                pool.shutdown()
                 launch(Dispatchers.Main) {
                     urlCard.removeAllViews()
                     for ((url, code, ms) in results) {
@@ -365,6 +370,8 @@ object NetworkMonitorBuilder {
             val conn = (URL(url).let { u -> p?.let { u.openConnection(it) } ?: u.openConnection() }) as HttpURLConnection
             conn.connectTimeout = timeoutC; conn.readTimeout = timeoutR
             conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
+            conn.setRequestProperty("Cache-Control", "no-cache")
+            conn.setRequestProperty("Connection", "close")
             val body = conn.inputStream.bufferedReader().use { it.readText() }
             conn.disconnect()
             body
@@ -383,13 +390,14 @@ object NetworkMonitorBuilder {
     }.getOrNull()
 
     private fun fetchGeo(socks: Boolean): GeoInfo? {
-        parseIpSb(httpGet("https://api.ip.sb/geoip", socks) ?: return fallbackGeo(socks))?.let { return it }
+        val bust = "?t=" + System.currentTimeMillis()
+        parseIpSb(httpGet("https://api.ip.sb/geoip$bust", socks) ?: return fallbackGeo(socks))?.let { return it }
         return fallbackGeo(socks)
     }
 
     private fun fallbackGeo(socks: Boolean): GeoInfo? {
         runCatching {
-            val j = JSONObject(httpGet("https://ipapi.co/json/", socks) ?: return@runCatching null)
+            val j = JSONObject(httpGet("https://ipapi.co/json/?t=" + System.currentTimeMillis(), socks) ?: return@runCatching null)
             return GeoInfo(j.optString("ip"), j.optString("country_name"), j.optString("country_code"),
                 j.optString("city"), j.optString("org"))
         }
