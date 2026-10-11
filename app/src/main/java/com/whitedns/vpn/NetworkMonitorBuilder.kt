@@ -230,40 +230,27 @@ object NetworkMonitorBuilder {
             textSize = 13f; setTextColor(ts)
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
 
-        // ===== диагностика ядра =====
+        // ===== диагностика туннеля =====
         val diagValue = TextView(activity).apply {
             text = "diag…"
             textSize = 11f; setTextColor(ts)
         }
         content.addView(diagValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 4) })
         fun renderDiag() {
-            val pp = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE)
-            val cp = pp.getInt("control_port", 0)
-            val sec = pp.getString("control_secret", "").orEmpty()
-            val st = pp.getString("state", "")
             GlobalScope.launch(Dispatchers.IO) {
-                var rest = "—"
-                var active = "—"
-                if (cp > 0) {
-                    runCatching {
-                        val conn = (URL("http://127.0.0.1:$cp/proxies").openConnection() as HttpURLConnection).apply {
-                            setRequestProperty("Authorization", "Bearer $sec")
-                            connectTimeout = 3000; readTimeout = 4000
-                        }
-                        val code = conn.responseCode
-                        val body = conn.inputStream.bufferedReader().use { it.readText() }
-                        conn.disconnect()
-                        rest = "HTTP $code"
-                        runCatching {
-                            val j = JSONObject(body).optJSONObject("proxies")
-                            if (j != null) {
-                                val kan = j.optJSONObject("🚀 Каналы")
-                                active = kan?.optString("now")?.takeIf { it.isNotBlank() } ?: "?"
-                            }
-                        }
-                    }.onFailure { rest = "ошибка: ${it.javaClass.simpleName}" }
-                }
-                val res = "state=$st port=$cp secret=${if (sec.isEmpty()) "нет" else sec.length.toString() + "симв"} REST=$rest активный=$active"
+                val pp = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE)
+                val st = pp.getString("state", "")
+                val tunOk = runCatching {
+                    val conn = (URL("https://cp.cloudflare.com/generate_204").let { u ->
+                        u.openConnection(java.net.Proxy(java.net.Proxy.Type.HTTP,
+                            InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)))
+                    }) as HttpURLConnection
+                    conn.connectTimeout = 4000; conn.readTimeout = 6000
+                    val c = conn.responseCode
+                    conn.disconnect()
+                    c in 200..399
+                }.getOrDefault(false)
+                val res = "state=$st туннель:2080=${if (tunOk) "OK" else "недоступен"}"
                 launch(Dispatchers.Main) { diagValue.text = res }
             }
         }
@@ -318,89 +305,61 @@ object NetworkMonitorBuilder {
         fun runUrlTest() {
             urlCard.removeAllViews()
             val started = isShieldStarted(activity)
-            val prefs = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE)
-            val resolved = CoreEndpoint.resolve(activity)
-            val controlPort = resolved?.first ?: 0
-            val secret = resolved?.second ?: ""
+            if (!started) {
+                urlCard.addView(TextView(activity).apply {
+                    text = activity.getString(R.string.monitor_no_core)
+                    textSize = 13f; setTextColor(amber)
+                })
+                return
+            }
             val placeHolder = TextView(activity).apply {
                 text = activity.getString(R.string.monitor_testing)
                 textSize = 13f; setTextColor(ts)
             }
             urlCard.addView(placeHolder)
-
-            // активный сервер юзера (через ядро — честный тест с DNS через прокси)
-            fun activeProxyName(cb: (String?) -> Unit) {
-                GlobalScope.launch(Dispatchers.IO) {
-                    val name = runCatching {
-                        val conn = (URL("http://127.0.0.1:$controlPort/proxies/" +
-                                java.net.URLEncoder.encode("🚀 Каналы", "UTF-8")).openConnection() as HttpURLConnection).apply {
-                            setRequestProperty("Authorization", "Bearer $secret"); connectTimeout = 3000; readTimeout = 5000
-                        }
-                        val now = org.json.JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).optString("now")
+            val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
+            TEST_URLS.forEach { url ->
+                pool.submit {
+                    val t0 = System.nanoTime()
+                    val ok = runCatching {
+                        // HTTP CONNECT через ядро: DNS резолвит mihomo (через туннель),
+                        // соединение реальное — как у юзера в браузере
+                        val conn = (URL(url).let { u ->
+                            u.openConnection(java.net.Proxy(java.net.Proxy.Type.HTTP,
+                                InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)))
+                        }) as HttpURLConnection
+                        conn.connectTimeout = 5000; conn.readTimeout = 7000
+                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android) EnterpriseShield")
+                        conn.setRequestProperty("Connection", "close")
+                        val c = conn.responseCode
                         conn.disconnect()
-                        now.takeIf { it.isNotBlank() }
-                    }.getOrNull()
-                    launch(Dispatchers.Main) { cb(name) }
-                }
-            }
-
-            fun runTests(activeName: String?) {
-                if (!started || controlPort <= 0 || secret.isEmpty()) {
-                    urlCard.removeAllViews()
-                    urlCard.addView(TextView(activity).apply {
-                        text = activity.getString(R.string.monitor_no_core)
-                        textSize = 13f; setTextColor(amber)
-                    })
-                    return
-                }
-                val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
-                TEST_URLS.forEach { url ->
-                    pool.submit {
-                        val t0 = System.nanoTime()
-                        val code: Int = run {
-                            // честный тест: ядро резолвит и коннектит через активный сервер
-                            val path = "/proxies/" + java.net.URLEncoder.encode(activeName ?: "🚀 Каналы", "UTF-8") + "/delay"
-                            val ok = runCatching {
-                                val conn = (URL("http://127.0.0.1:$controlPort$path?url=" +
-                                        java.net.URLEncoder.encode(url, "UTF-8") + "&timeout=6000").openConnection() as HttpURLConnection).apply {
-                                    setRequestProperty("Authorization", "Bearer $secret"); connectTimeout = 5000; readTimeout = 9000
-                                }
-                                val r = conn.responseCode
-                                val body = conn.inputStream.bufferedReader().use { it.readText() }
-                                conn.disconnect()
-                                r == 200 && org.json.JSONObject(body).optInt("delay", 0) > 0
-                            }.getOrDefault(false)
-                            if (ok) 204 else -1
-                        }
-                        val ms = (System.nanoTime() - t0) / 1e6
-                        GlobalScope.launch(Dispatchers.Main) {
-                            if (placeHolder.isAttachedToWindow && urlCard.childCount == 1 && urlCard.getChildAt(0) === placeHolder) urlCard.removeView(placeHolder)
-                            val ok = code in 200..399
-                            val color = if (ok) teal else red
-                            val host = runCatching { URL(url).host }.getOrDefault(url)
-                            val r = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-                            r.addView(TextView(activity).apply {
-                                text = if (ok) "✓" else "✗"; textSize = 15f; setTextColor(color)
-                                typeface = Typeface.DEFAULT_BOLD
-                            })
-                            r.addView(TextView(activity).apply {
-                                text = host; textSize = 13f; setTextColor(tp)
-                                setPadding(dp(activity, 10), 0, 0, 0)
-                                maxLines = 1
-                                ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
-                            }, LinearLayout.LayoutParams(0, -2, 1f))
-                            r.addView(TextView(activity).apply {
-                                text = if (ok) "${ms.toInt()} ${activity.getString(R.string.monitor_ms)}" else "—"
-                                textSize = 12f; setTextColor(if (ok) ts else amber)
-                            })
-                            urlCard.addView(r, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 8) })
-                        }
+                        c in 200..399
+                    }.getOrDefault(false)
+                    val ms = (System.nanoTime() - t0) / 1e6
+                    GlobalScope.launch(Dispatchers.Main) {
+                        if (placeHolder.isAttachedToWindow && urlCard.childCount == 1 && urlCard.getChildAt(0) === placeHolder) urlCard.removeView(placeHolder)
+                        val color = if (ok) teal else red
+                        val host = runCatching { URL(url).host }.getOrDefault(url)
+                        val r = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+                        r.addView(TextView(activity).apply {
+                            text = if (ok) "✓" else "✗"; textSize = 15f; setTextColor(color)
+                            typeface = Typeface.DEFAULT_BOLD
+                        })
+                        r.addView(TextView(activity).apply {
+                            text = host; textSize = 13f; setTextColor(tp)
+                            setPadding(dp(activity, 10), 0, 0, 0)
+                            maxLines = 1
+                            ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+                        }, LinearLayout.LayoutParams(0, -2, 1f))
+                        r.addView(TextView(activity).apply {
+                            text = if (ok) "${ms.toInt()} ${activity.getString(R.string.monitor_ms)}" else "—"
+                            textSize = 12f; setTextColor(if (ok) ts else amber)
+                        })
+                        urlCard.addView(r, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 8) })
                     }
                 }
-                pool.shutdown()
             }
-
-            if (started && controlPort > 0) activeProxyName { runTests(it) } else runTests(null)
+            pool.shutdown()
         }
 
         fun loadGeo() {
