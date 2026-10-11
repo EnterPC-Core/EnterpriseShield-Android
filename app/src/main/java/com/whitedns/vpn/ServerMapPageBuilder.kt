@@ -39,6 +39,7 @@ object ServerMapPageBuilder {
         // ===== карта =====
         val mapView = WorldMapView(activity).apply {
             colorBg = bg
+            colorLandFill = pal(activity).surfaceElevated2
             colorNeon = teal
             colorAccent = 0xFF8FE8D8.toInt()
             colorText = tp

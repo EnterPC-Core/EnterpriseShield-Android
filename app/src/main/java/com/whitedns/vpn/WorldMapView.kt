@@ -36,6 +36,7 @@ class WorldMapView(context: Context) : View(context) {
     var seaLabels: List<SeaLabel> = emptyList()
 
     var colorBg: Int = Color.parseColor("#0A0E14")
+    var colorLandFill: Int = Color.parseColor("#12271E")
     var colorNeon: Int = Color.parseColor("#4FC3D9")
     var colorAccent: Int = Color.parseColor("#7FE8D8")
     var colorText: Int = Color.parseColor("#93A3B0")
@@ -219,15 +220,28 @@ class WorldMapView(context: Context) : View(context) {
         postInvalidateOnAnimation()
     }
 
+    private val diagPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = colorText; textSize = 14f
+    }
+
     override fun onDraw(canvas: Canvas) {
         canvas.drawColor(colorBg)
         val world = worldPath
-        if (!mapLoaded || world == null || width == 0 || height == 0 || scale <= 0f) return
+        if (!mapLoaded || world == null) {
+            diagPaint.textSize = 15f * scaledDensity
+            canvas.drawText("Карта недоступна", 40f * density, 120f * density, diagPaint)
+            return
+        }
+        if (width == 0 || height == 0 || scale <= 0f) return
         val k = 1f / scale   // компенсация: stroke/текст в экранных пикселях
 
         canvas.save()
         canvas.translate(baseOffsetX() + offX, baseOffsetY() + offY)
         canvas.scale(scale, scale)
+
+        // ===== заливка стран (гарантированная видимость) =====
+        fillPaint.color = colorLandFill
+        canvas.drawPath(world, fillPaint)
 
         // ===== неоновые контуры мира (тройной stroke, px на экране) =====
         strokePaint.strokeCap = Paint.Cap.ROUND
