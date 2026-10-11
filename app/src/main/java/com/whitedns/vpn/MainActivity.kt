@@ -1967,6 +1967,10 @@ class MainActivity : Activity() {
                 speedStatRow(getString(R.string.metric_upload), uploadSpeedText, false, uploadArrowIcon),
                 LinearLayout.LayoutParams(0, -2, 1f),
             )
+            addView(
+                NetworkMonitorBuilder.buildInlineStat(this@MainActivity) { showNetworkMonitorPage() },
+                LinearLayout.LayoutParams(0, -2, 1.15f),
+            )
         }
 
         // Reconnect button - initialize before signalSection
@@ -2174,10 +2178,6 @@ class MainActivity : Activity() {
             )
             addView(
                 dataRows,
-                contentParams(dp(16)),
-            )
-            addView(
-                NetworkMonitorBuilder.buildCard(this@MainActivity) { showNetworkMonitorPage() },
                 contentParams(dp(16)),
             )
         }

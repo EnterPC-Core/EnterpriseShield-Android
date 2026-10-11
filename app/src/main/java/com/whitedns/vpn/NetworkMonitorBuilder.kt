@@ -73,6 +73,66 @@ object NetworkMonitorBuilder {
     private fun divider(activity: Activity): View =
         View(activity).apply { setBackgroundColor(alpha(outlineC(activity), 150)) }
 
+        // ===== inline-ячейка для панели «загрузка/отдача» =====
+    fun buildInlineStat(activity: Activity, openPage: () -> Unit): View {
+        val tp = pal(activity).textPrimary
+        val ts = pal(activity).textSecondary
+
+        val cell = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutDirection = View.LAYOUT_DIRECTION_LOCALE
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(activity, 6), dp(activity, 6), dp(activity, 6), dp(activity, 6))
+            isClickable = true
+            setOnClickListener { openPage() }
+        }
+        val icon = TextView(activity).apply {
+            text = "📡"
+            textSize = 12f
+            includeFontPadding = false
+        }
+        val status = TextView(activity).apply {
+            text = activity.getString(R.string.monitor_checking)
+            textSize = 11.5f
+            typeface = WhiteDnsBodyTypeface
+            setTextColor(ts)
+            includeFontPadding = false
+            maxLines = 1
+        }
+        cell.addView(icon, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = dp(activity, 4) })
+        cell.addView(status, LinearLayout.LayoutParams(0, -2, 1f))
+
+        fun refresh() {
+            GlobalScope.launch(Dispatchers.IO) {
+                val started = isShieldStarted(activity)
+                val geo = fetchGeo(started)
+                launch(Dispatchers.Main) {
+                    if (geo != null) {
+                        val flag = if (geo.cc.length == 2) codeToFlag(geo.cc) else "🌐"
+                        status.text = "$flag ${geo.ip}"
+                        status.setTextColor(if (started) pal(activity).teal else ts)
+                    } else {
+                        status.text = activity.getString(R.string.monitor_offline)
+                        status.setTextColor(ts)
+                    }
+                }
+            }
+        }
+        val tick = object : Runnable {
+            override fun run() {
+                if (cell.isAttachedToWindow) {
+                    refresh()
+                    cell.postDelayed(this, 15_000)
+                }
+            }
+        }
+        cell.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) { v.post(tick) }
+            override fun onViewDetachedFromWindow(v: View) { v.removeCallbacks(tick) }
+        })
+        return cell
+    }
+
     // ===== карточка на главный экран =====
     fun buildCard(activity: Activity, openPage: () -> Unit): View {
         val tp = pal(activity).textPrimary
