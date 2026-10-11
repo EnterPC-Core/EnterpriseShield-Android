@@ -18,20 +18,14 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Карта мира в стиле оригинала Cybershield:
- *  - мировые координаты 0..65535 x 0..32767.5, wholeWorldScale + центрирование (пропорции!)
- *  - страны: только неоновые контуры (тройной stroke)
- *  - подсветка заливкой: страна юзера + страна сервера
- *  - два пин-маркера: флаг-эмодзи + подпись города
- *  - крупные пульсирующие гало (26..34 dp), ядро 16 dp
- *  - glow-дуга с бегущей точкой, подписи морей
- *  - pinch-зум 1..24x, пан с ограничением
+ * Карта мира в стиле оригинала Cybershield.
+ * КЛЮЧЕВОЕ: геометрия масштабируется, а толщина линий и текст — в пикселях экрана
+ * (stroke делится на scale при рисовании внутри scaled-канвы).
  */
 class WorldMapView(context: Context) : View(context) {
 
     class SeaLabel(val x: Float, val y: Float, val text: String, val sizeSp: Float)
 
-    /** Маркер: мировые координаты (0..65535 / 0..32767.5), флаг, подпись */
     class Pin(val wx: Float, val wy: Float, val flag: String, val label: String, val accent: Boolean = false)
 
     var myPin: Pin? = null
@@ -69,15 +63,17 @@ class WorldMapView(context: Context) : View(context) {
         textAlign = Paint.Align.CENTER
     }
     private val density = resources.displayMetrics.density
+    private val scaledDensity = resources.displayMetrics.scaledDensity
 
     // === зум/пан ===
-    private var scale = 1f
+    private var scale = 0f
     private var offX = 0f
     private var offY = 0f
-    private var minScale = 1f
+    private var minScale = 0f
+    private var didZoom = false
 
     private fun wholeWorldScale(): Float {
-        if (width <= 0 || height <= 0) return 1f
+        if (width <= 0 || height <= 0) return 0f
         return min(width / 65535f, height / 32767.5f)
     }
 
@@ -85,8 +81,9 @@ class WorldMapView(context: Context) : View(context) {
     private fun baseOffsetY(): Float = (height - 32767.5f * scale) / 2f
 
     private fun clampPan() {
-        val marginX = width * 0.25f * scale / minScale
-        val marginY = height * 0.25f * scale / minScale
+        if (minScale <= 0f) return
+        val marginX = width * 0.3f * (scale / minScale - 1f).coerceAtLeast(0f)
+        val marginY = height * 0.3f * (scale / minScale - 1f).coerceAtLeast(0f)
         offX = offX.coerceIn(-marginX, marginX)
         offY = offY.coerceIn(-marginY, marginY)
     }
@@ -94,10 +91,10 @@ class WorldMapView(context: Context) : View(context) {
     private val scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             val whole = wholeWorldScale()
+            if (whole <= 0f) return true
             val newScale = (scale * detector.scaleFactor).coerceIn(whole, whole * 24f)
             didZoom = true
             val k = newScale / scale
-            // зум к точке фокуса (в экранных координатах относительно центра мира)
             val focusX = detector.focusX - baseOffsetX()
             val focusY = detector.focusY - baseOffsetY()
             offX = focusX - k * (focusX - offX)
@@ -136,7 +133,6 @@ class WorldMapView(context: Context) : View(context) {
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (scale <= 0f || worldPath == null) resetView()
         if (animator == null) {
             animator = ValueAnimator.ofFloat(0f, 1f).apply {
                 duration = 1800; repeatCount = ValueAnimator.INFINITE; interpolator = LinearInterpolator()
@@ -157,7 +153,6 @@ class WorldMapView(context: Context) : View(context) {
     fun loadMap(context: Context) {
         countries = WorldMapAsset.countries(context)
         mapLoaded = countries.isNotEmpty()
-        // единый путь мира
         val p = Path()
         for (c in countries) for (ring in c.rings) {
             if (ring.size < 6) continue
@@ -172,12 +167,9 @@ class WorldMapView(context: Context) : View(context) {
         postInvalidateOnAnimation()
     }
 
-    /** путь страны, в которой стоит пин (мировые координаты) */
     private fun countryPathAt(wx: Float, wy: Float): Path? {
-        for (c in countries) {
-            for (ring in c.rings) {
-                if (pointInRing(wx, wy, ring)) return ringToPath(ring)
-            }
+        for (c in countries) for (ring in c.rings) {
+            if (pointInRing(wx, wy, ring)) return ringToPath(ring)
         }
         return null
     }
@@ -212,21 +204,14 @@ class WorldMapView(context: Context) : View(context) {
 
     fun pinsUpdated() { rebuildCountryPaths(); postInvalidateOnAnimation() }
 
-    fun anchorOf(code: String?): Pair<Float, Float>? {
-        val a = WorldMapAsset.anchorOf(code, countries) ?: return null
-        return a[0] to a[1]   // мировые координаты уже: ax / 65535 — НЕТ, anchorOf возвращает нормализованные
-    }
-
-    /** экранные координаты для мировых (0..65535) */
+    /** экранные координаты для мировых (0..65535 / 0..32767.5) */
     private fun sx(wx: Float) = wx * scale + baseOffsetX() + offX
     private fun sy(wy: Float) = wy * scale + baseOffsetY() + offY
-
-    private var didZoom = false
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         minScale = wholeWorldScale()
-        if (!didZoom || scale < minScale) {
+        if (minScale > 0f && (!didZoom || scale <= 0f || scale < minScale)) {
             scale = minScale
             offX = 0f; offY = 0f
         }
@@ -236,45 +221,45 @@ class WorldMapView(context: Context) : View(context) {
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawColor(colorBg)
-        val world = worldPath ?: return
-        if (width == 0 || height == 0) return
+        val world = worldPath
+        if (!mapLoaded || world == null || width == 0 || height == 0 || scale <= 0f) return
+        val k = 1f / scale   // компенсация: stroke/текст в экранных пикселях
+
         canvas.save()
         canvas.translate(baseOffsetX() + offX, baseOffsetY() + offY)
         canvas.scale(scale, scale)
 
-        // ===== контуры мира: тройной неон (мировые px -> ширина штриха делится на scale) =====
+        // ===== неоновые контуры мира (тройной stroke, px на экране) =====
         strokePaint.strokeCap = Paint.Cap.ROUND
-        strokePaint.color = withAlpha(colorNeon, 0.10f); strokePaint.strokeWidth = 9f
+        strokePaint.color = withAlpha(colorNeon, 0.10f); strokePaint.strokeWidth = 9f * density * k
         canvas.drawPath(world, strokePaint)
-        strokePaint.color = withAlpha(colorNeon, 0.40f); strokePaint.strokeWidth = 3.2f
+        strokePaint.color = withAlpha(colorNeon, 0.40f); strokePaint.strokeWidth = 3.2f * density * k
         canvas.drawPath(world, strokePaint)
-        strokePaint.color = withAlpha(colorNeon, 0.90f); strokePaint.strokeWidth = 1.3f
+        strokePaint.color = withAlpha(colorNeon, 0.90f); strokePaint.strokeWidth = 1.3f * density * k
         canvas.drawPath(world, strokePaint)
 
-        // ===== подсветка страны юзера и страны сервера =====
+        // ===== подсветка стран юзера и сервера =====
         for (hl in listOfNotNull(homeCountryPath, serverCountryPath)) {
             fillPaint.color = withAlpha(colorAccent, 0.16f)
             canvas.drawPath(hl, fillPaint)
-            strokePaint.color = withAlpha(colorAccent, 0.30f); strokePaint.strokeWidth = 6f
+            strokePaint.color = withAlpha(colorAccent, 0.30f); strokePaint.strokeWidth = 6f * density * k
             canvas.drawPath(hl, strokePaint)
-            strokePaint.color = withAlpha(colorAccent, 0.85f); strokePaint.strokeWidth = 1.6f
+            strokePaint.color = withAlpha(colorAccent, 0.85f); strokePaint.strokeWidth = 1.6f * density * k
             canvas.drawPath(hl, strokePaint)
         }
 
         // ===== подписи морей =====
         for (s in seaLabels) {
-            seaPaint.textSize = s.sizeSp * resources.displayMetrics.scaledDensity
+            seaPaint.textSize = s.sizeSp * scaledDensity * k
             seaPaint.alpha = 140
             canvas.drawText(s.text, s.x / 100f * 65535f, s.y / 100f * 32767.5f, seaPaint)
         }
-
         canvas.restore()
 
-        // ===== маркеры, дуга — в экранных координатах (текст не масштабируем зумом) =====
+        // ===== маркеры и дуга — экранные координаты =====
         val my = myPin
         val sv = serverPin
 
-        // дуга юзер -> сервер
         if (my != null && sv != null) {
             val x1 = sx(my.wx); val y1 = sy(my.wy)
             val x2 = sx(sv.wx); val y2 = sy(sv.wy)
@@ -300,7 +285,6 @@ class WorldMapView(context: Context) : View(context) {
             }
         }
 
-        // ===== пин: гало 16dp + пульс до 34dp + ядро + флаг + подпись =====
         fun drawPin(pin: Pin, accent: Boolean) {
             val cx = sx(pin.wx); val cy = sy(pin.wy)
             val c = if (accent) colorAccent else colorNeon
@@ -311,13 +295,11 @@ class WorldMapView(context: Context) : View(context) {
             canvas.drawCircle(cx, cy, 16f * density, dotPaint)
             dotPaint.color = c
             canvas.drawCircle(cx, cy, 4.6f * density, dotPaint)
-            // флаг над точкой
             flagPaint.textSize = 17f * density
             flagPaint.alpha = 255
             canvas.drawText(pin.flag, cx - flagPaint.measureText(pin.flag) / 2f, cy - 22f * density, flagPaint)
-            // подпись под точкой
             if (pin.label.isNotEmpty()) {
-                labelPaint.textSize = 11.5f * resources.displayMetrics.scaledDensity
+                labelPaint.textSize = 11.5f * scaledDensity
                 labelPaint.color = withAlpha(colorText, 0.95f)
                 canvas.drawText(pin.label, cx, cy + 30f * density, labelPaint)
             }
