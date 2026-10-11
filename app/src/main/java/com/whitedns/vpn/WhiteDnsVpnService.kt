@@ -3170,6 +3170,15 @@ class WhiteDnsVpnService : VpnService() {
         sessionStartedAtElapsedMs = SystemClock.elapsedRealtime()
         publishState(VpnState.Started, notice)
         runCatching { BlockStatsTracker.startPolling(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret) }
+        runCatching {
+            val universal = ConnectionLocationPreferenceStore(this).readSelectedCountryCode() ==
+                com.whitedns.vpn.ConnectionLocationPolicy.UNIVERSAL_CODE
+            if (universal) {
+                SmartChannelSelector.start(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret)
+            } else {
+                SmartChannelSelector.stop()
+            }
+        }
         getSystemService(NotificationManager::class.java)
             .notify(NOTIFICATION_ID, serviceNotification(connectedNotificationText()))
         DiagnosticLogger.info(

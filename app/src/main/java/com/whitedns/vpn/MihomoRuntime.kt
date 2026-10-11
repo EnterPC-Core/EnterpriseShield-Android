@@ -796,6 +796,26 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                 FLCLASH_OVERRIDE_KEYS + ROUTING_OVERRIDE_KEYS
             }
             val subscriptionYaml = stripTopLevelKeys(rawYaml, keysToReplace)
+                .let { yaml ->
+                    // Режим «🌐 Универсал»: «Авто-выбор» становится select-группой,
+                    // которой управляет SmartChannelSelector (живой мульти-сервисный тест).
+                    // В обычном режиме (страна/авто) остаётся url-test — ядро само выбирает.
+                    val universal = runCatching {
+                        val ctx = appContext
+                        ctx != null && ConnectionLocationPreferenceStore(ctx).readSelectedCountryCode() ==
+                            ConnectionLocationPolicy.UNIVERSAL_CODE
+                    }.getOrDefault(false)
+                    if (!universal) yaml else yaml.replace(
+                        """  - name: "♻️ Авто-выбор"
+    type: url-test
+    url: "https://speed.cloudflare.com/__down?bytes=10000"
+    interval: 900
+    lazy: true
+    tolerance: 120""",
+                        """  - name: "♻️ Авто-выбор"
+    type: select""",
+                    )
+                }
             val dnsProxyGroup = if (routingMode == RoutingMode.Subscription) {
                 routingTarget
             } else {

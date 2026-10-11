@@ -24,6 +24,13 @@ data class LocationFilterResult(
 )
 
 object ConnectionLocationPolicy {
+    const val UNIVERSAL_CODE = "UN"
+    const val UNIVERSAL_LABEL_RU = "🌐 Универсал"
+    const val UNIVERSAL_LABEL_EN = "🌐 Universal"
+
+    fun universalLabel(displayLocale: Locale): String =
+        if (displayLocale.language.equals("ru", true)) UNIVERSAL_LABEL_RU else UNIVERSAL_LABEL_EN
+
     fun selectorOptions(
         profiles: List<ConnectionProfile>,
         automaticLabel: String = "Automatic",
@@ -34,7 +41,9 @@ object ConnectionLocationPolicy {
             .distinctBy { it.code }
             .sortedWith(compareBy<ConnectionCountry> { it.country }.thenBy { it.code })
             .map { country -> country.selectorOption() }
-        return listOf(LocationSelectorOption(countryCode = null, label = automaticLabel)) + countries
+        val auto = listOf(LocationSelectorOption(countryCode = null, label = automaticLabel))
+        // Универсал — после Automatic, перед странами
+        return auto + listOf(LocationSelectorOption(countryCode = UNIVERSAL_CODE, label = universalLabel(displayLocale))) + countries
     }
 
     fun filterProfiles(
@@ -51,6 +60,14 @@ object ConnectionLocationPolicy {
                 selectedLabel = automatic.label,
                 resetToAuto = false,
             )
+        if (countryCode == UNIVERSAL_CODE) {
+            return LocationFilterResult(
+                profiles = profiles,
+                selectedCountryCode = UNIVERSAL_CODE,
+                selectedLabel = universalLabel(displayLocale),
+                resetToAuto = false,
+            )
+        }
         val selectedCountry = countryFromCode(countryCode, displayLocale)
         val selectedProfiles = profiles.filter { profile ->
             countryForProfile(profile, displayLocale)?.code == countryCode

@@ -50,6 +50,7 @@ class ConnectionLocationPolicyTest {
         assertEquals(
             listOf(
                 "خودکار",
+                "\uD83C\uDF10 Universal",
                 "\uD83C\uDDEB\uD83C\uDDF7 فرانسه",
                 "\uD83C\uDDF3\uD83C\uDDF1 هلند",
                 "\uD83C\uDDE8\uD83C\uDDE6 کانادا",

@@ -48,8 +48,14 @@ object SmartChannelSelector {
     private const val HEALTH_INTERVAL_MS = 90 * 1000L
 
     private val running = AtomicBoolean(false)
+    @Volatile private var stopped = false
+
+    fun stop() {
+        stopped = true
+    }
 
     fun start(context: Context, controlPort: Int, secret: String) {
+        stopped = false
         if (!running.compareAndSet(false, true)) return
         GlobalScope.launch(Dispatchers.IO) {
             try {
@@ -190,10 +196,10 @@ object SmartChannelSelector {
                 // сразу страховка
                 runCatching { switchTo(RESERVE) }
                 delay(20_000)
-                while (true) {
+                while (!stopped) {
                     runCatching { fullRun() }
                     val startedAt = System.currentTimeMillis()
-                    while (System.currentTimeMillis() - startedAt < FULL_INTERVAL_MS) {
+                    while (!stopped && System.currentTimeMillis() - startedAt < FULL_INTERVAL_MS) {
                         delay(HEALTH_INTERVAL_MS)
                         val cur = currentOfGroup() ?: break
                         if (cur == RESERVE) continue
