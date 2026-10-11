@@ -230,32 +230,44 @@ object NetworkMonitorBuilder {
             textSize = 13f; setTextColor(ts)
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
 
-        // ===== умный выбор =====
-        val smartPrefs = activity.getSharedPreferences("white_dns_smart_selector", Activity.MODE_PRIVATE)
-        val smartCard = styledCard(activity).apply { setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12)) }
-        smartCard.addView(TextView(activity).apply {
-            text = activity.getString(R.string.monitor_smart_title)
-            textSize = 12f; setTextColor(ts)
-        })
-        val smartValue = TextView(activity).apply {
-            val srv = smartPrefs.getString("last_server", "") ?: ""
-            val passed = smartPrefs.getInt("last_passed", 0)
-            val total = smartPrefs.getInt("last_total", 4)
-            val at = smartPrefs.getLong("last_at", 0L)
-            val mins = if (at > 0) (System.currentTimeMillis() - at) / 60000 else -1
-            text = when {
-                srv.isEmpty() -> activity.getString(R.string.monitor_smart_searching)
-                else -> {
-                    val ago = if (mins >= 0) " · ${mins} мин" else ""
-                    val mark = if (passed == total) "✓ $passed/$total" else "$passed/$total"
-                    "$srv · $mark$ago"
-                }
-            }
-            textSize = 14f; setTextColor(if (passed == total && total > 0) teal else tp)
-            typeface = Typeface.DEFAULT_BOLD
+        // ===== диагностика ядра =====
+        val diagValue = TextView(activity).apply {
+            text = "diag…"
+            textSize = 11f; setTextColor(ts)
         }
-        smartCard.addView(smartValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
-        content.addView(smartCard, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 12) })
+        content.addView(diagValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 4) })
+        fun renderDiag() {
+            val pp = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE)
+            val cp = pp.getInt("control_port", 0)
+            val sec = pp.getString("control_secret", "").orEmpty()
+            val st = pp.getString("state", "")
+            GlobalScope.launch(Dispatchers.IO) {
+                var rest = "—"
+                var active = "—"
+                if (cp > 0) {
+                    runCatching {
+                        val conn = (URL("http://127.0.0.1:$cp/proxies").openConnection() as HttpURLConnection).apply {
+                            setRequestProperty("Authorization", "Bearer $sec")
+                            connectTimeout = 3000; readTimeout = 4000
+                        }
+                        val code = conn.responseCode
+                        val body = conn.inputStream.bufferedReader().use { it.readText() }
+                        conn.disconnect()
+                        rest = "HTTP $code"
+                        runCatching {
+                            val j = JSONObject(body).optJSONObject("proxies")
+                            if (j != null) {
+                                val kan = j.optJSONObject("🚀 Каналы")
+                                active = kan?.optString("now")?.takeIf { it.isNotBlank() } ?: "?"
+                            }
+                        }
+                    }.onFailure { rest = "ошибка: ${it.javaClass.simpleName}" }
+                }
+                val res = "state=$st port=$cp secret=${if (sec.isEmpty()) "нет" else sec.length.toString() + "симв"} REST=$rest активный=$active"
+                launch(Dispatchers.Main) { diagValue.text = res }
+            }
+        }
+        renderDiag()
 
         // ===== Универсал (виден только в режиме Универсал) =====
         val universalMode = activity.getSharedPreferences("white_dns_connection_location", Activity.MODE_PRIVATE)
