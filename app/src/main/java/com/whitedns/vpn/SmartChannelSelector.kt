@@ -122,6 +122,28 @@ object SmartChannelSelector {
                     sum to passed
                 }
 
+                /** реальный клиентский трафик через HTTP-порт ядра (mixed 2080):
+                 *  DNS резолвит ЯДРО (через туннель), соединение реальное.
+                 *  Проверяет фактически включённый сервер группы. */
+                fun trafficTest(urls: List<String>): Pair<Long, Int> {
+                    var sum = 0L; var passed = 0
+                    for (u in urls) {
+                        val ok = runCatching {
+                            val conn = (URL(u).let { it.openConnection(java.net.Proxy(java.net.Proxy.Type.HTTP, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT))) }) as HttpURLConnection
+                            conn.connectTimeout = 4000; conn.readTimeout = 6000
+                            conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
+                            conn.setRequestProperty("Connection", "close")
+                            val t0 = System.nanoTime()
+                            val code = conn.responseCode
+                            val ms = (System.nanoTime() - t0) / 1_000_000
+                            conn.disconnect()
+                            if (code in 200..399) { sum += ms; true } else false
+                        }.getOrDefault(false)
+                        if (ok) passed++
+                    }
+                    return sum to passed
+                }
+
                 /** честный тест сервера через ядро: DNS через прокси, реальный TLS, код ответа.
                  *  name=null -> тест активного выбора группы. */
                 fun coreTest(name: String?): Pair<Long, Int> {
@@ -193,7 +215,27 @@ object SmartChannelSelector {
                         prefs.edit().putString("last_server", "").putInt("last_passed", 0).apply()
                         return false
                     }
-                    val finalOk = switchTo(bestName)
+                    // ВТОРОЙ ЭШЕЛОН: включаем кандидата и гоняем РЕАЛЬНЫЙ трафик через ядро.
+                    // Не прошёл — следующий кандидат; все пали — группа на себя (url-test fallback невозможен, select).
+                    var finalOk = false
+                    val ordered = (listOf(bestName!!) + finalists.map { it.first }.filter { it != bestName }).distinct()
+                    for (cand in ordered) {
+                        if (!switchTo(cand)) continue
+                        delay(1500)
+                        val quick = listOf(
+                            "https://www.youtube.com/generate_204",
+                            "https://api.telegram.org",
+                            "https://cp.cloudflare.com/generate_204",
+                        )
+                        val (_, tpassed) = trafficTest(quick)
+                        prefs.edit().putString("candidate_traffic_$cand", "$tpassed/3").apply()
+                        if (tpassed == quick.size) { bestName = cand; finalOk = true; break }
+                    }
+                    if (!finalOk) {
+                        switchTo(GROUP)
+                        prefs.edit().putString("last_server", "").putInt("last_passed", 0).apply()
+                        return false
+                    }
                     if (finalOk) {
                         prefs.edit()
                             .putString("last_server", bestName)
@@ -218,7 +260,8 @@ object SmartChannelSelector {
                         val cur = currentOfGroup() ?: break
                         if (cur == GROUP) continue
                         val (_, passed) = coreTest(cur)
-                        if (passed < LIVE_URLS.size) {
+                        val (_, tpassed) = trafficTest(listOf("https://cp.cloudflare.com/generate_204", "https://www.youtube.com/generate_204"))
+                        if (passed < LIVE_URLS.size || tpassed < 2) {
                             runCatching { switchTo(GROUP) }
                             runCatching { fullRun() }
                             break
