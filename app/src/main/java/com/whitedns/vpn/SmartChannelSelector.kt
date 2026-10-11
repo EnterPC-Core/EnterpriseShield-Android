@@ -27,7 +27,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 object SmartChannelSelector {
 
     private const val GROUP = "♻️ Авто-выбор"
-    private const val RESERVE = "⚡ Резерв"
+    private const val MAIN_GROUP = "🚀 Каналы"
+
 
     private val SCREEN_URLS = listOf(
         "https://www.youtube.com/generate_204",
@@ -41,6 +42,8 @@ object SmartChannelSelector {
         "https://www.instagram.com",
         "https://x.com",
         "https://discord.com",
+        "https://web.whatsapp.com",
+        "https://www.tiktok.com",
         "https://cp.cloudflare.com/generate_204",
     )
 
@@ -61,6 +64,18 @@ object SmartChannelSelector {
             try {
                 val base = "http://127.0.0.1:$controlPort"
                 val prefs = context.getSharedPreferences("white_dns_smart_selector", Context.MODE_PRIVATE)
+
+                fun switchMainToAuto(): Boolean = runCatching {
+                    val r: HttpURLConnection = URL("$base/proxies/${enc(MAIN_GROUP)}").openConnection() as HttpURLConnection
+                    r.requestMethod = "PUT"
+                    r.setRequestProperty("Authorization", "Bearer $secret")
+                    r.setRequestProperty("Content-Type", "application/json")
+                    r.doOutput = true
+                    r.outputStream.use { it.write("""{"name":"$GROUP"}""".toByteArray()) }
+                    val code = r.responseCode
+                    r.disconnect()
+                    code in 200..299
+                }.getOrDefault(false)
 
                 fun api(path: String, method: String = "GET", body: String? = null): JSONObject? = runCatching {
                     val conn: HttpURLConnection = (URL(base + path).openConnection() as HttpURLConnection).apply {
@@ -126,10 +141,11 @@ object SmartChannelSelector {
 
                 /** ЭТАП 1+2: полный цикл выбора */
                 suspend fun fullRun(): Boolean {
+                    runCatching { switchMainToAuto() }
                     val groupJson = api("/proxies/" + enc(GROUP)) ?: return false
                     val all = groupJson.optJSONArray("all") ?: return false
                     val members = (0 until all.length()).mapNotNull { all.optString(it) }
-                        .filter { it != GROUP && it != RESERVE && !it.startsWith("📶") && !it.startsWith("📹") &&
+                        .filter { it != GROUP && !it.startsWith("📶") && !it.startsWith("📹") &&
                                   !it.startsWith("✈") && !it.startsWith("🧱") && !it.startsWith("🤖") }
                     if (members.isEmpty()) return false
 
@@ -143,7 +159,7 @@ object SmartChannelSelector {
                         n to last
                     }
                     val alive = scored.filter { it.second != Long.MAX_VALUE }.sortedBy { it.second }
-                    if (alive.isEmpty()) { switchTo(RESERVE); return false }
+                    if (alive.isEmpty()) { switchTo(GROUP); return false }
                     val pool = alive.take(40).map { it.first }
 
                     // ЭТАП 1: параллельный скрининг (чанки по 8)
@@ -158,8 +174,8 @@ object SmartChannelSelector {
 
                     val fullPass = screened.filter { it.third == SCREEN_URLS.size }
                     if (fullPass.isEmpty()) {
-                        switchTo(RESERVE)
-                        prefs.edit().putString("last_server", RESERVE).putInt("last_passed", 0).apply()
+                        switchTo(GROUP)
+                        prefs.edit().putString("last_server", "").putInt("last_passed", 0).apply()
                         return false
                     }
 
@@ -176,8 +192,8 @@ object SmartChannelSelector {
                         }
                     }
                     if (bestName == null) {
-                        switchTo(RESERVE)
-                        prefs.edit().putString("last_server", RESERVE).putInt("last_passed", 0).apply()
+                        switchTo(GROUP)
+                        prefs.edit().putString("last_server", "").putInt("last_passed", 0).apply()
                         return false
                     }
                     val finalOk = switchTo(bestName ?: return false)
@@ -193,8 +209,9 @@ object SmartChannelSelector {
                     return finalOk
                 }
 
-                // сразу страховка
-                runCatching { switchTo(RESERVE) }
+                // Универсал: замкнуть основной маршрут на управляемую группу
+                // (сбрасывает прошлый ручной выбор сервера в «Каналах»)
+                runCatching { switchMainToAuto() }
                 delay(20_000)
                 while (!stopped) {
                     runCatching { fullRun() }
@@ -202,10 +219,10 @@ object SmartChannelSelector {
                     while (!stopped && System.currentTimeMillis() - startedAt < FULL_INTERVAL_MS) {
                         delay(HEALTH_INTERVAL_MS)
                         val cur = currentOfGroup() ?: break
-                        if (cur == RESERVE) continue
+                        if (cur == GROUP) continue
                         val (_, passed) = liveTest()
                         if (passed < LIVE_URLS.size) {
-                            runCatching { switchTo(RESERVE) }
+                            runCatching { switchTo(GROUP) }
                             runCatching { fullRun() }
                             break
                         }
