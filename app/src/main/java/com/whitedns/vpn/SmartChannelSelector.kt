@@ -31,7 +31,7 @@ object SmartChannelSelector {
         "https://cp.cloudflare.com/generate_204",
     )
     private const val FULL_INTERVAL_MS = 15 * 60 * 1000L
-    private const val HEALTH_INTERVAL_MS = 3 * 60 * 1000L
+    private const val HEALTH_INTERVAL_MS = 90 * 1000L
 
     private val running = AtomicBoolean(false)
 
@@ -103,7 +103,9 @@ object SmartChannelSelector {
                         }
                         n to last
                     }
-                    val pool = scored.sortedBy { it.second }.take(40).map { it.first }
+                    val alive = scored.filter { it.second != Long.MAX_VALUE }.sortedBy { it.second }
+                    val pool = (if (alive.size >= 15) alive.take(40) else alive + scored.filter { it.second == Long.MAX_VALUE })
+                        .take(40).map { it.first }
 
                     val results = pool.chunked(8).flatMap { chunk ->
                         chunk.map { name ->
@@ -127,7 +129,16 @@ object SmartChannelSelector {
                             .putInt("last_passed", best.third)
                             .putInt("last_total", CHECK_URLS.size)
                             .putLong("last_at", System.currentTimeMillis())
+                            .putBoolean("full_pass", best.third == CHECK_URLS.size)
                             .apply()
+                        // повторная валидация через 30с: сервер мог «поплыть» сразу после теста
+                        delay(30_000)
+                        val recheck = checkServer(best.first)
+                        if (recheck.second < CHECK_URLS.size) {
+                            runCatching { switchTo(RESERVE) }
+                            prefs.edit().putString("last_server", RESERVE).putBoolean("full_pass", false).apply()
+                            return false
+                        }
                     }
                     return ok
                 }

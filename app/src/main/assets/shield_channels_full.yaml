@@ -25709,7 +25709,7 @@ proxy-groups:
       - "🇺🇸 Enterprise SS 218"
   - name: "⚡ Резерв"
     type: url-test
-    url: "https://speed.cloudflare.com/__down?bytes=10000"
+    url: "https://www.instagram.com"
     interval: 300
     lazy: false
     tolerance: 100

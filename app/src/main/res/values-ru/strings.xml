@@ -552,4 +552,6 @@
     <string name="speedtest_via_tunnel">Через туннель</string>
     <string name="speedtest_via_direct">Прямое соединение</string>
     <string name="speedtest_not_connected">Нет подключения — измеряется прямое соединение. Включите Щит, чтобы протестировать туннель.</string>
+    <string name="monitor_smart_title">Умный выбор сервера</string>
+    <string name="monitor_smart_searching">Ищу сервер, где доступны все сервисы…</string>
 </resources>

@@ -229,6 +229,33 @@ object NetworkMonitorBuilder {
             textSize = 13f; setTextColor(ts)
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
 
+        // ===== умный выбор =====
+        val smartPrefs = activity.getSharedPreferences("white_dns_smart_selector", Activity.MODE_PRIVATE)
+        val smartCard = styledCard(activity).apply { setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12)) }
+        smartCard.addView(TextView(activity).apply {
+            text = activity.getString(R.string.monitor_smart_title)
+            textSize = 12f; setTextColor(ts)
+        })
+        val smartValue = TextView(activity).apply {
+            val srv = smartPrefs.getString("last_server", "") ?: ""
+            val passed = smartPrefs.getInt("last_passed", 0)
+            val total = smartPrefs.getInt("last_total", 4)
+            val at = smartPrefs.getLong("last_at", 0L)
+            val mins = if (at > 0) (System.currentTimeMillis() - at) / 60000 else -1
+            text = when {
+                srv.isEmpty() -> activity.getString(R.string.monitor_smart_searching)
+                else -> {
+                    val ago = if (mins >= 0) " · ${mins} мин" else ""
+                    val mark = if (passed == total) "✓ $passed/$total" else "$passed/$total"
+                    "$srv · $mark$ago"
+                }
+            }
+            textSize = 14f; setTextColor(if (passed == total && total > 0) teal else tp)
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        smartCard.addView(smartValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
+        content.addView(smartCard, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 12) })
+
         // ===== карточка сети =====
         val netCard = styledCard(activity).apply { setPadding(dp(activity, 4), dp(activity, 4), dp(activity, 4), dp(activity, 8)) }
         fun netRow(label: String, value: TextView): LinearLayout {
