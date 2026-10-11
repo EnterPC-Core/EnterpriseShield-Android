@@ -566,4 +566,6 @@
     <string name="monitor_smart_title">Smart selection</string>
     <string name="monitor_smart_searching">Searching for a server with all services available…</string>
     <string name="monitor_no_core">Core not reachable — restart the Shield</string>
+    <string name="smart_pin_title">Smart server selection</string>
+    <string name="smart_pin_detail">When the Shield starts, pick the best server for all services and lock it in</string>
 </resources>

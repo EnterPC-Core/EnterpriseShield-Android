@@ -269,72 +269,6 @@ object NetworkMonitorBuilder {
         }
         renderDiag()
 
-        // ===== Универсал (виден только в режиме Универсал) =====
-        val universalMode = activity.getSharedPreferences("white_dns_connection_location", Activity.MODE_PRIVATE)
-            .getString("country_code", "") == "UN"
-        if (universalMode) {
-            val smartPrefs = activity.getSharedPreferences("white_dns_smart_selector", Context.MODE_PRIVATE)
-            val smartCard = styledCard(activity).apply { setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12)) }
-            smartCard.addView(TextView(activity).apply {
-                text = activity.getString(R.string.monitor_smart_title)
-                textSize = 12f; setTextColor(ts)
-            })
-            val smartValue = TextView(activity).apply { textSize = 14f; typeface = Typeface.DEFAULT_BOLD }
-            smartCard.addView(smartValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
-
-            fun renderSmart() {
-                smartValue.text = activity.getString(R.string.monitor_smart_searching)
-                smartValue.setTextColor(tp)
-                GlobalScope.launch(Dispatchers.IO) {
-                    val controlPort = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE).getInt("control_port", 0)
-                    val secret = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE).getString("control_secret", "").orEmpty()
-                    val info = runCatching {
-                        val conn = (URL("http://127.0.0.1:$controlPort/proxies/" +
-                                java.net.URLEncoder.encode("♻️ Авто-выбор", "UTF-8")).openConnection() as HttpURLConnection).apply {
-                            setRequestProperty("Authorization", "Bearer $secret"); connectTimeout = 3000; readTimeout = 5000
-                        }
-                        val j = org.json.JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-                        conn.disconnect()
-                        j
-                    }.getOrNull()
-                    val now = info?.optString("now") ?: ""
-                    val hist = info?.optJSONArray("history")
-                    var delay = 0L
-                    if (hist != null && hist.length() > 0) delay = hist.optJSONObject(hist.length() - 1).optLong("delay", 0)
-                    launch(Dispatchers.Main) {
-                        when {
-                            info == null -> {
-                                smartValue.text = activity.getString(R.string.monitor_no_core)
-                                smartValue.setTextColor(amber)
-                            }
-                            now.isBlank() -> {
-                                smartValue.text = activity.getString(R.string.monitor_smart_searching)
-                                smartValue.setTextColor(tp)
-                            }
-                            else -> {
-                                smartValue.text = "$now" + if (delay > 0) " · ${delay}ms" else ""
-                                smartValue.setTextColor(if (delay > 0) teal else amber)
-                            }
-                        }
-                    }
-                }
-            }
-            renderSmart()
-            val smartTick = object : Runnable {
-                override fun run() {
-                    if (smartValue.isAttachedToWindow) {
-                        renderSmart()
-                        smartValue.postDelayed(this, 7000)
-                    }
-                }
-            }
-            smartValue.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(v: View) { v.post(smartTick) }
-                override fun onViewDetachedFromWindow(v: View) { v.removeCallbacks(smartTick) }
-            })
-            content.addView(smartCard, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 12) })
-        }
-
         // ===== карточка сети =====
         val netCard = styledCard(activity).apply { setPadding(dp(activity, 4), dp(activity, 4), dp(activity, 4), dp(activity, 8)) }
         fun netRow(label: String, value: TextView): LinearLayout {
@@ -385,8 +319,9 @@ object NetworkMonitorBuilder {
             urlCard.removeAllViews()
             val started = isShieldStarted(activity)
             val prefs = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE)
-            val controlPort = prefs.getInt("control_port", 0)
-            val secret = prefs.getString("control_secret", "").orEmpty()
+            val resolved = CoreEndpoint.resolve(activity)
+            val controlPort = resolved?.first ?: 0
+            val secret = resolved?.second ?: ""
             val placeHolder = TextView(activity).apply {
                 text = activity.getString(R.string.monitor_testing)
                 textSize = 13f; setTextColor(ts)

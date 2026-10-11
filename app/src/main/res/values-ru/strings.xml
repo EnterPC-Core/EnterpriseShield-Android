@@ -555,4 +555,6 @@
     <string name="monitor_smart_title">Умный выбор сервера</string>
     <string name="monitor_smart_searching">Ищу сервер, где доступны все сервисы…</string>
     <string name="monitor_no_core">Ядро недоступно — перезапусти Щит</string>
+    <string name="smart_pin_title">Умный выбор сервера</string>
+    <string name="smart_pin_detail">При включении Щита подобрать лучший сервер по всем сервисам и зафиксировать его</string>
 </resources>

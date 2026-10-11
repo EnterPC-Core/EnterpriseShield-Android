@@ -247,6 +247,7 @@ class MainActivity : Activity() {
     private lateinit var shieldGuardCheckbox: MaterialSwitch
     private lateinit var adBlockCheckbox: MaterialSwitch
     private lateinit var quicBlockCheckbox: MaterialSwitch
+    private lateinit var smartPinCheckbox: MaterialSwitch
     private lateinit var smartSleepCheckbox: MaterialSwitch
     private lateinit var dnsPrivacyRow: LinearLayout
     private lateinit var dnsPrivacyValueText: TextView
@@ -2838,6 +2839,19 @@ testingSettings.addView(
                 title = getString(R.string.quic_block_title),
                 detail = getString(R.string.quic_block_detail),
                 toggle = quicBlockCheckbox,
+            ),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) },
+        )
+        smartPinCheckbox = MaterialSwitch(this).apply {
+            isChecked = UniversalPinPolicy.readEnabled(this@MainActivity)
+            contentDescription = getString(R.string.smart_pin_title)
+            setOnClickListener { UniversalPinPolicy.saveEnabled(this@MainActivity, isChecked) }
+        }
+        routingPanel.addView(
+            advancedToggleRow(
+                title = getString(R.string.smart_pin_title),
+                detail = getString(R.string.smart_pin_detail),
+                toggle = smartPinCheckbox,
             ),
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) },
         )
