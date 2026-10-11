@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 object SmartChannelSelector {
 
     private const val GROUP = "♻️ Авто-выбор"
+    private const val RESERVE = "⚡ Резерв"
     private val CHECK_URLS = listOf(
         "https://www.youtube.com/generate_204",
         "https://api.telegram.org",
@@ -102,17 +103,22 @@ object SmartChannelSelector {
                         }
                         n to last
                     }
-                    val pool = scored.sortedBy { it.second }.take(candidates).map { it.first }
+                    val pool = scored.sortedBy { it.second }.take(40).map { it.first }
 
-                    val results = pool.map { name ->
-                        async(Dispatchers.IO) {
-                            val r = checkServer(name)
-                            Triple(name, r.first, r.second)
-                        }
-                    }.awaitAll()
+                    val results = pool.chunked(8).flatMap { chunk ->
+                        chunk.map { name ->
+                            async(Dispatchers.IO) {
+                                val r = checkServer(name)
+                                Triple(name, r.first, r.second)
+                            }
+                        }.awaitAll()
+                    }
 
                     val maxPassed = results.maxOfOrNull { it.third } ?: 0
-                    if (maxPassed == 0) return false
+                    if (maxPassed == 0) {
+                        switchTo(RESERVE)
+                        return false
+                    }
                     val best = results.filter { it.third == maxPassed }.minByOrNull { it.second } ?: return false
                     val ok = switchTo(best.first)
                     if (ok) {
@@ -126,8 +132,10 @@ object SmartChannelSelector {
                     return ok
                 }
 
+                // сразу страховка: url-test сам найдёт живой сервер
+                runCatching { switchTo(RESERVE) }
+                delay(20_000)   // дать ядру подняться и Резерву прогреться
                 while (true) {
-                    delay(15_000)   // дать ядру подняться
                     runCatching { fullRun() }
 
                     // быстрый health активного между полными прогонами
@@ -137,7 +145,8 @@ object SmartChannelSelector {
                         val cur = currentOfGroup() ?: break
                         val (sum, passed) = checkServer(cur)
                         if (passed < CHECK_URLS.size) {
-                            runCatching { fullRun() }   // упал частично — немедленная замена
+                            runCatching { switchTo(RESERVE) }   // мгновенно на живой
+                            runCatching { fullRun() }            // затем умный поиск
                             break
                         }
                     }

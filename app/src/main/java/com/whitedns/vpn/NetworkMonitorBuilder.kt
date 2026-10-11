@@ -277,35 +277,31 @@ object NetworkMonitorBuilder {
 
         fun runUrlTest() {
             urlCard.removeAllViews()
-            urlCard.addView(TextView(activity).apply {
+            val started = isShieldStarted(activity)
+            val placeHolder = TextView(activity).apply {
                 text = activity.getString(R.string.monitor_testing)
                 textSize = 13f; setTextColor(ts)
-            })
-            val started = isShieldStarted(activity)
-            GlobalScope.launch(Dispatchers.IO) {
-                val pool = java.util.concurrent.Executors.newFixedThreadPool(6)
-                val results: List<Triple<String, Int, Double>> = TEST_URLS.map { url ->
-                    pool.submit<Pair<Triple<String, Int, Double>, Long>> {
-                        val t0 = System.nanoTime()
-                        val code = runCatching {
-                            val conn = (URL(url).let { u ->
-                                val p = if (started) Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)) else null
-                                p?.let { u.openConnection(it) } ?: u.openConnection()
-                            }) as HttpURLConnection
-                            conn.connectTimeout = 4000; conn.readTimeout = 6000
-                            conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
-                            conn.setRequestProperty("Connection", "close")
-                            val c = conn.responseCode
-                            conn.disconnect()
-                            c
-                        }.getOrDefault(-1)
-                        Triple(url, code, (System.nanoTime() - t0) / 1e6) to System.nanoTime()
-                    }
-                }.map { it.get().first }
-                pool.shutdown()
-                launch(Dispatchers.Main) {
-                    urlCard.removeAllViews()
-                    for ((url, code, ms) in results) {
+            }
+            urlCard.addView(placeHolder)
+            val pool = java.util.concurrent.Executors.newFixedThreadPool(4)
+            TEST_URLS.forEach { url ->
+                pool.submit {
+                    val t0 = System.nanoTime()
+                    val code = runCatching {
+                        val conn = (URL(url).let { u ->
+                            val p = if (started) Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)) else null
+                            p?.let { u.openConnection(it) } ?: u.openConnection()
+                        }) as HttpURLConnection
+                        conn.connectTimeout = 4000; conn.readTimeout = 6000
+                        conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
+                        conn.setRequestProperty("Connection", "close")
+                        val c = conn.responseCode
+                        conn.disconnect()
+                        c
+                    }.getOrDefault(-1)
+                    val ms = (System.nanoTime() - t0) / 1e6
+                    GlobalScope.launch(Dispatchers.Main) {
+                        if (placeHolder.isAttachedToWindow && urlCard.childCount == 1 && urlCard.getChildAt(0) === placeHolder) urlCard.removeView(placeHolder)
                         val ok = code in 200..399
                         val color = if (ok) teal else red
                         val host = runCatching { URL(url).host }.getOrDefault(url)
@@ -317,16 +313,18 @@ object NetworkMonitorBuilder {
                         r.addView(TextView(activity).apply {
                             text = host; textSize = 13f; setTextColor(tp)
                             setPadding(dp(activity, 10), 0, 0, 0)
-                        })
-                        r.addView(LinearLayout(activity), LinearLayout.LayoutParams(0, 1, 1f))
+                            maxLines = 1
+                            ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+                        }, LinearLayout.LayoutParams(0, -2, 1f))
                         r.addView(TextView(activity).apply {
                             text = if (ok) "${ms.toInt()} ${activity.getString(R.string.monitor_ms)}" else "HTTP $code"
-                            textSize = 13f; setTextColor(if (ok) ts else amber)
+                            textSize = 12f; setTextColor(if (ok) ts else amber)
                         })
                         urlCard.addView(r, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 8) })
                     }
                 }
             }
+            pool.shutdown()
         }
 
         fun loadGeo() {

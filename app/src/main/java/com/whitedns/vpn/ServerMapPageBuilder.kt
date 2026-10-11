@@ -12,21 +12,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.URL
 
 /**
- * Экран «Карта» — упрощённая надёжная версия:
- * карта на весь экран, заголовок, две подписи (юзер/выход) внизу.
- * Каждый шаг открытия логируется в diagnostics.txt (filesDir) для отладки.
+ * Экран «Карта»: тёмная неоновая карта, пин юзера (🇷🇺 / GeoIP), пин выхода
+ * (флаг канала или GeoIP-страна выхода при включённом Щите), дуга маршрута,
+ * карточка «Откуда → Куда» с городами.
  */
 object ServerMapPageBuilder {
 
     private fun log(activity: Activity, step: String, detail: String = "") {
         runCatching {
-            val f = java.io.File(activity.filesDir, "map_debug.txt")
-            f.appendText("${System.currentTimeMillis()} $step $detail\n")
+            java.io.File(activity.filesDir, "map_debug.txt")
+                .appendText("${System.currentTimeMillis()} $step $detail\n")
         }
     }
 
@@ -40,7 +41,8 @@ object ServerMapPageBuilder {
         val prefs = activity.getSharedPreferences("white_dns_runtime_state", Activity.MODE_PRIVATE)
         val stateStarted = prefs.getString("state", "") == "Started"
         val activeFlag = prefs.getString("connection_country_flag", "").orEmpty()
-        log(activity, "state", "started=$stateStarted flag=$activeFlag")
+        val activeTag = prefs.getString("active_connection_tag", "").orEmpty()
+        log(activity, "state", "started=$stateStarted flag='$activeFlag' tag='$activeTag'")
 
         val root = FrameLayout(activity).apply { setBackgroundColor(bg) }
 
@@ -58,23 +60,21 @@ object ServerMapPageBuilder {
         }
         root.addView(mapView, FrameLayout.LayoutParams(-1, -1))
 
-        // ===== страны из ассета =====
         val countries = WorldMapAsset.countries(activity)
-        log(activity, "countries:loaded", "n=${countries.size}")
+        log(activity, "countries", "n=${countries.size}")
 
-        // пины
-        val ruAnchor = WorldMapAsset.anchorOf("RU", countries)
-        if (ruAnchor != null) {
-            mapView.myPin = WorldMapView.Pin(ruAnchor[0], ruAnchor[1], "🇷🇺", activity.getString(R.string.map_russia))
-        }
-        val exitIso = WorldMapAsset.flagToCode(activeFlag)
-        val exitAnchor = if (stateStarted && exitIso != null) WorldMapAsset.anchorOf(exitIso, countries) else null
-        if (exitAnchor != null) {
-            mapView.serverPin = WorldMapView.Pin(exitAnchor[0], exitAnchor[1], activeFlag, countryName(activeFlag), accent = true)
+        // пин юзера
+        val ru = WorldMapAsset.anchorOf("RU", countries)
+        if (ru != null) mapView.myPin = WorldMapView.Pin(ru[0], ru[1], "🇷🇺", activity.getString(R.string.map_russia))
+
+        // пин выхода: по флагу канала, иначе — GeoIP подскажет
+        var exitIso: String? = WorldMapAsset.flagToCode(activeFlag)
+        if (stateStarted && exitIso != null) {
+            val a = WorldMapAsset.anchorOf(exitIso, countries)
+            if (a != null) mapView.serverPin = WorldMapView.Pin(a[0], a[1], activeFlag, countryName(activeFlag), accent = true)
         }
         mapView.loadMap(activity)
         mapView.pinsUpdated()
-        log(activity, "map:loaded", "ru=${ruAnchor != null} exit=${exitAnchor != null}")
 
         // ===== заголовок =====
         val header = LinearLayout(activity).apply {
@@ -88,14 +88,15 @@ object ServerMapPageBuilder {
             setTextColor(tp)
             setShadowLayer(10f, 0f, 0f, bg)
         })
-        header.addView(TextView(activity).apply {
+        val subtitle = TextView(activity).apply {
             text = activity.getString(R.string.map_subtitle_orig)
             textSize = 13f; setTextColor(ts)
             setShadowLayer(8f, 0f, 0f, bg)
-        }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
+        }
+        header.addView(subtitle, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
         root.addView(header, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.START))
 
-        // ===== нижняя карточка =====
+        // ===== карточка Откуда → Куда =====
         val bottomWrap = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(activity, 16), 0, dp(activity, 16), dp(activity, 12))
@@ -105,53 +106,101 @@ object ServerMapPageBuilder {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dp(activity, 20).toFloat()
-                setColor((pal(activity).surface.toLong() and 0xFFFFFFD1L).toInt())
-                setStroke(dp(activity, 1), (teal.toLong() and 0x26FFFFFFL).toInt())
+                setColor((pal(activity).surface.toLong() and 0xFFFFFFD6L).toInt())
+                setStroke(dp(activity, 1), (teal.toLong() and 0x33FFFFFFL).toInt())
             }
-            setPadding(dp(activity, 18), dp(activity, 16), dp(activity, 18), dp(activity, 16))
+            setPadding(dp(activity, 18), dp(activity, 14), dp(activity, 18), dp(activity, 14))
         }
+
+        fun endpointRow(icon: String, title: String, valueView: TextView): LinearLayout {
+            val row = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            row.addView(TextView(activity).apply {
+                text = icon; textSize = 15f
+                setPadding(0, 0, dp(activity, 10), 0)
+            })
+            val col = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+            col.addView(TextView(activity).apply { text = title; textSize = 11f; setTextColor(ts) })
+            valueView.textSize = 15f
+            valueView.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            col.addView(valueView, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 1) })
+            row.addView(col, LinearLayout.LayoutParams(0, -2, 1f))
+            return row
+        }
+
         val youValue = TextView(activity).apply {
+            setTextColor(tp)
             text = "🇷🇺 ${activity.getString(R.string.map_russia)}"
-            textSize = 15f; setTextColor(tp)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
         }
         val exitValue = TextView(activity).apply {
-            text = if (exitAnchor != null) "$activeFlag ${countryName(activeFlag)}"
-            else activity.getString(R.string.map_no_active)
-            textSize = 15f
             setTextColor(if (stateStarted) teal else ts)
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            text = if (stateStarted) {
+                if (activeFlag.isNotEmpty()) "$activeFlag ${countryName(activeFlag)}"
+                else activeTag.ifEmpty { activity.getString(R.string.monitor_via_tunnel) }
+            } else activity.getString(R.string.map_no_active)
         }
-        card.addView(TextView(activity).apply {
-            text = activity.getString(R.string.map_you); textSize = 12f; setTextColor(ts)
+        card.addView(endpointRow("📍", activity.getString(R.string.map_you), youValue))
+
+        // стрелка-разделитель
+        val arrowRow = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        arrowRow.addView(View(activity).apply {
+            background = GradientDrawable().apply {
+                cornerRadius = dp(activity, 2).toFloat()
+                setColor((teal.toLong() and 0x40FFFFFFL).toInt())
+            }
+        }, LinearLayout.LayoutParams(0, dp(activity, 2), 1f).apply { marginEnd = dp(activity, 8) })
+        arrowRow.addView(TextView(activity).apply {
+            text = "↓"; textSize = 13f; setTextColor(teal); typeface = Typeface.DEFAULT_BOLD
         })
-        card.addView(youValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
-        card.addView(TextView(activity).apply {
-            text = activity.getString(R.string.map_exit); textSize = 12f; setTextColor(ts)
-        }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 12) })
-        card.addView(exitValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
+        arrowRow.addView(View(activity).apply {
+            background = GradientDrawable().apply {
+                cornerRadius = dp(activity, 2).toFloat()
+                setColor((teal.toLong() and 0x40FFFFFFL).toInt())
+            }
+        }, LinearLayout.LayoutParams(0, dp(activity, 2), 1f).apply { marginStart = dp(activity, 8) })
+        card.addView(arrowRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 10); bottomMargin = dp(activity, 10) })
+
+        card.addView(endpointRow("🌐", activity.getString(R.string.map_exit), exitValue))
         bottomWrap.addView(card, LinearLayout.LayoutParams(-1, -2))
         root.addView(bottomWrap, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM))
 
-        // ===== GeoIP (город юзера при выключенном, город выхода при включённом) =====
+        // ===== GeoIP: уточняет города и (если нет флага) страну выхода =====
         GlobalScope.launch(Dispatchers.IO) {
             val geo = runCatching {
                 val proxy = if (stateStarted) Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", MihomoRuntimeDefaults.MIXED_PORT)) else null
                 val conn = (URL("https://api.ip.sb/geoip?t=" + System.currentTimeMillis()).let { u ->
                     proxy?.let { p -> u.openConnection(p) } ?: u.openConnection()
-                }) as java.net.HttpURLConnection
+                }) as HttpURLConnection
                 conn.connectTimeout = 6000; conn.readTimeout = 8000
                 conn.setRequestProperty("User-Agent", "EnterpriseShield/1.0 (Android)")
                 conn.setRequestProperty("Connection", "close")
                 JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
             }.getOrNull()
-            if (geo != null) launch(Dispatchers.Main) {
-                val cc = geo.optString("country_code", "")
-                val city = geo.optString("city", "")
+            if (geo == null) return@launch
+            val cc = geo.optString("country_code", "")
+            val city = geo.optString("city", "")
+            val country = geo.optString("country", "")
+            launch(Dispatchers.Main) {
                 if (!stateStarted && cc.length == 2) {
-                    youValue.text = "${flagOf(cc)} ${geo.optString("country", "")}${if (city.isNotEmpty()) " · $city" else ""}"
-                } else if (stateStarted && city.isNotEmpty()) {
-                    exitValue.text = "$activeFlag $city · ${geo.optString("country", "")}"
+                    youValue.text = "${flagOf(cc)} $country${if (city.isNotEmpty()) " · $city" else ""}"
+                    val a = WorldMapAsset.anchorOf(cc, countries)
+                    if (a != null) {
+                        mapView.myPin = WorldMapView.Pin(a[0], a[1], flagOf(cc), city.ifEmpty { country })
+                        mapView.pinsUpdated()
+                    }
+                } else if (stateStarted) {
+                    // под Щитом geoip = точка выхода
+                    if (city.isNotEmpty() || country.isNotEmpty()) {
+                        exitValue.text = "${if (cc.length == 2) flagOf(cc) else "🌐"} " +
+                                (if (city.isNotEmpty()) "$city · " else "") + country +
+                                (if (activeTag.isNotEmpty()) " · $activeTag" else "")
+                    }
+                    if (exitIso == null && cc.length == 2) {
+                        val a = WorldMapAsset.anchorOf(cc, countries)
+                        if (a != null) {
+                            mapView.serverPin = WorldMapView.Pin(a[0], a[1], flagOf(cc), city.ifEmpty { country }, accent = true)
+                            mapView.pinsUpdated()
+                        }
+                    }
                 }
             }
         }
