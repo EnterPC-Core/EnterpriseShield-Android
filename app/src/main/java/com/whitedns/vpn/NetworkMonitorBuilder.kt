@@ -32,7 +32,7 @@ object NetworkMonitorBuilder {
         "https://api.ip.sb/geoip",
         "https://dns.google/resolve?name=example.com",
         "https://www.youtube.com/generate_204",
-        "https://github.com/generate_204",
+        "https://api.github.com/",
     )
 
     class GeoInfo(val ip: String, val country: String, val cc: String, val city: String, val asn: String)
