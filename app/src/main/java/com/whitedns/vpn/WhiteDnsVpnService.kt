@@ -3170,6 +3170,8 @@ class WhiteDnsVpnService : VpnService() {
         sessionStartedAtElapsedMs = SystemClock.elapsedRealtime()
         publishState(VpnState.Started, notice)
         runCatching { BlockStatsTracker.startPolling(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret) }
+        // Принудительно сбросить застрявший WARP-флаг (не используется, страховка)
+        getSharedPreferences("white_dns_warp", MODE_PRIVATE).edit().putBoolean("warp_active", false).apply()
         runCatching {
             getSharedPreferences("white_dns_runtime_state", MODE_PRIVATE).edit()
                 .putInt("control_port", startedRuntime.paths.controlPort)
