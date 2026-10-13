@@ -857,19 +857,27 @@ val __yaml = buildString {
                     // исходный rules: обязаны отрезать, иначе дубликат = Fatal
                     else -> subscriptionYaml.substringBefore("\nrules:")
                 }
-                if (subYaml.isNotBlank()) {
-                    append(subYaml.trimEnd())
-                    append("\n")
-                }
-                // WARP-каналы Cloudflare: прокси + группа «☁️ WARP» в «Каналах»
-                val warpYaml = runCatching { WarpRuntime.appendYaml(appContext) }.getOrDefault("")
-                if (warpYaml.isNotBlank()) {
-                    append(warpYaml.trimEnd())
-                    append("\n")
-                }
+                // WARP-каналы Cloudflare: прокси ВНУТРИ subYaml (перед proxy-groups!),
+                // группа — в конец списка групп. Вставка ДЛЯ subYaml, не после.
+                val warpProxies = runCatching { WarpRuntime.appendYaml(appContext) }.getOrDefault("")
                 val warpGroup = runCatching { WarpRuntime.groupYaml(appContext) }.getOrDefault("")
-                if (warpGroup.isNotBlank()) {
-                    append(warpGroup.trimEnd())
+                val withWarp = if (warpProxies.isBlank()) {
+                    subYaml
+                } else {
+                    // вставить WARP-прокси ПЕРЕД "proxy-groups:" в subYaml
+                    val gi = subYaml.indexOf("proxy-groups:")
+                    if (gi >= 0) {
+                        subYaml.substring(0, gi) + warpProxies + "\n" + subYaml.substring(gi)
+                    } else {
+                        subYaml + "\n" + warpProxies
+                    }
+                }.let { y ->
+                    // вставить WARP-группу в конец (после последней группы, перед концом YAML)
+                    if (warpGroup.isBlank()) y
+                    else y.trimEnd() + "\n" + warpGroup.trimEnd()
+                }
+                if (withWarp.isNotBlank()) {
+                    append(withWarp.trimEnd())
                     append("\n")
                 }
                 val guardRules = if (guardOn) ShieldGuardPolicy.ruleLines() else emptyList()

@@ -167,13 +167,11 @@ class MainActivity : Activity() {
     private lateinit var speedTestPageHost: FrameLayout
     private lateinit var networkMonitorPageHost: FrameLayout
     private lateinit var tgProxyPageHost: FrameLayout
-    private lateinit var warpPageHost: FrameLayout
     private var batteryReportPageVisible: Boolean = false
     private var mapPageVisible: Boolean = false
     private var speedTestPageVisible: Boolean = false
     private var networkMonitorPageVisible: Boolean = false
     private var tgProxyPageVisible: Boolean = false
-    private var warpPageVisible: Boolean = false
     private var activeChainPickerSlot: ConnectionChainSlot? = null
     private var activeChainPickerSubscriptionId: String? = null
     private var renderChainSettingsPage: (() -> Unit)? = null
@@ -587,20 +585,6 @@ class MainActivity : Activity() {
             insets
         }
         root.addView(tgProxyPageHost, FrameLayout.LayoutParams(-1, -1))
-        warpPageHost = FrameLayout(this).apply {
-            visibility = View.GONE
-            setBackgroundColor(BACKGROUND)
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(warpPageHost) { view, insets ->
-            val systemBars = insets.getInsets(
-                WindowInsetsCompat.Type.statusBars() or
-                    WindowInsetsCompat.Type.navigationBars() or
-                    WindowInsetsCompat.Type.displayCutout(),
-            )
-            view.setPadding(0, systemBars.top, 0, systemBars.bottom)
-            insets
-        }
-        root.addView(warpPageHost, FrameLayout.LayoutParams(-1, -1))
         runCatching { TvUi.attachAutoStyling(root) }
         return root
     }
@@ -759,28 +743,7 @@ class MainActivity : Activity() {
         appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
     }
 
-    fun showWarpPage() {
-        if (warpPageVisible) return
-        runCatching {
-            warpPageHost.removeAllViews()
-            val page = WarpPageBuilder.buildTabScreen(this)
-            warpPageHost.addView(page, FrameLayout.LayoutParams(-1, -1))
-            warpPageHost.visibility = View.VISIBLE
-            warpPageHost.translationX = 0f
-            warpPageVisible = true
-            appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-        }.onFailure { err ->
-            android.widget.Toast.makeText(this, "WARP: ${err.message}", android.widget.Toast.LENGTH_LONG).show()
-        }
-    }
 
-    fun closeWarpPage() {
-        if (!warpPageVisible) return
-        warpPageHost.visibility = View.GONE
-        warpPageHost.removeAllViews()
-        warpPageVisible = false
-        appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
-    }
 
     fun showSpeedTestPage() {
         if (speedTestPageVisible) return
@@ -1652,7 +1615,6 @@ class MainActivity : Activity() {
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
         when {
-            warpPageVisible -> closeWarpPage()
             tgProxyPageVisible -> closeTgProxyPage()
             networkMonitorPageVisible -> closeNetworkMonitorPage()
             speedTestPageVisible -> closeSpeedTestPage()
@@ -2436,13 +2398,6 @@ testingSettings.addView(
             com.google.android.material.button.MaterialButton(this).apply {
                 text = getString(R.string.tgproxy_open)
                 setOnClickListener { showTgProxyPage() }
-            },
-            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
-        )
-        testingSettings.addView(
-            com.google.android.material.button.MaterialButton(this).apply {
-                text = getString(R.string.warp_open)
-                setOnClickListener { showWarpPage() }
             },
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
         )

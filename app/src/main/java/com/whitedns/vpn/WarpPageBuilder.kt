@@ -170,38 +170,43 @@ object WarpPageBuilder {
         }
     }
 
-    /** Переключить «🚀 Каналы» на «☁️ WARP» — WARP становится активным каналом. */
+    /** Включить WARP: сохранить выбор «☁️ WARP» в preferences локации и перезапустить Щит.
+     *  Локация WARP = специальный код "WR": filterProfiles не фильтрует, а при старте Щита
+     *  «🚀 Каналы» замыкаются на группу WARP (см. WarpRuntime/Whitelist в рантайме).
+     *  REST не используется — работает всегда. */
     private fun activateWarp(activity: Activity) {
         val configs = WarpGenerator.loadConfigs(activity)
         if (configs.isEmpty()) {
             Toast.makeText(activity, "Сначала сгенерируйте конфиги", Toast.LENGTH_SHORT).show()
             return
         }
-        GlobalScope.launch(Dispatchers.IO) {
-            val ok = runCatching {
-                val prefs = activity.getSharedPreferences("white_dns_runtime_state", android.content.Context.MODE_PRIVATE)
-                val port = prefs.getInt("control_port", 0)
-                val secret = prefs.getString("control_secret", "").orEmpty()
-                if (port <= 0) return@runCatching false
-                val conn = (URL("http://127.0.0.1:$port/proxies/" +
-                        java.net.URLEncoder.encode("🚀 Каналы", "UTF-8")).openConnection() as HttpURLConnection).apply {
-                    requestMethod = "PUT"
-                    setRequestProperty("Authorization", "Bearer $secret")
-                    setRequestProperty("Content-Type", "application/json")
-                    doOutput = true
-                    connectTimeout = 4000
-                    readTimeout = 6000
-                }
-                conn.outputStream.use { it.write("""{"name":"${WarpRuntime.GROUP_NAME}"}""".toByteArray()) }
-                val code = conn.responseCode
-                conn.disconnect()
-                code in 200..299
-            }.getOrDefault(false)
-            launch(Dispatchers.Main) {
-                if (ok) Toast.makeText(activity, "WARP подключён — активный канал Щита", Toast.LENGTH_LONG).show()
-                else Toast.makeText(activity, "Не получилось — включите Щит и попробуйте снова", Toast.LENGTH_LONG).show()
+        // сохранить выбор
+        activity.getSharedPreferences("white_dns_connection_location", android.content.Context.MODE_PRIVATE)
+            .edit().putString("country_code", "WR").apply()
+        // перезапустить Щит через штатный механизм: reconnect кнопкой невозможно из объекта —
+        // дергаем сервис напрямую, как это делает кнопка «Обновить»
+        runCatching {
+            val intent = android.content.Intent(activity, WhiteDnsVpnService::class.java).apply {
+                action = "com.whitedns.vpn.ACTION_RECONNECT"
             }
+            activity.startService(intent)
+            Toast.makeText(activity, "Подключаюсь через WARP…", Toast.LENGTH_LONG).show()
+        }.onFailure {
+            Toast.makeText(activity, "Включите Щит повторно — WARP выбран как канал", Toast.LENGTH_LONG).show()
         }
+    }
+
+    /** Деактивировать WARP: вернуть «Авто» и перезапустить. */
+    fun deactivateWarp(activity: Activity) {
+        activity.getSharedPreferences("white_dns_connection_location", android.content.Context.MODE_PRIVATE)
+            .edit().putString("country_code", "").apply()
+        runCatching {
+            val intent = android.content.Intent(activity, WhiteDnsVpnService::class.java).apply {
+                action = "com.whitedns.vpn.ACTION_RECONNECT"
+            }
+            activity.startService(intent)
+        }
+        Toast.makeText(activity, "WARP выключен — возврат к обычным каналам", Toast.LENGTH_LONG).show()
     }
 
     fun refresh() {
