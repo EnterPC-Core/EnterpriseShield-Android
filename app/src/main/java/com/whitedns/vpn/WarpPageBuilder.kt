@@ -13,10 +13,21 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.materialswitch.MaterialSwitch
 
 /**
- * Вкладка «WARP»: генерация Cloudflare WireGuard-конфигов на устройстве.
- * Подключение: список каналов → «🚀 Каналы» → «☁️ WARP».
+ * Вкладка «WARP»: генерация конфигов + включение через ядро Щита.
+ * ВКЛ: сохранить warp_route=true → при старте Щита весь трафик идёт через группу «☁️ WARP».
+ * ВЫКЛ: warp_route=false → обычные каналы.
  */
 object WarpPageBuilder {
+
+    private const val PREFS = "white_dns_warp"
+    private const val KEY_ROUTE = "warp_route"
+
+    private fun isWarpRouting(activity: Activity) =
+        activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE).getBoolean(KEY_ROUTE, false)
+
+    private fun setWarpRouting(activity: Activity, on: Boolean) {
+        activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE).edit().putBoolean(KEY_ROUTE, on).apply()
+    }
 
     fun buildTabScreen(activity: Activity): View {
         val bg = pal(activity).background
@@ -54,24 +65,25 @@ object WarpPageBuilder {
             setTextColor(tp)
         })
         content.addView(TextView(activity).apply {
-            text = "Бесплатные WireGuard-каналы Cloudflare. После генерации перезапустите Щит и выберите «☁️ WARP» в списке каналов."
+            text = "Бесплатные WireGuard-каналы через ядро Щита. Включите WARP — весь интернет пойдёт через Cloudflare."
             textSize = 13f; setTextColor(ts)
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
 
-        // ===== кнопка ВКЛ/ВЫКЛ WARP =====
+        // ===== тумблер WARP =====
+        val warpStatus = TextView(activity).apply {
+            text = if (isWarpRouting(activity)) "Маршрут через WARP активен" else "Обычные каналы Щита"
+            textSize = 13f; setTextColor(if (isWarpRouting(activity)) teal else ts)
+        }
         val warpSwitch = MaterialSwitch(activity).apply {
-            isChecked = WarpVpnService.isActive
-            text = "WARP подключение"
+            isChecked = isWarpRouting(activity)
+            text = "Весь интернет через WARP"
             textSize = 15f
             typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             setOnCheckedChangeListener { _, checked ->
-                if (checked) {
-                    WarpVpnService.start(activity)
-                    Toast.makeText(activity, "Подключаю WARP…", Toast.LENGTH_SHORT).show()
-                } else {
-                    WarpVpnService.stop(activity)
-                    Toast.makeText(activity, "WARP отключён", Toast.LENGTH_SHORT).show()
-                }
+                setWarpRouting(activity, checked)
+                warpStatus.text = if (checked) "Маршрут через WARP — перезапустите Щит" else "Обычные каналы — перезапустите Щит"
+                warpStatus.setTextColor(if (checked) teal else ts)
+                Toast.makeText(activity, "Перезапустите Щит для применения", Toast.LENGTH_LONG).show()
             }
         }
         val warpCard = LinearLayout(activity).apply {
@@ -79,12 +91,13 @@ object WarpPageBuilder {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dp(activity, 16).toFloat()
-                setColor((pal(activity).surface.toLong() and 0xFFFFFFC8L).toInt())
-                setStroke(dp(activity, 1), (pal(activity).outline.toLong() and 0xB4FFFFFFL).toInt())
+                setColor((surface.toLong() and 0xFFFFFFC8L).toInt())
+                setStroke(dp(activity, 1), (outline.toLong() and 0xB4FFFFFFL).toInt())
             }
             clipToOutline = true
             setPadding(dp(activity, 16), dp(activity, 14), dp(activity, 16), dp(activity, 14))
             addView(warpSwitch, LinearLayout.LayoutParams(-1, -2))
+            addView(warpStatus, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 4) })
         }
         content.addView(warpCard, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 16) })
 
@@ -92,7 +105,7 @@ object WarpPageBuilder {
         val listContainer = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
         content.addView(listContainer, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 16) })
 
-        // ===== статус =====
+        // ===== генерация =====
         val statusValue = TextView(activity).apply {
             text = "Готов к генерации"
             textSize = 13f; setTextColor(ts)
@@ -119,7 +132,7 @@ object WarpPageBuilder {
                         isEnabled = true
                         text = if (cfgs.isEmpty()) "Сгенерировать" else "Ещё"
                         statusValue.text = if (cfgs.isEmpty()) "Ошибка — попробуйте позже"
-                        else "Готово. Перезапустите Щит → Каналы → ☁️ WARP"
+                        else "Готово. Включите тумблер WARP и перезапустите Щит"
                         if (cfgs.isNotEmpty()) rebuildList(activity, listContainer)
                     })
             }
@@ -130,8 +143,11 @@ object WarpPageBuilder {
             text = "Удалить все конфиги"
             setOnClickListener {
                 WarpGenerator.clearConfigs(activity)
+                setWarpRouting(activity, false)
                 rebuildList(activity, listContainer)
-                statusValue.text = "Удалено — перезапустите Щит"
+                statusValue.text = "Удалено"
+                warpSwitch.isChecked = false
+                warpStatus.text = "Обычные каналы Щита"
             }
         }
         content.addView(clearBtn, LinearLayout.LayoutParams(-1, dp(activity, 44)).apply { topMargin = dp(activity, 8) })
@@ -139,6 +155,10 @@ object WarpPageBuilder {
         rebuildList(activity, listContainer)
         return root
     }
+
+    /** Включён ли WARP-маршрут (для MihomoRuntime). */
+    fun isWarpRoutingEnabled(context: android.content.Context): Boolean =
+        context.getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE).getBoolean(KEY_ROUTE, false)
 
     private fun rebuildList(activity: Activity, container: LinearLayout) {
         container.removeAllViews()

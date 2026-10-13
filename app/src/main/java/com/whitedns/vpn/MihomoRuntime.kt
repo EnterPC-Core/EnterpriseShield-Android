@@ -782,7 +782,16 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
             adBlockEnabled: Boolean = false,
             quicBlockEnabled: Boolean = false,
         ): String {
-            val routingTarget = routingTarget(rawYaml)
+            var routingTarget = routingTarget(rawYaml)
+            // WARP-маршрут: если включён тумблер WARP — весь трафик через группу WARP
+            val warpRoute = runCatching {
+                val ctx = appContext
+                ctx != null && WarpPageBuilder.isWarpRoutingEnabled(ctx) &&
+                    WarpRuntime.proxiesYaml(ctx).isNotBlank()
+            }.getOrDefault(false)
+            if (warpRoute) {
+                routingTarget = WarpRuntime.GROUP_NAME
+            }
             val requiredRoutingTarget = if (routingMode == RoutingMode.Subscription) {
                 null
             } else {
