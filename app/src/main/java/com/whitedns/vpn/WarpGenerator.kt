@@ -47,7 +47,9 @@ object WarpGenerator {
 
     fun generate(context: Context, label: String, onResult: (WarpConfig?) -> Unit) {
         GlobalScope.launch(Dispatchers.IO) {
-            val result = runCatching { registerDevice(label) }.getOrNull()
+            val result = runCatching { registerDevice(label) }
+                .onFailure { e -> android.util.Log.e("WarpGen", "generate failed", e) }
+                .getOrNull()
             if (result != null) saveConfig(context, result)
             launch(Dispatchers.Main) { onResult(result) }
         }
@@ -132,8 +134,10 @@ object WarpGenerator {
         }
         if (body != null) conn.outputStream.use { it.write(body.toByteArray()) }
         val code = conn.responseCode
-        val text = conn.inputStream.bufferedReader().use { it.readText() }
+        val text = runCatching { conn.inputStream.bufferedReader().use { it.readText() } }
+            .getOrElse { runCatching { conn.errorStream?.bufferedReader()?.use { r -> r.readText() } }.getOrNull() ?: "HTTP $code" }
         conn.disconnect()
+        if (code !in 200..299) throw RuntimeException("CF API $code: " + text.take(150))
         return text to code
     }
 
