@@ -1200,19 +1200,9 @@ class WhiteDnsVpnService : VpnService() {
                             if (!coreLifecycle.isIdle() && !stopCoreService()) {
                                 throw MihomoCoreBusyException()
                             }
-                            val runtimeYaml = runCatching {
-                                WarpRuntime.inject(
-                                    MihomoConnectionOptionsPatcher.patch(
-                                        snapshot.rawConfig,
-                                        connectionOptionsPreferenceStore.read(),
-                                    ),
-                                    this@WhiteDnsVpnService,
-                                )
-                            }.getOrDefault(
-                                MihomoConnectionOptionsPatcher.patch(
-                                    snapshot.rawConfig,
-                                    connectionOptionsPreferenceStore.read(),
-                                )
+                            val runtimeYaml = MihomoConnectionOptionsPatcher.patch(
+                                snapshot.rawConfig,
+                                connectionOptionsPreferenceStore.read(),
                             )
                             val paths = MihomoRuntimeConfigBuilder(this@WhiteDnsVpnService).writeProfileTest(
                                 ProfileTestRuntimePlan(

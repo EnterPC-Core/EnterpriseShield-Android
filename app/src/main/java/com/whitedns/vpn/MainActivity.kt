@@ -122,7 +122,7 @@ class MainActivity : Activity() {
                     if (available) ", ${getString(R.string.update_available_title)}" else ""
             }
             if (::appTabs.isInitialized) {
-                appTabs.getTabAt(4)?.let { tab ->
+                appTabs.getTabAt(3)?.let { tab ->
                     tab.contentDescription = getString(R.string.tab_settings)
                     if (available) {
                         tab.orCreateBadge.apply {
@@ -160,7 +160,6 @@ class MainActivity : Activity() {
     private lateinit var connectionTestingPageHost: ConnectionTestingPage
     private var deviceStatusTextView: TextView? = null
     private lateinit var sharesTabContent: View
-    private lateinit var warpTabContent: View
     private var connectionTestingPageVisible: Boolean = false
     private lateinit var batteryReportPageHost: FrameLayout
     private lateinit var mapPageHost: FrameLayout
@@ -374,7 +373,7 @@ class MainActivity : Activity() {
             )
             if (chainSlot != ConnectionChainSlot.Before) {
                 if (chainSlot != null) {
-                    appTabs.getTabAt(4)?.select()
+                    appTabs.getTabAt(3)?.select()
                     openConnectionChainSettingsPage?.invoke()
                 }
                 mainHandler.post {
@@ -426,13 +425,11 @@ class MainActivity : Activity() {
         vpnTabContent = buildDashboard()
         subscriptionsTabContent = buildSubscriptionsScreen().apply { visibility = View.GONE }
         sharesTabContent = buildTopSharesScreen().apply { visibility = View.GONE }
-        warpTabContent = WarpPageBuilder.buildTabScreen(this).apply { visibility = View.GONE }
         advancedTabContent = buildAdvancedScreen().apply { visibility = View.GONE }
         val content = FrameLayout(this).apply {
             addView(vpnTabContent, FrameLayout.LayoutParams(-1, -1))
             addView(subscriptionsTabContent, FrameLayout.LayoutParams(-1, -1))
             addView(sharesTabContent, FrameLayout.LayoutParams(-1, -1))
-            addView(warpTabContent, FrameLayout.LayoutParams(-1, -1))
             addView(advancedTabContent, FrameLayout.LayoutParams(-1, -1))
         }
         shell.addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -463,8 +460,7 @@ class MainActivity : Activity() {
             addTab(newTab().setText(R.string.tab_subscriptions).setIcon(R.drawable.ic_subscriptions_tab))
             addTab(newTab().setText(R.string.tab_vpn).setIcon(R.drawable.ic_vpn_tab), true)
             addTab(newTab().setText(R.string.tab_shares).setIcon(R.drawable.ic_trophy_tab))
-            addTab(newTab().setText(R.string.tab_warp).setIcon(R.drawable.ic_enterprise_shield))
-            addTab(newTab().setText(R.string.tab_settings).setIcon(R.drawable.ic_advanced_tab))
+                        addTab(newTab().setText(R.string.tab_settings).setIcon(R.drawable.ic_advanced_tab))
             post {
                 val tabStrip = getChildAt(0) as? ViewGroup ?: return@post
                 for (index in 0 until tabStrip.childCount) {
@@ -766,15 +762,14 @@ class MainActivity : Activity() {
     }
 
     private fun showAppTab(position: Int) {
-        if (position != 4) advancedSettingsBackAction?.invoke()
+        if (position != 3) advancedSettingsBackAction?.invoke()
         vpnTabContent.visibility = if (position == 1) View.VISIBLE else View.GONE
         subscriptionsTabContent.visibility = if (position == 0) View.VISIBLE else View.GONE
         sharesTabContent.visibility = if (position == 2) View.VISIBLE else View.GONE
-        warpTabContent.visibility = if (position == 3) View.VISIBLE else View.GONE
-        advancedTabContent.visibility = if (position == 4) View.VISIBLE else View.GONE
+        advancedTabContent.visibility = if (position == 3) View.VISIBLE else View.GONE
         if (position == 0) renderSubscriptions()
         if (position == 1) renderConnectionSelection()
-        if (position == 4) renderAdvancedControls()
+        if (position == 3) renderAdvancedControls()
     }
 
     private fun buildTopSharesScreen(): View {
@@ -4612,7 +4607,7 @@ testingSettings.addView(
         profiles: List<ConnectionProfile>,
         resetMissingSelection: Boolean,
     ) {
-        connectionProfiles = WarpProfiles.appendTo(profiles, this)
+        connectionProfiles = profiles
         val subscriptionStore = SubscriptionStore(this)
         connectionDelayRecords = delayRecordsForUi(
             subscriptionStore,

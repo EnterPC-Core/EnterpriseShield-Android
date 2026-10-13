@@ -782,16 +782,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
             adBlockEnabled: Boolean = false,
             quicBlockEnabled: Boolean = false,
         ): String {
-            var routingTarget = routingTarget(rawYaml)
-            // WARP-маршрут: если включён тумблер WARP — весь трафик через группу WARP
-            val warpRoute = runCatching {
-                val ctx = appContext
-                ctx != null && WarpPageBuilder.isWarpRoutingEnabled(ctx) &&
-                    WarpRuntime.proxiesYaml(ctx).isNotBlank()
-            }.getOrDefault(false)
-            if (warpRoute) {
-                routingTarget = WarpRuntime.GROUP_NAME
-            }
+            val routingTarget = routingTarget(rawYaml)
             val requiredRoutingTarget = if (routingMode == RoutingMode.Subscription) {
                 null
             } else {
@@ -824,7 +815,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
     url: "https://www.gstatic.com/generate_204"
     interval: 86400
     lazy: true
-    tolerance: 120""",
+    tolerance: 999999""",
                     )
                 }
                 .let { yaml ->

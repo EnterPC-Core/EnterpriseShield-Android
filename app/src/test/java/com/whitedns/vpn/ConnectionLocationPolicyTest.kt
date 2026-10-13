@@ -51,7 +51,6 @@ class ConnectionLocationPolicyTest {
             listOf(
                 "خودکار",
                 "\uD83C\uDF10 Universal",
-                "\u2601\uFE0F WARP",
                 "\uD83C\uDDEB\uD83C\uDDF7 فرانسه",
                 "\uD83C\uDDF3\uD83C\uDDF1 هلند",
                 "\uD83C\uDDE8\uD83C\uDDE6 کانادا",
