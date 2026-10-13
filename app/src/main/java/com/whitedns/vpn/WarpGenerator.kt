@@ -107,8 +107,11 @@ object WarpGenerator {
         val peer = activated.getJSONObject("config").getJSONArray("peers").getJSONObject(0)
         val iface = activated.getJSONObject("config").getJSONObject("interface")
         val epV4 = peer.getJSONObject("endpoint").optString("v4", "")
-        val server = epV4.substringBefore(":").ifBlank { "engage.cloudflareclient.com" }
-        val port = epV4.substringAfter(":", "2408").toIntOrNull() ?: 2408
+        val host = peer.getJSONObject("endpoint").optString("host", "engage.cloudflareclient.com:2408")
+        // CF отдаёт v4 вида "162.159.192.9:0" — порт 0 НЕРАБОЧИЙ;
+        // берём хост из "host" (engage.cloudflareclient.com:2408) или fallback 2408
+        val server = host.substringBefore(":").ifBlank { "engage.cloudflareclient.com" }
+        val port = host.substringAfter(":", "2408").toIntOrNull()?.takeIf { it in 1..65535 } ?: 2408
         val addresses = iface.getJSONObject("addresses")
 
         return WarpConfig(
@@ -174,6 +177,10 @@ object WarpGenerator {
             })
             f.writeText(arr.toString())
         }
+    }
+
+    fun clearConfigs(context: Context) {
+        runCatching { File(context.filesDir, WARP_FILE).delete() }
     }
 
     private fun b64(b: ByteArray): String = android.util.Base64.encodeToString(b, android.util.Base64.NO_WRAP)

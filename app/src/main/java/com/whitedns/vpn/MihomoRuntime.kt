@@ -841,7 +841,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                 DnsPrivacyMode.Automatic, DnsPrivacyMode.DoH -> DOH_SERVERS
                 DnsPrivacyMode.DoT -> DOT_SERVERS
             }
-            return buildString {
+val __yaml = buildString {
                 val guardOn = shieldGuardEnabled
                 // Рантайм дописывает собственную секцию rules во всех режимах кроме
                 // Subscription+guardOff — исходный rules: всегда отрезаем (иначе дубликат
@@ -861,14 +861,16 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                     append(subYaml.trimEnd())
                     append("\n")
                 }
-                // WARP-каналы Cloudflare (сгенерированные на устройстве)
+                // WARP-каналы Cloudflare: прокси + группа «☁️ WARP» в «Каналах»
                 val warpYaml = runCatching { WarpRuntime.appendYaml(appContext) }.getOrDefault("")
-                if (warpYaml.isNotBlank() && subYaml.isNotBlank()) {
+                if (warpYaml.isNotBlank()) {
                     append(warpYaml.trimEnd())
-                    append("\n\n")
-                } else if (warpYaml.isNotBlank()) {
-                    append(warpYaml.trimEnd())
-                    append("\n\n")
+                    append("\n")
+                }
+                val warpGroup = runCatching { WarpRuntime.groupYaml(appContext) }.getOrDefault("")
+                if (warpGroup.isNotBlank()) {
+                    append(warpGroup.trimEnd())
+                    append("\n")
                 }
                 val guardRules = if (guardOn) ShieldGuardPolicy.ruleLines() else emptyList()
                 val adBlockRules = if (adBlockEnabled) AdBlockPolicy.ruleLines() else emptyList()
@@ -944,6 +946,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                 append("tun:\n")
                 append("  enable: false\n")
             }
+            return WarpRuntime.injectIntoChannels(__yaml, appContext)
         }
 
         private fun routingTarget(rawYaml: String): String? {

@@ -113,9 +113,20 @@ object WarpPageBuilder {
         content.addView(genBtn, LinearLayout.LayoutParams(-1, dp(activity, 52)).apply { topMargin = dp(activity, 16) })
 
         content.addView(TextView(activity).apply {
-            text = "Конфиги хранятся на устройстве. После генерации перезапустите Щит — WARP-каналы появятся в списке каналов (группа Авто-выбор)."
+            text = "Конфиги хранятся на устройстве. После генерации перезапустите Щит — WARP-каналы появятся на отдельной вкладке «☁️ WARP» в списке каналов."
             textSize = 11f; setTextColor(ts)
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 12) })
+
+        val clearBtn = MaterialButton(activity).apply {
+            text = "Удалить все WARP-конфиги"
+            setOnClickListener {
+                WarpGenerator.clearConfigs(activity)
+                countValue.text = "Конфигов: 0"
+                statusValue.text = "Готов к генерации"
+                Toast.makeText(activity, "Удалено — перезапустите Щит", Toast.LENGTH_SHORT).show()
+            }
+        }
+        content.addView(clearBtn, LinearLayout.LayoutParams(-1, dp(activity, 44)).apply { topMargin = dp(activity, 8) })
 
         return root
     }
