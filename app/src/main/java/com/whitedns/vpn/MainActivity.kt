@@ -165,10 +165,12 @@ class MainActivity : Activity() {
     private lateinit var mapPageHost: FrameLayout
     private lateinit var speedTestPageHost: FrameLayout
     private lateinit var networkMonitorPageHost: FrameLayout
+    private lateinit var tgProxyPageHost: FrameLayout
     private var batteryReportPageVisible: Boolean = false
     private var mapPageVisible: Boolean = false
     private var speedTestPageVisible: Boolean = false
     private var networkMonitorPageVisible: Boolean = false
+    private var tgProxyPageVisible: Boolean = false
     private var activeChainPickerSlot: ConnectionChainSlot? = null
     private var activeChainPickerSubscriptionId: String? = null
     private var renderChainSettingsPage: (() -> Unit)? = null
@@ -566,6 +568,20 @@ class MainActivity : Activity() {
             insets
         }
         root.addView(networkMonitorPageHost, FrameLayout.LayoutParams(-1, -1))
+        tgProxyPageHost = FrameLayout(this).apply {
+            visibility = View.GONE
+            setBackgroundColor(BACKGROUND)
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(tgProxyPageHost) { view, insets ->
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or
+                    WindowInsetsCompat.Type.navigationBars() or
+                    WindowInsetsCompat.Type.displayCutout(),
+            )
+            view.setPadding(0, systemBars.top, 0, systemBars.bottom)
+            insets
+        }
+        root.addView(tgProxyPageHost, FrameLayout.LayoutParams(-1, -1))
         runCatching { TvUi.attachAutoStyling(root) }
         return root
     }
@@ -698,6 +714,29 @@ class MainActivity : Activity() {
         networkMonitorPageHost.visibility = View.GONE
         networkMonitorPageHost.removeAllViews()
         networkMonitorPageVisible = false
+        appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
+    }
+
+    fun showTgProxyPage() {
+        if (tgProxyPageVisible) return
+        runCatching {
+            tgProxyPageHost.removeAllViews()
+            val page = TgProxyPageBuilder.buildScreen(this)
+            tgProxyPageHost.addView(page, FrameLayout.LayoutParams(-1, -1))
+            tgProxyPageHost.visibility = View.VISIBLE
+            tgProxyPageHost.translationX = 0f
+            tgProxyPageVisible = true
+            appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        }.onFailure { err ->
+            android.widget.Toast.makeText(this, "TG-прокси: ${err.message}", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun closeTgProxyPage() {
+        if (!tgProxyPageVisible) return
+        tgProxyPageHost.visibility = View.GONE
+        tgProxyPageHost.removeAllViews()
+        tgProxyPageVisible = false
         appShellView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
     }
 
@@ -1569,6 +1608,7 @@ class MainActivity : Activity() {
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
         when {
+            tgProxyPageVisible -> closeTgProxyPage()
             networkMonitorPageVisible -> closeNetworkMonitorPage()
             speedTestPageVisible -> closeSpeedTestPage()
             mapPageVisible -> closeMapPage()
@@ -2344,6 +2384,13 @@ testingSettings.addView(
             com.google.android.material.button.MaterialButton(this).apply {
                 text = getString(R.string.speedtest_open)
                 setOnClickListener { showSpeedTestPage() }
+            },
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
+        )
+        testingSettings.addView(
+            com.google.android.material.button.MaterialButton(this).apply {
+                text = getString(R.string.tgproxy_open)
+                setOnClickListener { showTgProxyPage() }
             },
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
         )

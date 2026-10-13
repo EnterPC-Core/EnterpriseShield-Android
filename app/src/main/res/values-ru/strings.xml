@@ -557,4 +557,5 @@
     <string name="monitor_no_core">Ядро недоступно — перезапусти Щит</string>
     <string name="smart_pin_title">Умный выбор сервера</string>
     <string name="smart_pin_detail">При включении Щита подобрать лучший сервер по всем сервисам и зафиксировать его</string>
+    <string name="tgproxy_open">Telegram-прокси</string>
 </resources>
