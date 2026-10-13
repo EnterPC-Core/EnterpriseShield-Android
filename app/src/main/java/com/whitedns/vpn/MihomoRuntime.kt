@@ -797,28 +797,6 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
             }
             val subscriptionYaml = stripTopLevelKeys(rawYaml, keysToReplace)
                 .let { yaml ->
-                    // Тумблер «Умный выбор сервера» выключен: «Авто-выбор» -> select
-                    // (ядро не переключает сервер автоматически, только вручную)
-                    val smartOff = runCatching {
-                        val ctx = appContext
-                        ctx != null && !UniversalPinPolicy.readEnabled(ctx)
-                    }.getOrDefault(false)
-                    if (!smartOff) yaml else yaml.replace(
-                        """  - name: "♻️ Авто-выбор"
-    type: url-test
-    url: "https://www.instagram.com"
-    interval: 300
-    lazy: true
-    tolerance: 80""",
-                        """  - name: "♻️ Авто-выбор"
-    type: url-test
-    url: "https://www.instagram.com"
-    interval: 86400
-    lazy: true
-    tolerance: 80""",
-                    )
-                }
-                .let { yaml ->
                     // Режим «🌐 Универсал»: «Авто-выбор» становится select-группой,
                     // которой управляет SmartChannelSelector (живой мульти-сервисный тест).
                     // В обычном режиме (страна/авто) остаётся url-test — ядро само выбирает.
@@ -841,7 +819,7 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                 DnsPrivacyMode.Automatic, DnsPrivacyMode.DoH -> DOH_SERVERS
                 DnsPrivacyMode.DoT -> DOT_SERVERS
             }
-val __yaml = buildString {
+            return buildString {
                 val guardOn = shieldGuardEnabled
                 // Рантайм дописывает собственную секцию rules во всех режимах кроме
                 // Subscription+guardOff — исходный rules: всегда отрезаем (иначе дубликат
@@ -857,7 +835,10 @@ val __yaml = buildString {
                     // исходный rules: обязаны отрезать, иначе дубликат = Fatal
                     else -> subscriptionYaml.substringBefore("\nrules:")
                 }
-
+                if (subYaml.isNotBlank()) {
+                    append(subYaml.trimEnd())
+                    append("\n\n")
+                }
                 val guardRules = if (guardOn) ShieldGuardPolicy.ruleLines() else emptyList()
                 val adBlockRules = if (adBlockEnabled) AdBlockPolicy.ruleLines() else emptyList()
                 when (routingMode) {
@@ -932,7 +913,6 @@ val __yaml = buildString {
                 append("tun:\n")
                 append("  enable: false\n")
             }
-            return __yaml
         }
 
         private fun routingTarget(rawYaml: String): String? {

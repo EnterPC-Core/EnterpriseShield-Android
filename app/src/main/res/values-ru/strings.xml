@@ -558,6 +558,4 @@
     <string name="smart_pin_title">Умный выбор сервера</string>
     <string name="smart_pin_detail">При включении Щита подобрать лучший сервер по всем сервисам и зафиксировать его</string>
     <string name="tgproxy_open">Telegram-прокси</string>
-    <string name="warp_open">Cloudflare WARP</string>
-    <string name="tab_warp">WARP</string>
 </resources>

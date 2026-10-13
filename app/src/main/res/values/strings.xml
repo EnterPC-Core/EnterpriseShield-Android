@@ -569,6 +569,4 @@
     <string name="smart_pin_title">Smart server selection</string>
     <string name="smart_pin_detail">When the Shield starts, pick the best server for all services and lock it in</string>
     <string name="tgproxy_open">Telegram proxy</string>
-    <string name="warp_open">Cloudflare WARP</string>
-    <string name="tab_warp">WARP</string>
 </resources>
