@@ -137,15 +137,9 @@ internal class AndroidSubscriptionSnapshotAdapter(
     override fun read(id: String): SubscriptionSnapshotEntry? {
         if (SubscriptionStore.isBuiltInSubscription(id)) {
             val file = builtInSnapshotFile(id)
-            val cached = file.takeIf { it.isFile && it.length() > 0L }?.readText()
-            // защита от деградации: снапшот с десятком «каналов» — это заглушка
-            // сервера или мусор; такой кеш игнорируем, живём на встроенном ассете
-            val usable = cached?.takeIf { yaml ->
-                yaml.lineSequence().count { it.trimStart().startsWith("- name:") } >= 100
-            }
             return SubscriptionSnapshotEntry(
                 source = managedSource(id),
-                cachedYaml = usable,
+                cachedYaml = file.takeIf { it.isFile && it.length() > 0L }?.readText(),
                 fetchedAt = store.readCatalog(id)?.fetchedAt
                     ?: file.lastModified().takeIf { it > 0L }
                     ?: 0L,
@@ -217,10 +211,13 @@ internal class AndroidSubscriptionSnapshotAdapter(
         }
     }
 
-    private fun managedSource(id: String): SubscriptionSource {
-        // Каналы Щита живут В АССЕТЕ APK. Никаких загрузок с сервера —
-        // сервер не должен определять, что видит пользователь.
-        return SubscriptionSource.Inline(ShieldChannelsAsset.yaml)
+    private fun managedSource(id: String): SubscriptionSource.RemoteHttps {
+        val url = when (id) {
+            SubscriptionStore.PRIVATE_SUBSCRIPTION_ID ->
+                WhiteDnsConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL
+            else -> WhiteDnsConfig.MIHOMO_SUBSCRIPTION_URL
+        }
+        return SubscriptionSource.RemoteHttps(url)
     }
 
     private fun builtInSnapshotFile(id: String): File = File(
