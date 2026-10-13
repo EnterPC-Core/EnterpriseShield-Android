@@ -3183,13 +3183,7 @@ class WhiteDnsVpnService : VpnService() {
                 UniversalPin.pinBestOnce(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret)
             }
         }
-        runCatching {
-            val universal = ConnectionLocationPreferenceStore(this).readSelectedCountryCode() ==
-                com.whitedns.vpn.ConnectionLocationPolicy.UNIVERSAL_CODE
-            if (universal) {
-            } else {
-            }
-        }
+
         getSystemService(NotificationManager::class.java)
             .notify(NOTIFICATION_ID, serviceNotification(connectedNotificationText()))
         DiagnosticLogger.info(

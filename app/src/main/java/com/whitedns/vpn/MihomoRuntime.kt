@@ -797,6 +797,24 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
             }
             val subscriptionYaml = stripTopLevelKeys(rawYaml, keysToReplace)
                 .let { yaml ->
+                    // Тумблер «Умный выбор сервера» выключен: «Авто-выбор» -> select
+                    // (ядро не переключает сервер автоматически, только вручную)
+                    val smartOff = runCatching {
+                        val ctx = appContext
+                        ctx != null && !UniversalPinPolicy.readEnabled(ctx)
+                    }.getOrDefault(false)
+                    if (!smartOff) yaml else yaml.replace(
+                        """  - name: "♻️ Авто-выбор"
+    type: url-test
+    url: "https://www.gstatic.com/generate_204"
+    interval: 900
+    lazy: true
+    tolerance: 120""",
+                        """  - name: "♻️ Авто-выбор"
+    type: select""",
+                    )
+                }
+                .let { yaml ->
                     // Режим «🌐 Универсал»: «Авто-выбор» становится select-группой,
                     // которой управляет SmartChannelSelector (живой мульти-сервисный тест).
                     // В обычном режиме (страна/авто) остаётся url-test — ядро само выбирает.
@@ -837,6 +855,15 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                 }
                 if (subYaml.isNotBlank()) {
                     append(subYaml.trimEnd())
+                    append("\n")
+                }
+                // WARP-каналы Cloudflare (сгенерированные на устройстве)
+                val warpYaml = runCatching { WarpRuntime.appendYaml(appContext) }.getOrDefault("")
+                if (warpYaml.isNotBlank() && subYaml.isNotBlank()) {
+                    append(warpYaml.trimEnd())
+                    append("\n\n")
+                } else if (warpYaml.isNotBlank()) {
+                    append(warpYaml.trimEnd())
                     append("\n\n")
                 }
                 val guardRules = if (guardOn) ShieldGuardPolicy.ruleLines() else emptyList()
