@@ -25,6 +25,9 @@ data class LocationFilterResult(
 
 object ConnectionLocationPolicy {
     const val UNIVERSAL_CODE = "UN"
+    const val WARP_CODE = "WR"
+    const val WARP_LABEL_RU = "☁️ WARP"
+    const val WARP_LABEL_EN = "☁️ WARP"
     const val UNIVERSAL_LABEL_RU = "🌐 Универсал"
     const val UNIVERSAL_LABEL_EN = "🌐 Universal"
 
@@ -43,7 +46,10 @@ object ConnectionLocationPolicy {
             .map { country -> country.selectorOption() }
         val auto = listOf(LocationSelectorOption(countryCode = null, label = automaticLabel))
         // Универсал — после Automatic, перед странами
-        return auto + listOf(LocationSelectorOption(countryCode = UNIVERSAL_CODE, label = universalLabel(displayLocale))) + countries
+        return auto + listOf(
+            LocationSelectorOption(countryCode = UNIVERSAL_CODE, label = universalLabel(displayLocale)),
+            LocationSelectorOption(countryCode = WARP_CODE, label = WARP_LABEL_RU),
+        ) + countries
     }
 
     fun filterProfiles(
@@ -67,6 +73,24 @@ object ConnectionLocationPolicy {
                 selectedLabel = universalLabel(displayLocale),
                 resetToAuto = false,
             )
+        }
+        if (countryCode == WARP_CODE) {
+            val warpProfiles = profiles.filter { it.type == "wireguard" }
+            return if (warpProfiles.isEmpty()) {
+                LocationFilterResult(
+                    profiles = profiles,
+                    selectedCountryCode = null,
+                    selectedLabel = automatic.label,
+                    resetToAuto = true,
+                )
+            } else {
+                LocationFilterResult(
+                    profiles = warpProfiles,
+                    selectedCountryCode = WARP_CODE,
+                    selectedLabel = WARP_LABEL_RU,
+                    resetToAuto = false,
+                )
+            }
         }
         val selectedCountry = countryFromCode(countryCode, displayLocale)
         val selectedProfiles = profiles.filter { profile ->
