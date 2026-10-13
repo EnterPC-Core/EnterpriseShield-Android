@@ -12,10 +12,8 @@ import java.net.URL
 import java.security.SecureRandom
 
 /**
- * Генерация Cloudflare WARP (WireGuard) конфигов:
- * регистрирует устройство через Cloudflare API (как wgcf), получает
- * endpoint и адреса, добавляет в пул Щита как wireguard-каналы.
- * X25519 через BouncyCastle.
+ * Генерация Cloudflare WARP (WireGuard) конфигов на устройстве.
+ * X25519 через BouncyCastle (bcprov-jdk18on).
  */
 object WarpGenerator {
 
@@ -38,9 +36,9 @@ object WarpGenerator {
         appendLine("    server: ${c.server}")
         appendLine("    port: ${c.port}")
         appendLine("    ip: ${c.ip4}")
-        appendLine("    ipv6: ${c.ip6}")
-        appendLine("    private-key: ${c.privateKey}")
-        appendLine("    public-key: ${c.publicKey}")
+        appendLine("    ipv6: \"${c.ip6}\"")
+        appendLine("    private-key: \"${c.privateKey}\"")
+        appendLine("    public-key: \"${c.publicKey}\"")
         appendLine("    udp: true")
         appendLine("    mtu: 1280")
     }
@@ -48,7 +46,7 @@ object WarpGenerator {
     fun generate(context: Context, label: String, onResult: (WarpConfig?) -> Unit) {
         GlobalScope.launch(Dispatchers.IO) {
             val result = runCatching { registerDevice(label) }
-                .onFailure { e -> android.util.Log.e("WarpGen", "generate failed", e) }
+                .onFailure { e -> android.util.Log.e("WarpGen", "failed", e) }
                 .getOrNull()
             if (result != null) saveConfig(context, result)
             launch(Dispatchers.Main) { onResult(result) }
@@ -61,10 +59,7 @@ object WarpGenerator {
             for (i in 1..count) {
                 val latch = java.util.concurrent.CountDownLatch(1)
                 var cfg: WarpConfig? = null
-                generate(context, "🌐 WARP $i") { c ->
-                    cfg = c
-                    latch.countDown()
-                }
+                generate(context, "🌐 WARP $i") { c -> cfg = c; latch.countDown() }
                 latch.await(45, java.util.concurrent.TimeUnit.SECONDS)
                 cfg?.let { all.add(it) }
                 launch(Dispatchers.Main) { onProgress(i, count) }
@@ -75,7 +70,6 @@ object WarpGenerator {
     }
 
     private fun registerDevice(label: String): WarpConfig {
-        // 1) ключевая пара X25519 через BouncyCastle
         val priv = ByteArray(32).also { SecureRandom().nextBytes(it) }
         priv[0] = (priv[0].toInt() and 248).toByte()
         priv[31] = ((priv[31].toInt() and 127) or 64).toByte()
@@ -84,45 +78,26 @@ object WarpGenerator {
         val pubB64 = b64(pub)
         val privB64 = b64(priv)
 
-        // 2) регистрация
         val body = JSONObject().apply {
-            put("f", "en en en")
-            put("install_id", "")
-            put("key", pubB64)
-            put("locale", "en_US")
-            put("model", "PC")
-            put("tos", "2024-01-01T00:00:00.000Z")
-            put("type", "Android")
+            put("f", "en en en"); put("install_id", ""); put("key", pubB64)
+            put("locale", "en_US"); put("model", "PC")
+            put("tos", "2024-01-01T00:00:00.000Z"); put("type", "Android")
             put("serial_number", hex(11))
         }
         val (regStr, _) = http("$API/reg", "POST", body.toString(), null)
         val reg = JSONObject(regStr)
         val token = reg.getString("token")
-
-        // 3) включить warp
         val (actStr, _) = http("$API/reg/${reg.getString("id")}", "PATCH",
             JSONObject().put("warp_enabled", true).toString(), token)
         val activated = JSONObject(actStr)
-
         val peer = activated.getJSONObject("config").getJSONArray("peers").getJSONObject(0)
         val iface = activated.getJSONObject("config").getJSONObject("interface")
-        val epV4 = peer.getJSONObject("endpoint").optString("v4", "")
         val host = peer.getJSONObject("endpoint").optString("host", "engage.cloudflareclient.com:2408")
-        // CF отдаёт v4 вида "162.159.192.9:0" — порт 0 НЕРАБОЧИЙ;
-        // берём хост из "host" (engage.cloudflareclient.com:2408) или fallback 2408
         val server = host.substringBefore(":").ifBlank { "engage.cloudflareclient.com" }
         val port = host.substringAfter(":", "2408").toIntOrNull()?.takeIf { it in 1..65535 } ?: 2408
         val addresses = iface.getJSONObject("addresses")
-
-        return WarpConfig(
-            name = label,
-            server = server,
-            port = port,
-            privateKey = privB64,
-            publicKey = peer.getString("public_key"),
-            ip4 = addresses.getString("v4"),
-            ip6 = addresses.getString("v6"),
-        )
+        return WarpConfig(label, server, port, privB64, peer.getString("public_key"),
+            addresses.getString("v4"), addresses.getString("v6"))
     }
 
     private fun http(url: String, method: String, body: String?, token: String?): Pair<String, Int> {
@@ -132,8 +107,7 @@ object WarpGenerator {
             setRequestProperty("User-Agent", "okhttp/3.12.1")
             if (token != null) setRequestProperty("Authorization", "Bearer $token")
             if (body != null) doOutput = true
-            connectTimeout = 15000
-            readTimeout = 20000
+            connectTimeout = 15000; readTimeout = 20000
         }
         if (body != null) conn.outputStream.use { it.write(body.toByteArray()) }
         val code = conn.responseCode
@@ -150,37 +124,27 @@ object WarpGenerator {
         val arr = JSONArray(f.readText())
         (0 until arr.length()).map { i ->
             val o = arr.getJSONObject(i)
-            WarpConfig(
-                name = o.getString("name"),
-                server = o.getString("server"),
-                port = o.getInt("port"),
-                privateKey = o.getString("private_key"),
-                publicKey = o.getString("public_key"),
-                ip4 = o.getString("ip4"),
-                ip6 = o.getString("ip6"),
-            )
+            WarpConfig(o.getString("name"), o.getString("server"), o.getInt("port"),
+                o.getString("private_key"), o.getString("public_key"),
+                o.getString("ip4"), o.getString("ip6"))
         }
     }.getOrDefault(emptyList())
+
+    fun clearConfigs(context: Context) {
+        runCatching { File(context.filesDir, WARP_FILE).delete() }
+    }
 
     private fun saveConfig(context: Context, cfg: WarpConfig) {
         runCatching {
             val f = File(context.filesDir, WARP_FILE)
             val arr = if (f.isFile) JSONArray(f.readText()) else JSONArray()
             arr.put(JSONObject().apply {
-                put("name", cfg.name)
-                put("server", cfg.server)
-                put("port", cfg.port)
-                put("private_key", cfg.privateKey)
-                put("public_key", cfg.publicKey)
-                put("ip4", cfg.ip4)
-                put("ip6", cfg.ip6)
+                put("name", cfg.name); put("server", cfg.server); put("port", cfg.port)
+                put("private_key", cfg.privateKey); put("public_key", cfg.publicKey)
+                put("ip4", cfg.ip4); put("ip6", cfg.ip6)
             })
             f.writeText(arr.toString())
         }
-    }
-
-    fun clearConfigs(context: Context) {
-        runCatching { File(context.filesDir, WARP_FILE).delete() }
     }
 
     private fun b64(b: ByteArray): String = android.util.Base64.encodeToString(b, android.util.Base64.NO_WRAP)

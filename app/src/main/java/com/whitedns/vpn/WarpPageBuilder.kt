@@ -11,29 +11,20 @@ import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.materialswitch.MaterialSwitch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
- * Вкладка «WARP» в нижней навигации: полный контроль Cloudflare WARP-каналов.
- * Список конфигов, включение WARP как активного канала Щита, генерация, удаление.
+ * Вкладка «WARP»: генерация Cloudflare WireGuard-конфигов на устройстве.
+ * Подключение: список каналов → «🚀 Каналы» → «☁️ WARP».
  */
 object WarpPageBuilder {
 
-    @Volatile private var currentActivity: Activity? = null
-
     fun buildTabScreen(activity: Activity): View {
-        currentActivity = activity
         val bg = pal(activity).background
         val surface = pal(activity).surface
         val tp = pal(activity).textPrimary
         val ts = pal(activity).textSecondary
         val teal = pal(activity).teal
         val outline = pal(activity).outline
-        val red = pal(activity).red
 
         val root = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
@@ -63,48 +54,27 @@ object WarpPageBuilder {
             setTextColor(tp)
         })
         content.addView(TextView(activity).apply {
-            text = "Бесплатные WireGuard-каналы Cloudflare. Генерируются на устройстве."
+            text = "Бесплатные WireGuard-каналы Cloudflare. После генерации перезапустите Щит и выберите «☁️ WARP» в списке каналов."
             textSize = 13f; setTextColor(ts)
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
 
-        // ===== кнопка ВКЛЮЧИТЬ WARP =====
-        val activeBtn = MaterialButton(activity).apply {
-            text = "Подключиться через WARP"
-            setOnClickListener { activateWarp(activity) }
-        }
-        content.addView(activeBtn, LinearLayout.LayoutParams(-1, dp(activity, 52)).apply { topMargin = dp(activity, 16) })
-
-        // ===== контейнер списка конфигов =====
-        val listContainer = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-        }
+        // ===== список конфигов =====
+        val listContainer = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
         content.addView(listContainer, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 16) })
 
-        // ===== генерация =====
-        val genCard = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(activity, 16).toFloat()
-                setColor((surface.toLong() and 0xFFFFFFC8L).toInt())
-                setStroke(dp(activity, 1), (outline.toLong() and 0xB4FFFFFFL).toInt())
-            }
-            clipToOutline = true
-            setPadding(dp(activity, 16), dp(activity, 14), dp(activity, 16), dp(activity, 14))
-        }
+        // ===== статус =====
         val statusValue = TextView(activity).apply {
             text = "Готов к генерации"
             textSize = 13f; setTextColor(ts)
         }
-        genCard.addView(statusValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 4) })
-        content.addView(genCard, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 16) })
+        content.addView(statusValue, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 12) })
 
         val countSwitch = MaterialSwitch(activity).apply {
             isChecked = false
-            text = "5 конфигов"
+            text = "5 конфигов (вместо 1)"
             textSize = 13f
         }
-        content.addView(countSwitch, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 10) })
+        content.addView(countSwitch, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 8) })
 
         val genBtn = MaterialButton(activity).apply {
             text = "Сгенерировать"
@@ -119,11 +89,8 @@ object WarpPageBuilder {
                         isEnabled = true
                         text = if (cfgs.isEmpty()) "Сгенерировать" else "Ещё"
                         statusValue.text = if (cfgs.isEmpty()) "Ошибка — попробуйте позже"
-                        else "Добавлено: ${cfgs.joinToString(", ") { it.name }}"
-                        if (cfgs.isNotEmpty()) {
-                            Toast.makeText(activity, "WARP готов — перезапустите Щит и подключайтесь", Toast.LENGTH_LONG).show()
-                            rebuildList(activity, listContainer)
-                        }
+                        else "Готово. Перезапустите Щит → Каналы → ☁️ WARP"
+                        if (cfgs.isNotEmpty()) rebuildList(activity, listContainer)
                     })
             }
         }
@@ -135,12 +102,10 @@ object WarpPageBuilder {
                 WarpGenerator.clearConfigs(activity)
                 rebuildList(activity, listContainer)
                 statusValue.text = "Удалено — перезапустите Щит"
-                Toast.makeText(activity, "Удалено", Toast.LENGTH_SHORT).show()
             }
         }
         content.addView(clearBtn, LinearLayout.LayoutParams(-1, dp(activity, 44)).apply { topMargin = dp(activity, 8) })
 
-        // первичный список
         rebuildList(activity, listContainer)
         return root
     }
@@ -162,6 +127,7 @@ object WarpPageBuilder {
                     shape = GradientDrawable.RECTANGLE
                     cornerRadius = dp(activity, 14).toFloat()
                     setColor((pal(activity).surface.toLong() and 0xFFFFFFC8L).toInt())
+                    setStroke(dp(activity, 1), (pal(activity).outline.toLong() and 0xB4FFFFFFL).toInt())
                 }
                 clipToOutline = true
                 setPadding(dp(activity, 14), dp(activity, 12), dp(activity, 14), dp(activity, 12))
@@ -177,31 +143,6 @@ object WarpPageBuilder {
             }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
             container.addView(card, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 8) })
         }
-    }
-
-    /** Включить WARP: сохранить выбор «☁️ WARP» в preferences локации и перезапустить Щит.
-     *  Локация WARP = специальный код "WR": filterProfiles не фильтрует, а при старте Щита
-     *  «🚀 Каналы» замыкаются на группу WARP (см. WarpRuntime/Whitelist в рантайме).
-     *  REST не используется — работает всегда. */
-    private fun activateWarp(activity: Activity) {
-        val configs = WarpGenerator.loadConfigs(activity)
-        if (configs.isEmpty()) {
-            Toast.makeText(activity, "Сначала сгенерируйте конфиги", Toast.LENGTH_SHORT).show()
-            return
-        }
-        // WARP-режим: ядро подключается ЧЕРЕЗ WARP (wireguard поверх wireguard не нужен —
-        // просто заменяем весь маршрут на WARP-туннель)
-        // Флаг в prefs: при старте Щита рантайм подставит WARP-конфиг вместо обычных каналов
-        Toast.makeText(activity, "WARP-подключение в разработке — конфиги сохранены", Toast.LENGTH_LONG).show()
-    }
-
-    /** Деактивировать WARP: вернуть «Авто» и перезапустить. */
-    fun deactivateWarp(activity: Activity) {
-        Toast.makeText(activity, "WARP выключен", Toast.LENGTH_SHORT).show()
-    }
-
-    fun refresh() {
-        // перерисовка при переключении на вкладку — список читает текущее состояние
     }
 
     private fun pal(activity: Activity): com.whitedns.vpn.WhiteDnsPalette =
