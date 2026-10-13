@@ -806,13 +806,13 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
                     if (!smartOff) yaml else yaml.replace(
                         """  - name: "♻️ Авто-выбор"
     type: url-test
-    url: "https://www.gstatic.com/generate_204"
-    interval: 900
+    url: "https://www.instagram.com"
+    interval: 300
     lazy: true
-    tolerance: 120""",
+    tolerance: 80""",
                         """  - name: "♻️ Авто-выбор"
     type: url-test
-    url: "https://www.gstatic.com/generate_204"
+    url: "https://www.instagram.com"
     interval: 86400
     lazy: true
     tolerance: 999999""",
