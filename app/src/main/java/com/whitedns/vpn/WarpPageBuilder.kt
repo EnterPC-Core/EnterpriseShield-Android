@@ -58,6 +58,36 @@ object WarpPageBuilder {
             textSize = 13f; setTextColor(ts)
         }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(activity, 2) })
 
+        // ===== кнопка ВКЛ/ВЫКЛ WARP =====
+        val warpSwitch = MaterialSwitch(activity).apply {
+            isChecked = WarpVpnService.isActive
+            text = "WARP подключение"
+            textSize = 15f
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            setOnCheckedChangeListener { _, checked ->
+                if (checked) {
+                    WarpVpnService.start(activity)
+                    Toast.makeText(activity, "Подключаю WARP…", Toast.LENGTH_SHORT).show()
+                } else {
+                    WarpVpnService.stop(activity)
+                    Toast.makeText(activity, "WARP отключён", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        val warpCard = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dp(activity, 16).toFloat()
+                setColor((pal(activity).surface.toLong() and 0xFFFFFFC8L).toInt())
+                setStroke(dp(activity, 1), (pal(activity).outline.toLong() and 0xB4FFFFFFL).toInt())
+            }
+            clipToOutline = true
+            setPadding(dp(activity, 16), dp(activity, 14), dp(activity, 16), dp(activity, 14))
+            addView(warpSwitch, LinearLayout.LayoutParams(-1, -2))
+        }
+        content.addView(warpCard, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 16) })
+
         // ===== список конфигов =====
         val listContainer = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
         content.addView(listContainer, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(activity, 16) })
