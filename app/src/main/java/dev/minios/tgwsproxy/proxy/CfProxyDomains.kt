@@ -62,6 +62,7 @@ object CfProxyDomains {
     private val refreshClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
+        .apply { runCatching { val c = com.whitedns.vpn.appContext; if (c != null && com.whitedns.vpn.TgProxyRoutes.isShieldOn(c)) proxy(com.whitedns.vpn.TgProxyRoutes.httpProxy()) } }
         .build()
 
     /**

@@ -99,6 +99,7 @@ internal object CfDnsResolver {
         }
     }
     private val client = OkHttpClient.Builder()
+            .apply { runCatching { val c = com.whitedns.vpn.appContext; if (c != null && com.whitedns.vpn.TgProxyRoutes.isShieldOn(c)) proxy(com.whitedns.vpn.TgProxyRoutes.httpProxy()) } }
         .dns(bootstrapDns)
         .connectTimeout(2, TimeUnit.SECONDS)
         .readTimeout(2, TimeUnit.SECONDS)

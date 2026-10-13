@@ -66,32 +66,63 @@ class RawWebSocket private constructor(
             onSocketCreated: ((SSLSocket) -> Unit)? = null,
         ): RawWebSocket {
             // Reuse global TLS context (matching Python's module-level ssl.SSLContext)
+            // Reuse global TLS context (matching Python's module-level ssl.SslContext)
             val factory = globalSslContext.socketFactory
 
-            val socket = factory.createSocket() as SSLSocket
             val clampedTimeout = connectTimeoutMs.coerceIn(1, 10000)
+            var socket: SSLSocket? = null
             try {
+                // Enterprise Shield: при включённом Щите соединение через HTTP CONNECT
+                // туннель ядра (mixed-port 2080) — обходим блокировки провайдера.
+                val appCtx = com.whitedns.vpn.appContext
+                val viaShield = appCtx != null && com.whitedns.vpn.TgProxyRoutes.isShieldOn(appCtx)
+                if (viaShield) {
+                    val tunnel = java.net.Socket()
+                    tunnel.tcpNoDelay = true
+                    tunnel.connect(
+                        InetSocketAddress(com.whitedns.vpn.TgProxyRoutes.TUNNEL_HOST, com.whitedns.vpn.TgProxyRoutes.TUNNEL_PORT),
+                        clampedTimeout,
+                    )
+                    val req = "CONNECT $connectHost:$port HTTP/1.1\r\nHost: $connectHost:$port\r\nConnection: close\r\n\r\n"
+                    tunnel.getOutputStream().write(req.toByteArray(Charsets.US_ASCII))
+                    tunnel.getOutputStream().flush()
+                    val reader = java.io.BufferedReader(java.io.InputStreamReader(tunnel.getInputStream(), Charsets.ISO_8859_1))
+                    val status = reader.readLine() ?: throw java.io.IOException("proxy: empty response")
+                    if (!status.contains(" 200 ")) {
+                        try { tunnel.close() } catch (_: Exception) {}
+                        throw java.io.IOException("proxy CONNECT failed: $status")
+                    }
+                    while (true) {
+                        val line = reader.readLine() ?: break
+                        if (line.isEmpty()) break
+                    }
+                    socket = factory.createSocket(tunnel, domain, port, true) as SSLSocket
+                } else {
+                    socket = factory.createSocket() as SSLSocket
+                }
                 onSocketCreated?.invoke(socket)
-                socket.tcpNoDelay = true
-                socket.keepAlive = true
-                socket.sendBufferSize = bufferSize
-                socket.receiveBufferSize = bufferSize
-                socket.soTimeout = clampedTimeout
+                socket!!.tcpNoDelay = true
+                socket!!.keepAlive = true
+                socket!!.sendBufferSize = bufferSize
+                socket!!.receiveBufferSize = bufferSize
+                socket!!.soTimeout = clampedTimeout
 
                 // Set SNI hostname for TLS while connecting to the configured IP.
-                val sslParams = socket.sslParameters
+                val sslParams = socket!!.sslParameters
                 sslParams.serverNames = listOf(javax.net.ssl.SNIHostName(domain))
-                socket.sslParameters = sslParams
+                socket!!.sslParameters = sslParams
 
-                socket.connect(InetSocketAddress(connectHost, port), clampedTimeout)
-                socket.startHandshake()
+                if (!viaShield) {
+                    socket!!.connect(InetSocketAddress(connectHost, port), clampedTimeout)
+                }
+                socket!!.startHandshake()
             } catch (e: Exception) {
-                try { socket.close() } catch (_: Exception) {}
+                try { socket!!.close() } catch (_: Exception) {}
                 throw e
             }
 
-            val input = socket.getInputStream()
-            val output = socket.getOutputStream()
+            val input = socket!!.getInputStream()
+            val output = socket!!.getOutputStream()
 
             // Send WebSocket upgrade request with domain as Host
             val key = ByteArray(16).also { SecureRandom().nextBytes(it) }
@@ -114,7 +145,7 @@ class RawWebSocket private constructor(
                 output.flush()
                 response = readHttpResponse(input)
             } catch (e: Exception) {
-                try { socket.close() } catch (_: Exception) {}
+                try { socket!!.close() } catch (_: Exception) {}
                 throw e
             }
 
@@ -126,7 +157,7 @@ class RawWebSocket private constructor(
             val statusCode = if (parts.size >= 2) parts[1].toIntOrNull() ?: 0 else 0
 
             if (statusCode != 101) {
-                socket.close()
+                socket!!.close()
                 // Extract Location header for redirect detection
                 val location = response.lines()
                     .firstOrNull { it.startsWith("Location:", ignoreCase = true) }
@@ -156,12 +187,12 @@ class RawWebSocket private constructor(
                 "upgrade" !in connectionTokens ||
                 expectedAccept !in headers["sec-websocket-accept"].orEmpty()
             ) {
-                socket.close()
+                socket!!.close()
                 throw WebSocketException("Invalid WebSocket upgrade response")
             }
 
             // Clear soTimeout for the data phase — no read timeout on established connections
-            socket.soTimeout = 0
+            socket!!.soTimeout = 0
 
             return RawWebSocket(socket, input, output)
         }
@@ -353,7 +384,7 @@ class RawWebSocket private constructor(
         } catch (_: Exception) {
         }
         try {
-            socket.close()
+            socket!!.close()
         } catch (_: Exception) {
         }
     }
@@ -363,7 +394,7 @@ class RawWebSocket private constructor(
     // Idle pool disposal must not block trying to send a CLOSE on a dead route.
     internal fun abort() {
         closed = true
-        try { socket.close() } catch (_: Exception) {}
+        try { socket!!.close() } catch (_: Exception) {}
     }
 
     /**
