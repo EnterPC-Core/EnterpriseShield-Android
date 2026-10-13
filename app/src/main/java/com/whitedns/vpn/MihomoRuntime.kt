@@ -811,7 +811,11 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
     lazy: true
     tolerance: 80""",
                         """  - name: "♻️ Авто-выбор"
-    type: select""",
+    type: url-test
+    url: "https://www.instagram.com"
+    interval: 86400
+    lazy: true
+    tolerance: 80""",
                     )
                 }
                 .let { yaml ->
