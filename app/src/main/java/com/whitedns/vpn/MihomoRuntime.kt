@@ -857,29 +857,7 @@ val __yaml = buildString {
                     // исходный rules: обязаны отрезать, иначе дубликат = Fatal
                     else -> subscriptionYaml.substringBefore("\nrules:")
                 }
-                // WARP-каналы Cloudflare: прокси ВНУТРИ subYaml (перед proxy-groups!),
-                // группа — в конец списка групп. Вставка ДЛЯ subYaml, не после.
-                val warpProxies = runCatching { WarpRuntime.appendYaml(appContext) }.getOrDefault("")
-                val warpGroup = runCatching { WarpRuntime.groupYaml(appContext) }.getOrDefault("")
-                val withWarp = if (warpProxies.isBlank()) {
-                    subYaml
-                } else {
-                    // вставить WARP-прокси ПЕРЕД "proxy-groups:" в subYaml
-                    val gi = subYaml.indexOf("proxy-groups:")
-                    if (gi >= 0) {
-                        subYaml.substring(0, gi) + warpProxies + "\n" + subYaml.substring(gi)
-                    } else {
-                        subYaml + "\n" + warpProxies
-                    }
-                }.let { y ->
-                    // вставить WARP-группу в конец (после последней группы, перед концом YAML)
-                    if (warpGroup.isBlank()) y
-                    else y.trimEnd() + "\n" + warpGroup.trimEnd()
-                }
-                if (withWarp.isNotBlank()) {
-                    append(withWarp.trimEnd())
-                    append("\n")
-                }
+
                 val guardRules = if (guardOn) ShieldGuardPolicy.ruleLines() else emptyList()
                 val adBlockRules = if (adBlockEnabled) AdBlockPolicy.ruleLines() else emptyList()
                 when (routingMode) {
@@ -954,7 +932,7 @@ val __yaml = buildString {
                 append("tun:\n")
                 append("  enable: false\n")
             }
-            return WarpRuntime.injectIntoChannels(__yaml, appContext)
+            return __yaml
         }
 
         private fun routingTarget(rawYaml: String): String? {

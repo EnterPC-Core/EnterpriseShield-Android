@@ -2,21 +2,21 @@ package com.whitedns.vpn
 
 import android.content.Context
 
-/** WARP-каналы в рантайм: YAML-блок (proxies + группа «☁️ WARP») и имена. */
+/** WARP изолирован от основного конфига Щита.
+ *  При warp_active=true ядро получает минимальный конфиг:
+ *  только wireguard-выход → весь трафик через WARP.
+ *  Основные каналы Щита не участвуют — не ломают. */
 object WarpRuntime {
 
     const val GROUP_NAME = "☁️ WARP"
+    private const val PREFS = "white_dns_warp"
+    private const val KEY_ACTIVE = "warp_active"
 
-    /** Полный YAML-блок: прокси + url-test группа, для вставки после proxies подписки. */
-    fun appendYaml(context: Context?): String {
-        if (context == null) return ""
-        val configs = WarpGenerator.loadConfigs(context)
-        if (configs.isEmpty()) return ""
-        return buildString {
-            for (c in configs) {
-                append(WarpGenerator.toMihomoYaml(c))
-            }
-        }
+    fun isWarpActive(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_ACTIVE, false)
+
+    fun setActive(context: Context, active: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_ACTIVE, active).apply()
     }
 
     fun names(context: Context?): List<String> {
@@ -24,31 +24,27 @@ object WarpRuntime {
         return WarpGenerator.loadConfigs(context).map { it.name }
     }
 
-    /** Блок группы для секции proxy-groups. */
-    fun groupYaml(context: Context?): String {
-        val names = names(context)
-        if (names.isEmpty()) return ""
+    /** Изолированный WARP-конфиг (минимальный YAML для ядра):
+     *  mixed-port, external-controller, 1 wireguard outbound, rules MATCH. */
+    fun isolatedYaml(context: Context?): String? {
+        if (context == null) return null
+        val configs = WarpGenerator.loadConfigs(context)
+        if (configs.isEmpty()) return null
+        val c = configs.first() // первый конфиг
         return buildString {
+            appendLine("mixed-port: ${MihomoRuntimeDefaults.MIXED_PORT}")
+            appendLine("external-controller: 127.0.0.1:${MihomoRuntimeDefaults.FALLBACK_CONTROL_PORT}")
+            appendLine("secret: \"warp\"")
+            appendLine("mode: rule")
+            appendLine("proxies:")
+            append(WarpGenerator.toMihomoYaml(c))
+            appendLine("proxy-groups:")
             appendLine("  - name: \"$GROUP_NAME\"")
-            appendLine("    type: url-test")
-            appendLine("    url: \"https://www.gstatic.com/generate_204\"")
-            appendLine("    interval: 900")
-            appendLine("    lazy: true")
-            appendLine("    tolerance: 100")
+            appendLine("    type: select")
             appendLine("    proxies:")
-            for (n in names) appendLine("      - \"$n\"")
+            appendLine("      - \"${c.name}\"")
+            appendLine("rules:")
+            appendLine("  - MATCH,$GROUP_NAME")
         }
-    }
-
-    /** Вставить имя группы в select-список «🚀 Каналы» YAML (после «♻️ Авто-выбор»). */
-    fun injectIntoChannels(yaml: String, context: Context?): String {
-        if (context == null) return yaml
-        if (names(context).isEmpty()) return yaml
-        // select-список «Каналы» содержит строку "      - "♻️ Авто-выбор"" — после неё
-        val anchor = "      - \"♻️ Авто-выбор\""
-        val idx = yaml.indexOf(anchor)
-        if (idx < 0) return yaml
-        val insertAt = idx + anchor.length
-        return yaml.substring(0, insertAt) + "\n      - \"$GROUP_NAME\"" + yaml.substring(insertAt)
     }
 }

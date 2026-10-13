@@ -1200,8 +1200,15 @@ class WhiteDnsVpnService : VpnService() {
                             if (!coreLifecycle.isIdle() && !stopCoreService()) {
                                 throw MihomoCoreBusyException()
                             }
+                            // WARP-режим: изолированный WARP-конфиг вместо подписки
+                            val warpOverride = runCatching {
+                                if (WarpRuntime.isWarpActive(this@WhiteDnsVpnService)) {
+                                    WarpRuntime.isolatedYaml(this@WhiteDnsVpnService)
+                                } else null
+                            }.getOrNull()
+                            val rawForPatch = warpOverride ?: snapshot.rawConfig
                             val runtimeYaml = MihomoConnectionOptionsPatcher.patch(
-                                snapshot.rawConfig,
+                                rawForPatch,
                                 connectionOptionsPreferenceStore.read(),
                             )
                             val paths = MihomoRuntimeConfigBuilder(this@WhiteDnsVpnService).writeProfileTest(
