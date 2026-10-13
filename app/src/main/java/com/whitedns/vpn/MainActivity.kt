@@ -431,6 +431,7 @@ class MainActivity : Activity() {
             addView(vpnTabContent, FrameLayout.LayoutParams(-1, -1))
             addView(subscriptionsTabContent, FrameLayout.LayoutParams(-1, -1))
             addView(sharesTabContent, FrameLayout.LayoutParams(-1, -1))
+            addView(warpTabContent, FrameLayout.LayoutParams(-1, -1))
             addView(advancedTabContent, FrameLayout.LayoutParams(-1, -1))
         }
         shell.addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
