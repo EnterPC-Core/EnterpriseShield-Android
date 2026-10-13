@@ -192,16 +192,12 @@ object WarpPageBuilder {
         // WARP-режим: ядро подключается ЧЕРЕЗ WARP (wireguard поверх wireguard не нужен —
         // просто заменяем весь маршрут на WARP-туннель)
         // Флаг в prefs: при старте Щита рантайм подставит WARP-конфиг вместо обычных каналов
-        activity.getSharedPreferences("white_dns_warp", android.content.Context.MODE_PRIVATE)
-            .edit().putBoolean("warp_active", true).apply()
-        Toast.makeText(activity, "WARP активирован — переподключите Щит", Toast.LENGTH_LONG).show()
+        Toast.makeText(activity, "WARP-подключение в разработке — конфиги сохранены", Toast.LENGTH_LONG).show()
     }
 
     /** Деактивировать WARP: вернуть «Авто» и перезапустить. */
     fun deactivateWarp(activity: Activity) {
-        activity.getSharedPreferences("white_dns_warp", android.content.Context.MODE_PRIVATE)
-            .edit().putBoolean("warp_active", false).apply()
-        Toast.makeText(activity, "WARP выключен — переподключите Щит для обычных каналов", Toast.LENGTH_LONG).show()
+        Toast.makeText(activity, "WARP выключен", Toast.LENGTH_SHORT).show()
     }
 
     fun refresh() {
