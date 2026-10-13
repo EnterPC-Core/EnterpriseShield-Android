@@ -107,6 +107,7 @@ class SubscriptionStore(private val context: Context) {
         .getSharedPreferences(USER_SUBSCRIPTION_PREFS, Context.MODE_PRIVATE)
         .getString(KEY_SELECTED_SUBSCRIPTION, DEFAULT_SUBSCRIPTION_ID)
         .takeUnless { it == PRIVATE_SUBSCRIPTION_ID && !isBuiltInSubscription(it) }
+        .takeUnless { it == PUBLIC_SUBSCRIPTION_ID }   // резерв удалён — миграция на приватную
         .orEmpty()
         .ifBlank { DEFAULT_SUBSCRIPTION_ID }
 
@@ -431,8 +432,6 @@ class SubscriptionStore(private val context: Context) {
         const val TTR_SUBSCRIPTION_ID = "ttr-extra"
         val BUILT_IN_SUBSCRIPTION_IDS = listOfNotNull(
             PRIVATE_SUBSCRIPTION_ID.takeIf { BuildConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL.isNotBlank() },
-            PUBLIC_SUBSCRIPTION_ID,
-
         )
         val DEFAULT_SUBSCRIPTION_ID = BUILT_IN_SUBSCRIPTION_IDS.first()
         fun isBuiltInSubscription(id: String): Boolean = id in BUILT_IN_SUBSCRIPTION_IDS

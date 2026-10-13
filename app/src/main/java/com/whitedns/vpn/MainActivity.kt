@@ -1425,7 +1425,6 @@ class MainActivity : Activity() {
 
     private fun builtInSubscriptionName(id: String): String = getString(
         when (id) {
-            SubscriptionStore.PUBLIC_SUBSCRIPTION_ID -> R.string.subscription_public_name
             SubscriptionStore.TTR_SUBSCRIPTION_ID -> R.string.ttr_sub_name
             else -> R.string.subscription_private_name
         },

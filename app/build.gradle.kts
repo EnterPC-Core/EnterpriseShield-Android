@@ -39,7 +39,7 @@ fun httpsBuildUrl(environmentName: String, defaultValue: String): String {
 
 val mihomoSubscriptionUrl = httpsBuildUrl(
     "WHITEDNS_MIHOMO_SUBSCRIPTION_URL",
-    "https://api.enterprise-shield.ru/v1/reserve",
+    "https://api.enterprise-shield.ru/v1/mihomo",
 )
 val privateMihomoSubscriptionUrl = (
     System.getenv("WHITEDNS_PRIVATE_MIHOMO_SUBSCRIPTION_URL")?.takeIf { it.isNotBlank() }
@@ -72,8 +72,8 @@ android {
         applicationId = "com.enterprise.shield.vpn"
         minSdk = 26
         targetSdk = 35
-        versionCode = 200
-        versionName = "1.0.100"
+        versionCode = 110
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resourceConfigurations += listOf("en", "ru")

@@ -14,7 +14,7 @@ class VpnServicePolicyTest {
         assertEquals(
             SubscriptionStore.BUILT_IN_SUBSCRIPTION_IDS,
             BuiltInSubscriptionStartupPolicy.sourceIds(
-                SubscriptionStore.PUBLIC_SUBSCRIPTION_ID,
+                SubscriptionStore.DEFAULT_SUBSCRIPTION_ID,
                 explicitProfile = null,
             ),
         )

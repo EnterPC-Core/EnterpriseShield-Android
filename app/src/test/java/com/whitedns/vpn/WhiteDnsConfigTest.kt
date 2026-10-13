@@ -22,12 +22,13 @@ class WhiteDnsConfigTest {
     @Test
     fun builtInSourcesAndDefaultFollowPrivateBuildConfiguration() {
         val expectedIds = if (BuildConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL.isBlank()) {
-            listOf("whitedns")
+            emptyList()
         } else {
-            listOf("whitevpn-private", "whitedns")
+            listOf("whitevpn-private")
         }
         assertEquals(expectedIds, SubscriptionStore.BUILT_IN_SUBSCRIPTION_IDS)
-        assertEquals(expectedIds.first(), SubscriptionStore.DEFAULT_SUBSCRIPTION_ID)
+        val expectedDefault = if (expectedIds.isEmpty()) null else expectedIds.first()
+        if (expectedDefault != null) assertEquals(expectedDefault, SubscriptionStore.DEFAULT_SUBSCRIPTION_ID)
         assertEquals(expectedIds.contains("whitevpn-private"), SubscriptionStore.isBuiltInSubscription("whitevpn-private"))
     }
 
