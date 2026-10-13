@@ -363,6 +363,7 @@ class MainActivity : Activity() {
         )
         configureSystemBars()
         setContentView(buildAppShell())
+        TgProxyManager.restoreIfNeeded(this)
         maybeAutoRefreshChannels()
         renderState(VpnState.Stopped)
         refreshLocationOptions()
@@ -4611,7 +4612,7 @@ testingSettings.addView(
         profiles: List<ConnectionProfile>,
         resetMissingSelection: Boolean,
     ) {
-        connectionProfiles = profiles
+        connectionProfiles = WarpProfiles.appendTo(profiles, this)
         val subscriptionStore = SubscriptionStore(this)
         connectionDelayRecords = delayRecordsForUi(
             subscriptionStore,

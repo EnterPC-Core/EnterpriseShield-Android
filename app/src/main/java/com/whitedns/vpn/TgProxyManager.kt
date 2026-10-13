@@ -68,7 +68,20 @@ object TgProxyManager {
 
     @Synchronized
     fun toggle(context: android.content.Context, on: Boolean) {
+        // сохранить состояние — при следующем запуске приложения восстановится
+        context.getSharedPreferences("white_dns_tg_proxy", android.content.Context.MODE_PRIVATE)
+            .edit().putBoolean("auto_start", on).apply()
         if (on) start(context) else stop()
+    }
+
+    /** Восстановить сохранённое состояние при запуске приложения. */
+    fun restoreIfNeeded(context: android.content.Context) {
+        val saved = context.getSharedPreferences("white_dns_tg_proxy", android.content.Context.MODE_PRIVATE)
+            .getBoolean("auto_start", false)
+        if (saved && !isRunning()) {
+            start(context)
+            android.util.Log.i("TgProxy", "автовосстановление из сохранённых настроек")
+        }
     }
 
     fun proxyLink(context: android.content.Context): String {
