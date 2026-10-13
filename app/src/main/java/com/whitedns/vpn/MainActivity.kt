@@ -360,7 +360,6 @@ class MainActivity : Activity() {
         )
         configureSystemBars()
         setContentView(buildAppShell())
-        maybeAutoRefreshChannels()
         renderState(VpnState.Stopped)
         refreshLocationOptions()
         fetchPrivateSubscriptionOnLoad()
