@@ -144,7 +144,7 @@ object AdBlockPolicy {
 
     fun readQuicBlockEnabled(context: android.content.Context): Boolean {
         return context.getSharedPreferences(PREFERENCES_NAME, android.content.Context.MODE_PRIVATE)
-            .getBoolean(KEY_QUIC, false)
+            .getBoolean(KEY_QUIC, true)
     }
 
     fun saveQuicBlockEnabled(context: android.content.Context, enabled: Boolean) {
