@@ -1,85 +1,69 @@
-# WhiteVPN for Android
-
-[![Latest release](https://img.shields.io/github/v/release/WhiteDNS/WhiteVPN?label=download)](https://github.com/WhiteDNS/WhiteVPN/releases/latest)
-[![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)
-
-A simple, open-source Android VPN client powered by [Mihomo](https://github.com/MetaCubeX/mihomo). WhiteVPN works out of the box with a built-in WhiteDNS subscription and also lets you bring your own.
+# 🛡️ Enterprise Shield — VPN без блокировок
 
 <p align="center">
-  <img src="docs/screenshots/whitevpn-fa.jpg" alt="WhiteVPN Persian home screen" width="360">
+  <b>Бесплатно. Без регистрации. Без лимитов.</b><br/>
+  Работает даже там, где другие VPN отваливаются.
 </p>
 
-## Features
+<p align="center">
+  <a href="https://github.com/EnterPC-Core/EnterpriseShield-Android/releases/latest"><img src="https://img.shields.io/github/v/release/EnterPC-Core/EnterpriseShield-Android?label=Скачать&style=for-the-badge" alt="Скачать"></a>
+  <img src="https://img.shields.io/badge/license-GPL--3.0--only-blue.svg?style=for-the-badge" alt="GPL-3.0">
+  <img src="https://img.shields.io/badge/Android-6.0+-3FBE90?style=for-the-badge" alt="Android 6.0+">
+</p>
 
-- One-tap **VPN** mode and local **proxy** mode
-- Built-in WhiteDNS subscription, custom subscriptions, automatic refresh and offline cache
-- Manual server selection plus latency and download-speed tests
-- Subscription, Iran-bypass and global-proxy routing modes
-- Split tunnelling: bypass selected apps or proxy only selected apps
-- Automatic DNS, DNS over HTTPS (DoH) and DNS over TLS (DoT)
-- Clean-IP scanning, optional ByeDPI compatibility and authenticated LAN sharing
-- Persian and English interfaces with system, light and dark themes
+---
 
-## Supported methods and inputs
+## Что такое Enterprise Shield
 
-Share links:
+VPN-клиент для Android, заточенный под реальные условия: мобильные сети с DPI-глушилками, домашний интернет с блокировками, нестабильные операторы.
 
-- VLESS
-- VMess
-- Trojan
-- Shadowsocks (`ss://`)
-- Hysteria 2 (`hysteria2://` and `hy2://`)
-- WireGuard, including supported AmneziaWG options
+Просто установи, нажми одну кнопку — и забудь о том, что что-то не открывается.
 
-Subscriptions can be added as an HTTPS URL or pasted directly. WhiteVPN accepts plain or Base64-encoded link lists, Mihomo YAML, Clash JSON, and Xray JSON arrays. Clash JSON supports VLESS, VMess, Trojan, Shadowsocks and WireGuard entries; Xray JSON supports VLESS, VMess, Trojan and WireGuard outbounds.
+## Возможности
 
-## Built-in subscription
+- 🚫 **Обход DPI** — встроенный десинхронизатор TCP (ByeByeDPI) работает на всех серверах: трафик разрезается на нестандартные куски, DPI не распознаёт VPN
+- 🎭 **Маскировка** — REALITY-маски (трафик выглядит как заход на обычный сайт), WS+TLS-каналы, ECH через Cloudflare, случайный TLS-отпечаток
+- ⚡ **Умный выбор** — приложение само тестирует каналы и переключается на живой и быстрый
+- 🗺️ **Карта серверов** — интерактивная карта мира с локациями
+- 📊 **Спидтест** — замер скорости прямо в приложении (методика Cloudflare)
+- 📡 **Мониторинг сети** — проверка доступности 15 сервисов (YouTube, Telegram, Instagram, AI...)
+- ✈️ **Telegram-прокси** — встроенный MTProto-прокси с автовосстановлением
+- 🚫 **Без рекламы** — блокировка рекламных и трекинговых доменов, включая мусор Xiaomi/MIUI
+- 🔒 **Два режима** — VPN (весь трафик) или прокси (выборочно)
+- 📱 **Совместимость** — Android 6.0+, arm64 / armv7 / x86 / x86_64, отдельные сборки под каждую архитектуру
 
-No subscription is required for first use. Automatic built-in connections try WhiteVPN Private first when configured, then the public [WhiteDNS Mihomo subscription](https://github.com/iampedii/whitedns-sub/blob/main/mihomo.yaml). Each source refreshes every 30 minutes while connected and keeps its own last valid copy for temporary network failures.
+## Скачать
 
-Official builds inject the private source through the `WHITEDNS_PRIVATE_MIHOMO_SUBSCRIPTION_URL` secret. Local builds can set the same environment variable or `privateMihomoSubscriptionUrl` in `secrets.properties`. When neither is set, the build succeeds with only the public built-in subscription; Private is omitted from menus and refreshes. Configured URLs must use HTTPS. Distributors can replace the public source with `WHITEDNS_MIHOMO_SUBSCRIPTION_URL`. Custom subscriptions remain separate and can be tested, selected, refreshed, edited or removed in the app.
+Самая свежая версия — в разделе **[Releases](https://github.com/EnterPC-Core/EnterpriseShield-Android/releases/latest)**.
 
-## Community
+Выбор сборки:
+- `arm64-v8a` — почти все современные телефоны (если сомневаешься — бери эту)
+- `armeabi-v7a` — старые 32-битные
+- `x86` / `x86_64` — эмуляторы и планшеты на Intel/AMD
+- `universal` — на всякий случай, подходит всем (большой размер)
 
-- Telegram channel: [@whitedns](https://t.me/whitedns)
-- Telegram group: [@whitedns_group](https://t.me/whitedns_group)
+Обновления приходят автоматически прямо в приложение.
 
-## Install
+## Свой сервер
 
-Download the latest APK from [GitHub Releases](https://github.com/WhiteDNS/WhiteVPN/releases/latest). WhiteVPN requires Android 8.0 (API 26) or newer.
+Приложение работает из коробки на встроенных каналах. Можно добавить свою подписку — поддерживаются форматы mihomo (YAML), vless/vmess/trojan-ссылки и Happ/Xray JSON.
 
-## Build
-
-Requirements: JDK 17, Go, Android SDK and Android NDK.
-
-```bash
-./scripts/build-flclash-core.sh
-./gradlew testDebugUnitTest assembleDebug
-```
-
-The build script checks out the pinned [FlClash](https://github.com/chen08209/FlClash) integration, builds Mihomo v1.19.30 for all supported Android ABIs, and generates the JNI files consumed by the app.
-
-## Third-party software
-
-- [Mihomo](https://github.com/MetaCubeX/mihomo) — proxy core
-- [FlClash](https://github.com/chen08209/FlClash) — Android core/JNI integration
-- [SubConv](https://github.com/SubConv/SubConv) — adapted share-link conversion logic
-- [ByeDPI](https://github.com/hufrea/byedpi) — optional DPI-bypass compatibility
-- AndroidX, Material Components, Kotlin Coroutines and Firebase Analytics
-
-Their respective licenses and notices continue to apply.
-
-## Contributing
-
-Issues and pull requests are welcome. Keep changes focused, avoid committing subscriptions or secrets, and run the local checks before opening a PR:
+## Из исходников
 
 ```bash
-./gradlew testDebugUnitTest assembleDebug
-git diff --check
+git clone https://github.com/EnterPC-Core/EnterpriseShield-Android.git
+cd EnterpriseShield-Android
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export ANDROID_HOME=/opt/android-sdk
+./gradlew assembleRelease
 ```
 
-Please describe what changed, why it is needed, and what you tested.
+## Поддержка
 
-## License
+- Telegram-бот: [@Enterprise_vpn_bot](https://t.me/Enterprise_vpn_bot)
+- Канал с новостями и обсуждением — ссылка в приложении (раздел «О проекте»)
+- Баг-репорты: [Issues](https://github.com/EnterPC-Core/EnterpriseShield-Android/issues)
 
-WhiteVPN is licensed under [GPL-3.0-only](LICENSE).
+## Лицензия
+
+[GPL-3.0-only](LICENSE)
