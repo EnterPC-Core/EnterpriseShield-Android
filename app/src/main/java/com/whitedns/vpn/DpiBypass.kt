@@ -49,5 +49,5 @@ class DpiBypassPreferenceStore(context: Context) {
             .apply()
     }
 
-    fun isEnabled(): Boolean = false
+    fun isEnabled(): Boolean = true
 }
