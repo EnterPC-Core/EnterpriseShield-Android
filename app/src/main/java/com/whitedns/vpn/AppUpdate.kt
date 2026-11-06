@@ -191,8 +191,9 @@ object GitHubReleaseClient {
 
     private fun requireRepositoryUrl(url: String, path: String) {
         val uri = checkedUri(url)
-        val validHost = uri.host == "api.enterprise-shield.ru" || uri.host == "89.208.103.229"
-        if (!validHost || uri.rawPath != path || uri.rawQuery != null) {
+        val validHost = uri.host in setOf("api.enterprise-shield.ru", "89.208.103.229", "github.com")
+        val pathOk = uri.rawPath == path || (uri.host == "github.com" && uri.rawPath.startsWith("/EnterPC-Core/EnterpriseShield-Android/"))
+        if (!validHost || !pathOk || uri.rawQuery != null) {
             throw IOException("GitHub release URL is invalid")
         }
     }
@@ -204,7 +205,8 @@ object GitHubReleaseClient {
             throw IOException("GitHub release URL is invalid", error)
         }
         val directVps = uri.host == "89.208.103.229"
-        if ((uri.scheme != "https" && !directVps) || uri.userInfo != null || uri.port != -1 || uri.fragment != null || uri.host == null) {
+        val isGithub = uri.host == "github.com"
+        if ((uri.scheme != "https" && !directVps) || uri.userInfo != null || (uri.port != -1 && !isGithub) || uri.fragment != null || uri.host == null) {
             throw IOException("GitHub release URL is invalid")
         }
         return uri
@@ -216,7 +218,7 @@ object GitHubReleaseClient {
             coroutineContext.ensureActive()
             val uri = checkedUri(url)
             if (asset) {
-                if (uri.host !in setOf("api.enterprise-shield.ru")) {
+                if (uri.host !in setOf("api.enterprise-shield.ru", "github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com")) {
                     throw IOException("GitHub asset redirected to an invalid host")
                 }
             } else if (url != LATEST_RELEASE_URL) {
