@@ -149,7 +149,8 @@ internal class AppUpdateUi(
                 throw error
             } catch (error: Exception) {
                 DiagnosticLogger.warn(activity, "update.check.failed", error = error)
-                if (manual) notice = activity.getString(R.string.update_check_failed)
+                if (manual) notice = activity.getString(R.string.update_check_failed) +
+                    (error.message?.let { "\n" + it } ?: "")
             } finally {
                 checking = false
                 render()

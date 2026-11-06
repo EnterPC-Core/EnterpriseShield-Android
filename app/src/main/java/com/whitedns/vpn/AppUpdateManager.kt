@@ -299,7 +299,7 @@ class AppUpdateManager(context: Context) {
 
     private fun releaseJson(release: AppRelease): JSONObject {
         val variant = ApkVariant.entries.singleOrNull {
-            release.apk?.name == "EnterpriseShieldVPN-${AppUpdatePolicy.normalizedVersion(release.version)}-${it.suffix}.apk"
+            release.apk?.name == "EnterpriseShield-${AppUpdatePolicy.normalizedVersion(release.version)}-${it.suffix}.apk"
         }
         val assets = JSONArray()
         listOfNotNull(release.apk, release.checksums).forEach {
