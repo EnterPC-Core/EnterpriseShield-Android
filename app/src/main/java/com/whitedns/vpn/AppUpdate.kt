@@ -179,6 +179,14 @@ object GitHubReleaseClient {
     }
 
     internal fun requireAssetUrl(url: String, tag: String, name: String) {
+        if (url.startsWith("https://github.com/")) {
+            // GitHub release asset: path /EnterPC-Core/EnterpriseShield-Android/releases/download/<tag>/<name>
+            val uri = java.net.URI(url)
+            val ok = uri.scheme == "https" && uri.host == "github.com" &&
+                uri.path.endsWith("/$name") && uri.query == null && uri.fragment == null
+            if (!ok) throw IOException("GitHub release asset URL is invalid")
+            return
+        }
         requireRepositoryUrl(url, "/app/es/$name")
     }
 
