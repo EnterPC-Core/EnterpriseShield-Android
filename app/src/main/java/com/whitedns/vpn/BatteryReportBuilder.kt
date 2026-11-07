@@ -533,10 +533,12 @@ object BatteryReportBuilder {
         content(inner)
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            background = GradientDrawable().apply {
-                cornerRadius = dp(activity, 14).toFloat()
-                setColor(surface)
-            }
+            background = EsDs.glassBackground(
+                activity,
+                WhiteDnsDesignTokens.forContext(activity),
+                radiusDp = EsDs.Radius.cardSmall,
+                tintAlpha = if (WhiteDnsDesignTokens.forContext(activity).isDark) 206 else 176,
+            )
             addView(inner, LinearLayout.LayoutParams(-1, -2))
         }
     }

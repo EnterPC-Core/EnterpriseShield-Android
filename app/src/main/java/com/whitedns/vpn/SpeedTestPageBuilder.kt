@@ -65,10 +65,11 @@ object SpeedTestPageBuilder {
             textSize = 12f
             setTextColor(if (started) teal else amber)
             background = GradientDrawable().apply {
-                cornerRadius = dp(activity, 20).toFloat()
+                cornerRadius = dp(activity, EsDs.Radius.pill).toFloat()
                 setColor((if (started) teal else amber) and 0x1AFFFFFF)
+                setStroke(dp(activity, 1), (if (started) teal else amber) and 0x33FFFFFF)
             }
-            setPadding(dp(activity, 12), dp(activity, 6), dp(activity, 12), dp(activity, 6))
+            setPadding(dp(activity, EsDs.Space.sm), dp(activity, 6), dp(activity, EsDs.Space.sm), dp(activity, 6))
         }
         if (!started) {
             content.addView(TextView(activity).apply {

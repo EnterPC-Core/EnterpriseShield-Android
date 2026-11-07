@@ -440,8 +440,8 @@ class MainActivity : Activity() {
             minimumHeight = dp(72)
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(24).toFloat()
-                setColor(withAlpha(SURFACE, 220))
+                cornerRadius = dp(22).toFloat()
+                setColor(withAlpha(SURFACE, 205))
             }
             elevation = 0f
             setSelectedTabIndicatorHeight(dp(3))
@@ -1839,8 +1839,8 @@ class MainActivity : Activity() {
             // Container with rounded background
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(16).toFloat()
-                setColor(withAlpha(SURFACE, 200))
+                cornerRadius = dp(22).toFloat()
+                setColor(withAlpha(SURFACE, 205))
                 setStroke(dp(1), withAlpha(OUTLINE, 180))
             }
             minimumHeight = dp(52)
@@ -2087,13 +2087,14 @@ class MainActivity : Activity() {
 
         val statusCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(12), dp(16), dp(12))
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(16).toFloat()
-                setColor(withAlpha(SURFACE, 200))
-                setStroke(dp(1), withAlpha(OUTLINE, 180))
-            }
+            setPadding(dp(EsDs.Space.lg), dp(EsDs.Space.sm), dp(EsDs.Space.lg), dp(EsDs.Space.sm))
+            background = EsDs.glassBackground(
+                this@MainActivity,
+                palette,
+                radiusDp = EsDs.Radius.card,
+                tintAlpha = if (palette.isDark) 200 else 172,
+            )
+            elevation = dp(if (palette.isDark) 2 else 3).toFloat()
             addView(timerRow, LinearLayout.LayoutParams(-1, dp(44)))
             addView(
                 View(this@MainActivity).apply { setBackgroundColor(withAlpha(OUTLINE, 150)) },
@@ -2202,13 +2203,14 @@ class MainActivity : Activity() {
         // Connection details card
         val dataRowsList = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(16).toFloat()
-                setColor(withAlpha(SURFACE, 200))
-                setStroke(dp(1), withAlpha(OUTLINE, 180))
-            }
+            background = EsDs.glassBackground(
+                this@MainActivity,
+                palette,
+                radiusDp = EsDs.Radius.card,
+                tintAlpha = if (palette.isDark) 204 else 176,
+            )
             clipToOutline = true
+            elevation = dp(if (palette.isDark) 2 else 3).toFloat()
             addView(locationSelectorRow, LinearLayout.LayoutParams(-1, -2))
             addView(View(this@MainActivity).apply { setBackgroundColor(withAlpha(OUTLINE, 150)) },
                 LinearLayout.LayoutParams(-1, dp(1)).apply {
@@ -4141,10 +4143,10 @@ testingSettings.addView(
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_LOCALE
-            background = glassSurfaceDrawable(radiusDp = 12)
+            background = glassSurfaceDrawable(radiusDp = EsDs.Radius.card)
             clipToOutline = true
             elevation = 0f
-            setPadding(dp(4), dp(4), dp(4), dp(12))
+            setPadding(dp(EsDs.Space.xs), dp(EsDs.Space.xs), dp(EsDs.Space.xs), dp(EsDs.Space.md))
         }
     }
 
@@ -4803,9 +4805,9 @@ testingSettings.addView(
         )
 
         val content = MaxWidthLinearLayout(this).apply {
-            maxWidthPx = dp(640)
+            maxWidthPx = dp(520)
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(24), dp(20), dp(24), dp(12))
+            setPadding(dp(EsDs.Space.xl), dp(EsDs.Space.lg), dp(EsDs.Space.xl), dp(EsDs.Space.sm))
         }
 
         val backButton = ImageButton(this).apply {
@@ -4878,7 +4880,7 @@ testingSettings.addView(
             ellipsize = TextUtils.TruncateAt.END
             setPadding(dp(14), dp(10), dp(14), dp(10))
             background = GradientDrawable().apply {
-                cornerRadius = dp(20).toFloat()
+                cornerRadius = dp(22).toFloat()
                 setStroke(dp(1), OUTLINE)
                 setColor(SURFACE)
             }
@@ -5118,7 +5120,7 @@ testingSettings.addView(
                         compoundDrawableTintList = ColorStateList.valueOf(TEAL)
                         setPadding(dp(8), 0, dp(8), 0)
                         background = GradientDrawable().apply {
-                            cornerRadius = dp(16).toFloat()
+                            cornerRadius = dp(22).toFloat()
                             setColor((TEAL and 0x00FFFFFF) or (0x18 shl 24))
                         }
                         visibility = View.GONE
@@ -6446,7 +6448,7 @@ testingSettings.addView(
             orientation = RadioGroup.VERTICAL
             layoutDirection = View.LAYOUT_DIRECTION_LOCALE
             setPadding(dp(4), dp(4), dp(4), dp(4))
-            background = glassSurfaceDrawable(radiusDp = 12).apply {
+            background = glassSurfaceDrawable(radiusDp = EsDs.Radius.card).apply {
                 setStroke(dp(1), OUTLINE)
             }
             clipToOutline = true
@@ -6548,7 +6550,7 @@ testingSettings.addView(
             setPadding(dp(24), dp(24), dp(24), dp(24))
         }
         val appListContainer = FrameLayout(this).apply {
-            background = glassSurfaceDrawable(radiusDp = 12).apply {
+            background = glassSurfaceDrawable(radiusDp = EsDs.Radius.card).apply {
                 setStroke(dp(1), OUTLINE)
             }
             clipToOutline = true
@@ -7677,12 +7679,27 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
         window.decorView.systemUiVisibility = flags
     }
 
+    /**
+     * Liquid Glass поверхность: три слоя света (верхний блик, тон стекла,
+     * нижняя тень) + тонкая кромка. Радиус и прозрачность — из дизайн-системы.
+     */
     private fun glassSurfaceDrawable(radiusDp: Int, highlighted: Boolean = false): GradientDrawable {
+        val base = if (highlighted) palette.surfaceElevated2 else palette.surfaceElevated1
+        val tint = if (highlighted) 236 else if (palette.isDark) 214 else 196
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = dp(radiusDp).toFloat()
-            setColor(if (highlighted) palette.surfaceElevated2 else palette.surface)
-            if (highlighted) setStroke(dp(1), withAlpha(TEAL, 170))
+            gradientType = GradientDrawable.LINEAR_GRADIENT
+            orientation = GradientDrawable.Orientation.TOP_BOTTOM
+            colors = intArrayOf(
+                withAlpha(base, (tint + 22).coerceAtMost(255)),
+                withAlpha(base, tint),
+                withAlpha(base, (tint - 16).coerceAtLeast(120)),
+            )
+            setStroke(
+                dp(1),
+                if (highlighted) withAlpha(TEAL, 190) else withAlpha(palette.outline, if (palette.isDark) 200 else 150)
+            )
         }
     }
 
@@ -7732,9 +7749,30 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
     private fun withAlpha(color: Int, alpha: Int): Int =
         (color and 0x00FFFFFF) or (alpha.coerceIn(0, 255) shl 24)
 
-    private fun View.setSelectableBackground() {
-        val mask = android.graphics.drawable.GradientDrawable().apply { cornerRadius = dp(10).toFloat() }
-        background = RippleDrawable(ColorStateList.valueOf(withAlpha(TEAL, 20)), null, mask)
+    private fun View.setSelectableBackground(radiusDp: Int = EsDs.Radius.control) {
+        val mask = android.graphics.drawable.GradientDrawable().apply {
+            cornerRadius = dp(radiusDp).toFloat()
+        }
+        background = RippleDrawable(ColorStateList.valueOf(withAlpha(TEAL, 24)), null, mask)
+        isClickable = true
+        // Лёгкий отклик на нажатие: масштаб 0.98 (не влияет на layout).
+        val press = android.animation.ValueAnimator.ofFloat(1f, 0.98f, 1f).apply {
+            duration = 180L
+            interpolator = android.view.animation.PathInterpolator(0.2f, 0f, 0.2f, 1f)
+            addUpdateListener { scaleX = it.animatedValue as Float; scaleY = it.animatedValue as Float }
+        }
+        setOnTouchListener { view, event ->
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    press.cancel()
+                    view.animate().scaleX(0.98f).scaleY(0.98f).setDuration(90L).start()
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    view.animate().scaleX(1f).scaleY(1f).setDuration(140L).start()
+                }
+            }
+            false
+        }
     }
 
     @Suppress("DEPRECATION")

@@ -1,6 +1,8 @@
 package com.whitedns.vpn
 
 import android.app.DownloadManager
+import java.net.HttpURLConnection
+import java.net.URL
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -15,6 +17,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.security.MessageDigest
 import kotlin.coroutines.coroutineContext
@@ -74,25 +77,71 @@ class AppUpdateManager(context: Context) {
             coroutineContext.ensureActive()
             clearDownload(previous)
             val apk = release.apk!!
-            val destination = File(context.getExternalFilesDir("updates"), "download.apk")
+            val destination = snapshot
             destination.parentFile?.mkdirs()
             destination.delete()
             DiagnosticLogger.info(context, "ota.manager.download", "version=${release.version} asset=${apk.name} size=${apk.size}")
-            val request = DownloadManager.Request(Uri.parse(apk.url)).apply {
-                setTitle("Enterprise Shield ${release.version}")
-                setDescription("Скачивание обновления")
-                setMimeType("application/vnd.android.package-archive")
-                setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                setAllowedOverMetered(true)
-                setAllowedOverRoaming(true)
-                setDestinationUri(Uri.fromFile(destination))
-            }
-            val id = downloads.enqueue(request)
+            // Собственная загрузка: редиректы GitHub -> CDN обслуживаем сами.
+            downloadInline(apk.url, destination, apk.size)
+            val id = -1L
             try {
                 savePending(PendingDownload(id, release, digest))
             } catch (error: Exception) {
                 downloads.remove(id)
                 throw error
+            }
+        }
+    }
+
+
+    /** Скачивает APK по ссылке, следуя редиректам, с ограничением размера. */
+    private fun downloadInline(url: String, target: File, expectedSize: Long) {
+        var current = url
+        var hops = 0
+        while (true) {
+            val connection = URL(current).openConnection() as HttpURLConnection
+            connection.connectTimeout = 20_000
+            connection.readTimeout = 60_000
+            connection.instanceFollowRedirects = false
+            connection.setRequestProperty("User-Agent", "EnterpriseShield-OTA/1.0")
+            connection.setRequestProperty("Accept", "application/octet-stream")
+            connection.setRequestProperty("Accept-Language", "en-US,en;q=0.9")
+            try {
+                val code = connection.responseCode
+                val location = connection.getHeaderField("Location")
+                if (code in 300..399 && location != null) {
+                    current = java.net.URI(current).resolve(location).toString()
+                    if (++hops > 5) throw IOException("Too many redirects")
+                    continue
+                }
+                if (code != 200) throw IOException("HTTP $code while downloading update")
+                connection.inputStream.use { input ->
+                    FileOutputStream(target).use { out ->
+                        val buffer = ByteArray(64 * 1024)
+                        val progressFile = File(target.parentFile, "update.progress")
+                        var total = 0L
+                        var lastWrite = 0L
+                        while (true) {
+                            val count = input.read(buffer)
+                            if (count == -1) break
+                            out.write(buffer, 0, count)
+                            total += count
+                            if (expectedSize > 0 && total > expectedSize) {
+                                throw IOException("Update file is larger than announced")
+                            }
+                            // Прогресс для UI: пишем не чаще раза в 128КБ.
+                            if (total - lastWrite >= 131_072L) {
+                                lastWrite = total
+                                progressFile.writeText("$total $expectedSize")
+                            }
+                        }
+                        out.flush()
+                        progressFile.delete()
+                    }
+                }
+                return
+            } finally {
+                connection.disconnect()
             }
         }
     }
@@ -106,23 +155,20 @@ class AppUpdateManager(context: Context) {
                 return@withLock AppDownloadState.Ready(snapshot, pending.release)
             }
             try {
-                downloads.query(DownloadManager.Query().setFilterById(pending.id)).use { cursor ->
-                    if (cursor == null || !cursor.moveToFirst()) throw IOException("Update download no longer exists")
-                    when (cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
-                        DownloadManager.STATUS_SUCCESSFUL -> {
-                            copyDownload(pending)
-                            verifySnapshot(pending)
-                            AppDownloadState.Ready(snapshot, pending.release)
-                        }
-                        DownloadManager.STATUS_PENDING, DownloadManager.STATUS_RUNNING, DownloadManager.STATUS_PAUSED -> {
-                            AppDownloadState.Downloading(
-                                cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)),
-                                cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)),
-                                cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_PAUSED,
-                            )
-                        }
-                        else -> throw IOException("Update download failed")
-                    }
+                val progressFile = File(updateDirectory, "update.progress")
+                if (snapshot.isFile && snapshot.length() == pending.release.apk?.size) {
+                    verifySnapshot(pending)
+                    AppDownloadState.Ready(snapshot, pending.release)
+                } else if (progressFile.isFile) {
+                    val parts = progressFile.readText().trim().split(" ")
+                    val done = parts.getOrNull(0)?.toLongOrNull() ?: 0L
+                    val total = parts.getOrNull(1)?.toLongOrNull() ?: pending.release.apk?.size ?: -1L
+                    AppDownloadState.Downloading(done, total, paused = false)
+                } else if (InlineApkDownloader.failed.get()) {
+                    throw IOException(InlineApkDownloader.error.get().ifBlank { "update download failed" })
+                } else {
+                    // Файла нет и процесса нет — например, приложение перезапустили во время загрузки.
+                    throw IOException("Update download was interrupted, tap download again")
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled

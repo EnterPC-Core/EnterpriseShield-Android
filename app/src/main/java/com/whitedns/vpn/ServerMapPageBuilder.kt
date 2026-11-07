@@ -103,12 +103,13 @@ object ServerMapPageBuilder {
         }
         val card = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(activity, 20).toFloat()
-                setColor((pal(activity).surface.toLong() and 0xFFFFFFD6L).toInt())
-                setStroke(dp(activity, 1), (teal.toLong() and 0x33FFFFFFL).toInt())
-            }
+            background = EsDs.glassBackground(
+                activity,
+                pal(activity),
+                radiusDp = EsDs.Radius.card,
+                tintAlpha = if (pal(activity).isDark) 214 else 182,
+            )
+            elevation = dp(activity, 6).toFloat()
             setPadding(dp(activity, 18), dp(activity, 14), dp(activity, 18), dp(activity, 14))
         }
 

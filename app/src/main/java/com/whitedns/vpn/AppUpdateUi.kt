@@ -169,7 +169,17 @@ internal class AppUpdateUi(
     }
 
     private fun download(release: AppRelease) {
-        if (busy || !release.downloadable) return
+        if (busy) return
+        if (!release.downloadable) {
+            // Раньше кнопка просто ничего не делала — теперь объясняем причину.
+            notice = activity.getString(R.string.update_not_ready)
+            DiagnosticLogger.warn(
+                activity, "update.download.not_ready",
+                error = IllegalStateException("apk=${release.apk?.name} checksums=${release.checksums?.name}")
+            )
+            render()
+            return
+        }
         busy = true
         notice = activity.getString(R.string.update_preparing)
         render()

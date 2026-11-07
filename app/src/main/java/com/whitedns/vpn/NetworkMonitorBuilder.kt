@@ -61,12 +61,12 @@ object NetworkMonitorBuilder {
         val surface = surfaceC(activity); val outline = outlineC(activity)
         return LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(activity, cornerDp).toFloat()
-                setColor(alpha(surface, 200))
-                setStroke(dp(activity, 1), alpha(outline, 180))
-            }
+            background = EsDs.glassBackground(
+                activity,
+                pal(activity),
+                radiusDp = EsDs.Radius.card,
+                tintAlpha = if (pal(activity).isDark) 206 else 176,
+            )
             clipToOutline = true
         }
     }
