@@ -74,11 +74,20 @@ class AppUpdateManager(context: Context) {
             coroutineContext.ensureActive()
             clearDownload(previous)
             val apk = release.apk!!
-            val target = File(context.filesDir, "updates/update.apk")
-            target.parentFile?.mkdirs()
+            val destination = File(context.getExternalFilesDir("updates"), "download.apk")
+            destination.parentFile?.mkdirs()
+            destination.delete()
             DiagnosticLogger.info(context, "ota.manager.download", "version=${release.version} asset=${apk.name} size=${apk.size}")
-            InlineApkDownloader.start(context, apk.url, target)
-            val id = 0L
+            val request = DownloadManager.Request(Uri.parse(apk.url)).apply {
+                setTitle("Enterprise Shield ${release.version}")
+                setDescription("Скачивание обновления")
+                setMimeType("application/vnd.android.package-archive")
+                setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                setAllowedOverMetered(true)
+                setAllowedOverRoaming(true)
+                setDestinationUri(Uri.fromFile(destination))
+            }
+            val id = downloads.enqueue(request)
             try {
                 savePending(PendingDownload(id, release, digest))
             } catch (error: Exception) {
@@ -97,20 +106,6 @@ class AppUpdateManager(context: Context) {
                 return@withLock AppDownloadState.Ready(snapshot, pending.release)
             }
             try {
-                if (InlineApkDownloader.failed.get()) throw IOException("OTA: " + InlineApkDownloader.error.get())
-                if (InlineApkDownloader.active.get()) {
-                    return@withLock AppDownloadState.Downloading(
-                        InlineApkDownloader.bytes.get(),
-                        if (InlineApkDownloader.total.get() > 0) InlineApkDownloader.total.get() else 0L,
-                        false,
-                    )
-                }
-                if (snapshot.isFile) {
-                    DiagnosticLogger.info(context, "ota.manager.verify", "file=${snapshot.length()} expected=${pending.release.apk?.size}")
-                    verifySnapshot(pending)
-                    DiagnosticLogger.info(context, "ota.manager.ready", "version=${pending.release.version}")
-                    return@withLock AppDownloadState.Ready(snapshot, pending.release)
-                }
                 downloads.query(DownloadManager.Query().setFilterById(pending.id)).use { cursor ->
                     if (cursor == null || !cursor.moveToFirst()) throw IOException("Update download no longer exists")
                     when (cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
