@@ -1537,8 +1537,7 @@ class MainActivity : Activity() {
         // app broadcast STATE_CHANGED and paint a false "connected" state over the UI.
         // ContextCompat guards the pre-33 path with a signature-level permission.
         ContextCompat.registerReceiver(this, stateReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
-        delayFailureNetworkMonitor.setDefaultNetworkChangeListener(::handleDelayFailureNetworkChange)
-        delayFailureNetworkMonitor.start()
+
         applyRuntimeState(
             VpnRuntimeStateStore.read(this),
             VpnRuntimeStateStore.readSessionStartedAtElapsedMs(this),
@@ -1575,8 +1574,7 @@ class MainActivity : Activity() {
         privacyPolicyDialog?.dismiss()
         privacyPolicyDialog = null
         connectionDelayTestListener = null
-        delayFailureNetworkMonitor.setDefaultNetworkChangeListener(null)
-        delayFailureNetworkMonitor.stop()
+
         unregisterReceiver(stateReceiver)
         super.onStop()
     }
@@ -2016,10 +2014,6 @@ class MainActivity : Activity() {
             addView(
                 speedStatRow(getString(R.string.metric_upload), uploadSpeedText, false, uploadArrowIcon),
                 LinearLayout.LayoutParams(0, -2, 1f),
-            )
-            addView(
-                NetworkMonitorBuilder.buildInlineStat(this@MainActivity) { showNetworkMonitorPage() },
-                LinearLayout.LayoutParams(0, -2, 1.15f),
             )
             addView(
                 TextView(this@MainActivity).apply {
