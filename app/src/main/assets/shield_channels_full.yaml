@@ -1,2694 +1,307 @@
 proxies:
-  - name: Enterprise Extra 1
+  - name: Enterprise Польша
     type: vless
-    server: s11.cpii.ru
-    port: 1443
-    uuid: 9576180b-1c0b-4832-bdef-69fd8e03ddc5
+    server: main.iapps.sbs
+    port: 2096
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: fonts.gstatic.com
-    client-fingerprint: chrome
+    servername: pl2.iapps.sbs
     network: tcp
+    client-fingerprint: firefox
     reality-opts:
-      public-key: w8GkraWIIMmDE8mFQEbMtM7GajfNPRb2htJxBV8zgE8
-      short-id: b0c357d9785679c0
-  - name: Enterprise Extra 2
+      public-key: pnuL4lC83zWU2pps-n7xjEZ57UFihuu8CXRpD2G1ohM
+      short-id: 4022a52a4bfebe57
+    flow: xtls-rprx-vision
+  - name: Enterprise Германия
     type: vless
-    server: s11.cpii.ru
-    port: 1443
-    uuid: 9576180b-1c0b-4832-bdef-69fd8e03ddc5
+    server: main.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: vk.com
-    client-fingerprint: chrome
+    servername: de.iapps.sbs
     network: tcp
-    reality-opts:
-      public-key: w8GkraWIIMmDE8mFQEbMtM7GajfNPRb2htJxBV8zgE8
-      short-id: b0c357d9785679c0
-  - name: 🇮🇳 Enterprise 308
-    type: vless
-    server: 5.253.28.240
-    port: 2443
-    uuid: 5e679ccd-1586-4d5f-b87b-48251046cad8
-    udp: true
-    tls: true
-    servername: deepl.com
     client-fingerprint: firefox
-    network: grpc
-    grpc-opts:
-      grpc-service-name: rex-eb0bf76b710ce763
     reality-opts:
-      public-key: h85e28MxBgNyT9d9cNeOLVtWfHq6cT_1_oxZOTajtTg
-      short-id: 92c32de179e5d908
-  - name: 🇫🇷 Enterprise 335
+      public-key: THLsoaSfze_QSwiphxzvGt_1JluHMxbV1H1Z1FHOZiU
+      short-id: 9fa993935e441c65
+    flow: xtls-rprx-vision
+  - name: Enterprise Чехия
     type: vless
-    server: 152.228.139.33
-    port: 35108
-    uuid: 81dc0b61-f9fe-4ad6-8b4e-b8c067b73712
+    server: cz.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: www.nvidia.com
+    servername: cz.iapps.sbs
+    network: tcp
     client-fingerprint: firefox
-    network: grpc
-    grpc-opts:
-      grpc-service-name: grpc-common3
     reality-opts:
-      public-key: X_lOw5Zz4SJBa1cRHV4dAq5msYE-ClY5-WNcBmBWRxg
-      short-id: 52add08b86a5ccea
-  - name: Enterprise 396
+      public-key: zDC-DrJmOpnMCDmJQyupmEE3WiHsPzSG7jVGmDTm2h4
+      short-id: b6c826c38f85690e
+    flow: xtls-rprx-vision
+  - name: Enterprise Франция
     type: vless
-    server: hydra.yokkastars.com
-    port: 2443
-    uuid: 5e679ccd-1586-4d5f-b87b-48251046cad8
+    server: main.iapps.sbs
+    port: 2053
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: deepl.com
-    client-fingerprint: qq
-    network: grpc
-    grpc-opts:
-      grpc-service-name: rex-eb0bf76b710ce763
+    servername: fr.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
     reality-opts:
-      public-key: h85e28MxBgNyT9d9cNeOLVtWfHq6cT_1_oxZOTajtTg
-      short-id: 92c32de179e5d908
-  - name: Enterprise 412
+      public-key: V4PHqKe0p8V4s0Kge67ht2w4anX_cZxNSV45bYGu4BA
+      short-id: 94a04f42566bb7ca
+    flow: xtls-rprx-vision
+  - name: Enterprise Нидерланды
     type: vless
-    server: 36a466g.fi1.h1clayd.click
-    port: 443
-    uuid: 9a0e84f8-4b58-477f-99da-5fac5a2e58e8
+    server: main.iapps.sbs
+    port: 2087
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: 36a466g.fi1.h1clayd.click
+    servername: nl2.iapps.sbs
+    network: tcp
     client-fingerprint: firefox
-    network: grpc
-    grpc-opts:
-      grpc-service-name: 0adb9638509b
     reality-opts:
-      public-key: pAgrBKJCmuSJHIzYkEJTqsOBOVBK_DMtEqFPo-PaTkg
-      short-id: b3c9d0c6bdd114a6
-  - name: 🇫🇷 Enterprise 414
+      public-key: KSY7fkF8gzAY9eFjFGekAD59qPz-I06GA8Vkkan65Ac
+      short-id: 143af67427834e10
+    flow: xtls-rprx-vision
+  - name: Enterprise Беларусь
     type: vless
-    server: 152.228.139.33
-    port: 51671
-    uuid: 75cc7568-abb0-46a8-88be-8137d3c647d4
+    server: by.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: www.sony.com
+    servername: by.iapps.sbs
+    network: tcp
     client-fingerprint: firefox
-    network: grpc
-    grpc-opts:
-      grpc-service-name: grpc_common3
     reality-opts:
-      public-key: -5PowNUY37Pi01YKO9fjRTrum1m_9n6XauaPDpmOJzU
-      short-id: 2fed44d8c59f7e71
-  - name: Enterprise 531
+      public-key: ArpQ56NmCBjOYGEejjYj8pB9PyDM_FgEQ6TMySKOMx8
+      short-id: 91883d70222b006d
+    flow: xtls-rprx-vision
+  - name: Enterprise Финляндия
     type: vless
-    server: 200.165.231.209
+    server: fi.iapps.sbs
     port: 443
-    uuid: ff0b6ba8-bed0-4c4d-bbc9-23af47582615
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: wstg.datasynctrue.online
-    client-fingerprint: chrome
-    network: ws
-    ws-opts:
-      path: /api/connect
-      headers:
-        Host: wstg.datasynctrue.online
-  - name: Enterprise 535
-    type: vless
-    server: 91.210.169.181
-    port: 443
-    uuid: ff0b6ba8-bed0-4c4d-bbc9-23af47582615
-    udp: true
-    tls: true
-    servername: wstg.datasynctrue.online
-    client-fingerprint: chrome
-    network: ws
-    ws-opts:
-      path: /api/connect
-      headers:
-        Host: wstg.datasynctrue.online
-  - name: Enterprise 537
-    type: vless
-    server: wstg.datasynctrue.online
-    port: 443
-    uuid: ff0b6ba8-bed0-4c4d-bbc9-23af47582615
-    udp: true
-    tls: true
-    servername: wstg.datasynctrue.online
-    client-fingerprint: qq
-    network: ws
-    ws-opts:
-      path: /api/connect
-      headers:
-        Host: wstg.datasynctrue.online
-  - name: Enterprise 541
-    type: vless
-    server: 188.225.33.141
-    port: 443
-    uuid: ff0b6ba8-bed0-4c4d-bbc9-23af47582615
-    udp: true
-    tls: true
-    servername: wstg.datasynctrue.online
-    client-fingerprint: random
-    network: ws
-    ws-opts:
-      path: /api/connect
-      headers:
-        Host: wstg.datasynctrue.online
-  - name: 🇦🇪 Enterprise 563
-    type: vless
-    server: 84.235.244.108
-    port: 22573
-    uuid: 39947382-3212-41c9-bc3a-589574ac8b23
-    udp: true
-    network: ws
-    ws-opts:
-      path: /
-      headers:
-        Host: uae.unixzone.us
-  - name: Enterprise 625
-    type: vless
-    server: 104.18.35.86
-    port: 8080
-    uuid: e5cc16a6-ea42-46b2-82ae-ad2157e1641b
-    udp: true
-    network: ws
-    ws-opts:
-      path: /
-      headers:
-        Host: hhlfy.twiladaphne.ndjp.net
-  - name: Enterprise 799
-    type: vless
-    server: 104.18.0.181
-    port: 2082
-    uuid: e5cc16a6-ea42-46b2-82ae-ad2157e1641b
-    udp: true
-    network: ws
-    ws-opts:
-      path: /
-      headers:
-        Host: hhlfy.twiladaphne.ndjp.net
-  - name: Enterprise 952
-    type: vless
-    server: sino.bestsellers1.site
-    port: 2083
-    uuid: 7858128a-6b5e-4f86-9bff-52c1f1e6439d
-    udp: true
-    tls: true
-    servername: sino.bestsellers1.site
-    client-fingerprint: chrome
-    network: ws
-    ws-opts:
-      path: /
-  - name: Enterprise 992
-    type: vless
-    server: ccc.010304.xyz
-    port: 443
-    uuid: d342d11e-d224-4463-b982-532309285094
-    udp: true
-    tls: true
-    servername: ccc.010304.xyz
-    client-fingerprint: chrome
-    network: ws
-    ws-opts:
-      path: /
-  - name: 🇩🇪 Enterprise 1028
-    type: vless
-    server: 91.107.247.173
-    port: 2083
-    uuid: 7858128a-6b5e-4f86-9bff-52c1f1e6439d
-    udp: true
-    tls: true
-    servername: sino.bestsellers1.site
+    servername: fi.iapps.sbs
+    network: tcp
     client-fingerprint: firefox
-    network: ws
-    ws-opts:
-      path: /
-  - name: Enterprise 1099
+    reality-opts:
+      public-key: 8Cu6QJUvBG0QosuGVsyA2G2Y3y5jgK8DaTwNZNJ6mXc
+      short-id: be896fcf88db63e0
+    flow: xtls-rprx-vision
+  - name: Enterprise Канада
     type: vless
-    server: 172.64.150.28
-    port: 2082
-    uuid: e5cc16a6-ea42-46b2-82ae-ad2157e1641b
-    udp: true
-    network: ws
-    ws-opts:
-      path: /
-      headers:
-        Host: hhlfy.twiladaphne.ndjp.net
-  - name: Enterprise 1208
-    type: vless
-    server: 104.17.154.123
+    server: main.iapps.sbs
     port: 443
-    uuid: d342d11e-d224-4463-b982-532309285094
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: ccc.010304.xyz
-    client-fingerprint: chrome
-    network: ws
-    ws-opts:
-      path: /
-      headers:
-        Host: ccc.010304.xyz
-  - name: 🇳🇱 Enterprise 1259
-    type: vless
-    server: 188.164.248.216
-    port: 443
-    uuid: d342d11e-d224-4463-b982-532309285094
-    udp: true
-    tls: true
-    servername: ccc.010304.xyz
+    servername: ca.iapps.sbs
+    network: tcp
     client-fingerprint: firefox
-    network: ws
-    ws-opts:
-      path: /
-      headers:
-        Host: ccc.010304.xyz
-  - name: Enterprise 1361
+    reality-opts:
+      public-key: Ejl8ZrKF4mELqxQ_lHrNV5AJI7O2EOJP8FBurZMGdnY
+      short-id: 678098e22bac8a8e
+    flow: xtls-rprx-vision
+  - name: Enterprise Индия
     type: vless
-    server: 104.17.44.17
-    port: 8080
-    uuid: e5cc16a6-ea42-46b2-82ae-ad2157e1641b
+    server: in.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
-    network: ws
-    ws-opts:
-      path: /
-      headers:
-        Host: hhlfy.twiladaphne.ndjp.net
-  - name: Enterprise 1571
+    tls: true
+    servername: in.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: rU6n8PIhbrFueSifm4LcyrcjdLqKYInQMfu653LS7Cc
+      short-id: 213ddc36ed98af7c
+    flow: xtls-rprx-vision
+  - name: Enterprise Казахстан
     type: vless
-    server: 154.31.114.162
+    server: kazah.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: kazah.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: dYg-nojflWbpoB4MFQRy878sxe4xaTCZEh6xEP9qTVk
+      short-id: bb39a8c7a263f780
+    flow: xtls-rprx-vision
+  - name: Enterprise Турция
+    type: vless
+    server: turk.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: turk.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: 9uITYNOn-z6f_k3keV6M07TjAN-J8FKVfJJ5AO7jSlM
+      short-id: cc6303b83a257b52
+    flow: xtls-rprx-vision
+  - name: Enterprise США
+    type: vless
+    server: us.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: us.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: E72BpOBGvjxUONZbzPaAHxoqL7wvvtF4b8ScVNxZxVc
+      short-id: 48f9aff751ea9ca0
+    flow: xtls-rprx-vision
+  - name: Enterprise Великобритания
+    type: vless
+    server: uk.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: uk.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: y-KKifqqjx0Hby6TEadzGVzr3M9ifd0PwIe9TGpK-24
+      short-id: 213ddc36ed98af7c
+    flow: xtls-rprx-vision
+  - name: Enterprise Сингапур
+    type: vless
+    server: main.iapps.sbs
     port: 8443
-    uuid: 4e4f1f70-5e56-4a76-bb9d-db087f4690c4
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: jp3.yohototo.top
-    client-fingerprint: unsafe
+    servername: si.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: t9YS6d9flJnGA6jRNB4Rx887ph5XyjMIrRxtfw5ZvgU
+      short-id: 5db390a3cbbedfbf
+    flow: xtls-rprx-vision
+  - name: Enterprise LTE (Германия)
+    type: vless
+    server: anonim.zykosafe.com
+    port: 8443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: anonim.zykosafe.com
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: EMCEP4pq5E1jxhdODv7P8FjShFYQGFn5fVsX0plzkwY
+      short-id: e2b51272dadf9632
+    flow: xtls-rprx-vision
+  - name: Enterprise LTE 2 (Сургут)
+    type: vless
+    server: rvd-surgut.store
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: rvd-surgut.store
     network: ws
+    client-fingerprint: firefox
     ws-opts:
-      path: /tyxyws
-      headers:
-        Host: jp3.yohototo.top
-  - name: 🇮🇳 Enterprise 1611
+      path: /api/v2/session/j87avhkuoUwr
+  - name: Enterprise LTE 3 (Москва)
     type: vless
-    server: 194.61.31.126
-    port: 2053
-    uuid: 1d4e18bd-1f26-4915-b35a-7ace4826e76a
+    server: 6197cc658025.vps.myjino.ru
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
     udp: true
     tls: true
-    servername: www.apple.com
-    client-fingerprint: chrome
-    network: tcp
-    reality-opts:
-      public-key: PuAGLfJy6cu1TNoHuKIKSxPetCbZI41fc8hQDjWPIAU
-      short-id: 9980e0609b0d3891
-  - name: 🇫🇷 Enterprise 1612
-    type: vless
-    server: 46.250.250.149
-    port: 2053
-    uuid: b4caaf57-ad77-4948-a6f5-51b3513799bf
-    udp: true
-    tls: true
-    servername: www.apple.com
+    servername: 6197cc658025.vps.myjino.ru
+    network: ws
     client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: hieuCHb3HYdDYHmTDyWw2SGqyfo36AVuA-wSiZMdU1M
-      short-id: 9922313fffed1c63
-  - name: Enterprise 1641
-    type: vless
-    server: milo.rubinaz.xyz
-    port: 8080
-    uuid: 6bceb548-d9b6-461f-8e37-a5a7fbcdc2c8
-    udp: true
-    network: tcp
-  - name: Enterprise 1646
-    type: vless
-    server: 152.69.195.67
-    port: 47878
-    uuid: eb8613e3-8393-4cff-a3ad-6501fd4adc63
-    udp: true
-    network: tcp
-  - name: Enterprise 1647
-    type: vless
-    server: 51.38.71.147
-    port: 8443
-    uuid: c08f0056-7a6d-4931-813b-aaa3cdd00aed
-    udp: true
-    tls: true
-    servername: node-uk.connectsuite.org
-    client-fingerprint: firefox
-    network: tcp
-  - name: 🇦🇲 Enterprise 1651
-    type: vless
-    server: 77.91.68.70
-    port: 55983
-    uuid: f667a096-5231-4cfb-8759-92bb32473139
-    udp: true
-    tls: true
-    servername: yahoo.com
-    client-fingerprint: chrome
-    network: tcp
-    reality-opts:
-      public-key: nWQ7b9l9X6N3PrXLgIzOvMM8iSYrqjVHEb9ikWxqYSg
-      short-id: 0e
-  - name: 🇵🇱 Enterprise 1652
-    type: vless
-    server: 54.37.136.194
-    port: 2053
-    uuid: e8a432c8-5d84-49a5-b822-67ed761a58f9
-    udp: true
-    tls: true
-    servername: www.cloudflare.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: Vemd9Jjk5xKO8qSC3g8VVagwcb4J1BcTvp86CswQC0A
-      short-id: 50ba05992b05c1c3
-  - name: 🇫🇷 Enterprise 1655
-    type: vless
-    server: 51.77.217.70
-    port: 2053
-    uuid: bf16ee0c-8b3c-41e4-ab3a-8b48033c404e
-    udp: true
-    tls: true
-    servername: www.apple.com
-    client-fingerprint: chrome
-    network: tcp
-    reality-opts:
-      public-key: g63cT3uI0Y5iUtj3m__RYz7nmR1eIK4AYikdnZCl63w
-      short-id: bfe58beb41f1d09f
-  - name: 🇳🇱 Enterprise 1657
-    type: vless
-    server: 51.15.16.68
-    port: 2053
-    uuid: 7d0fd363-16d2-43ce-9d6d-ed2c15d2cb7c
-    udp: true
-    tls: true
-    servername: www.apple.com
-    client-fingerprint: random
-    network: tcp
-    reality-opts:
-      public-key: Zotx4F9CI6_q9yeKCKIHDjwzCv_Aq7WSo7N0Zc1A6Sc
-      short-id: 3c99c85cbb6b3b44
-  - name: 🇨🇭 Enterprise 1664
-    type: vless
-    server: 208.69.78.217
-    port: 2053
-    uuid: c0dd6d59-1573-43af-8b70-1470b2632a6d
-    udp: true
-    tls: true
-    servername: www.apple.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: A49ue7zXSusJZdErPAewg3jqGdUFIO1a9xOunEKJfC0
-      short-id: ad86e2d52ff40ebd
-  - name: 🇰🇿 Enterprise 1675
-    type: vless
-    server: 109.248.170.119
-    port: 13447
-    uuid: b573cefb-7bc7-4a42-b407-b8b534e66773
-    udp: true
-    tls: true
-    servername: yahoo.com
-    client-fingerprint: chrome
-    network: tcp
-    reality-opts:
-      public-key: _0wM2ep44eAcrgf5PflKaBivknCWT6kMvQBQUoScCkE
-      short-id: 83
-  - name: 🇫🇮 Enterprise 1676
-    type: vless
-    server: 95.216.27.15
-    port: 2053
-    uuid: 1c81f6d3-5771-4c5d-9fdd-1655eff50634
-    udp: true
-    tls: true
-    servername: www.google.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: 4nfogj5mHqNowtSn_2sXS3xTX8vcH75rFEU2BWvyekM
-      short-id: d368b94e275ab080
-  - name: Enterprise 1682
-    type: vless
-    server: node-uk.connectsuite.org
-    port: 8443
-    uuid: c08f0056-7a6d-4931-813b-aaa3cdd00aed
-    udp: true
-    tls: true
-    servername: node-uk.connectsuite.org
-    client-fingerprint: chrome
-    network: tcp
-  - name: 🇳🇱 Enterprise 1703
-    type: vless
-    server: 2.59.183.167
-    port: 443
-    uuid: 301d514e-4aa0-47b0-ba44-a0cb891cd52f
-    udp: true
-    tls: true
-    servername: www.samsung.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: OZVjfQBboTDTBw0baMFqzVPsVUI4FNQmspTEb0b0zW4
-  - name: 🇯🇵 Enterprise 1704
-    type: vless
-    server: 137.220.221.179
-    port: 443
-    uuid: a16a3336-c9ab-489f-9b85-c973f5e2cfa4
-    udp: true
-    network: tcp
-  - name: 🇬🇧 Enterprise 1713
-    type: vless
-    server: 46.250.240.80
-    port: 2053
-    uuid: 948df76f-505d-4608-9c76-a933ee3ccc76
-    udp: true
-    tls: true
-    servername: www.cloudflare.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: CYFeysLf--_IVhxQOCd3ZxLrAVWFFOkJzvIGHOVXN3E
-      short-id: 4cc9dc65f7770115
-  - name: 🇮🇹 Enterprise 1718
-    type: vless
-    server: 57.131.38.163
-    port: 2053
-    uuid: d4b08cd6-0903-411a-9dac-45dbdf5c9712
-    udp: true
-    tls: true
-    servername: www.apple.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: Ej2H5ucT7qKegYcT8wODdlxa-cLHr7F4hDVUHzAhcnc
-      short-id: 5b8a942318178e7b
-  - name: 🇬🇧 Enterprise 1720
-    type: vless
-    server: 51.89.194.151
-    port: 2053
-    uuid: 8e790f25-1d71-4601-9fb0-d503931dcfca
-    udp: true
-    tls: true
-    servername: www.apple.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: xPEBx4wUmwAAv4ikUALNBf5wH6TRhyeQ0Q2pcNELsV0
-      short-id: d051f678212f9d54
-  - name: 🇹🇷 Enterprise 1725
-    type: vless
-    server: 151.241.226.201
-    port: 2053
-    uuid: 0eed6293-8cf1-4e77-ac10-9c3d50d0b2f8
-    udp: true
-    tls: true
-    servername: www.apple.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: bYW_MmB_CUHrsyoCAUKviI2LZdHf63yY2yOPXbih104
-      short-id: 9e419c0759b54d6f
-  - name: 🇪🇸 Enterprise 1726
-    type: vless
-    server: 212.227.235.66
-    port: 2053
-    uuid: ead0dd61-d398-40ad-80d6-a0e1e516d7d3
-    udp: true
-    tls: true
-    servername: www.apple.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: 7Y6Xb5Ql_03K25x8yKUSOKI2JTOMyv2nyCcFza90uxk
-      short-id: 29e8dcd2b37aaa7f
-  - name: 🇻🇳 Enterprise 1729
-    type: vless
-    server: 150.95.109.109
-    port: 2086
-    uuid: b83faafc-cbb7-4655-99d4-2c4c39a49d1b
-    udp: true
-    network: tcp
-  - name: 🇨🇦 Enterprise 1733
-    type: vless
-    server: 66.70.179.198
-    port: 2053
-    uuid: dc620cd6-a9d8-4a0f-8f18-006b895db77e
-    udp: true
-    tls: true
-    servername: www.cloudflare.com
-    client-fingerprint: chrome
-    network: tcp
-    reality-opts:
-      public-key: k4l6TxwkBbx9DhZAFpByq5rfCWFSgyOex3f_eFe9CWU
-      short-id: 83f8317a948bb769
-  - name: 🇰🇷 Enterprise 1738
-    type: vless
-    server: 151.245.106.49
-    port: 2053
-    uuid: a2de9567-9646-45a9-a410-7303a43bdb6c
-    udp: true
-    tls: true
-    servername: www.cloudflare.com
-    client-fingerprint: firefox
-    network: tcp
-    reality-opts:
-      public-key: F6C33iIbfmt1mUsuLTarIC8ygdHKMqsaGvrSQltyxUo
-      short-id: 429499c03d4cc8a0
-  - name: Enterprise SS 3
-    type: ss
-    server: 82.38.31.54
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: Enterprise SS 4
-    type: ss
-    server: 82.38.31.206
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: Enterprise SS 6
-    type: ss
-    server: 82.38.31.192
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: Enterprise SS 8
-    type: ss
-    server: 51.222.155.32
-    port: 5003
-    cipher: aes-256-gcm
-    password: g5MeD6Ft3CWlJId
-    udp: true
-  - name: Enterprise SS 9
-    type: ss
-    server: 82.38.31.204
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: Enterprise SS 11
-    type: ss
-    server: 82.38.31.2
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: Enterprise SS 13
-    type: ss
-    server: 82.38.31.18
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 15
-    type: ss
-    server: 82.38.31.10
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇺🇸 Enterprise SS 18
-    type: ss
-    server: 103.11.76.248
-    port: 28679
-    cipher: 2022-blake3-aes-128-gcm
-    password: NzJlOTQ5NWYtM2ZkYi00Cg==
-    udp: true
-  - name: 🇳🇱 Enterprise SS 20
-    type: ss
-    server: 82.38.31.66
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 22
-    type: ss
-    server: 82.38.31.46
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇺🇸 Enterprise SS 23
-    type: ss
-    server: 156.146.38.170
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 25
-    type: ss
-    server: 82.38.31.13
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 26
-    type: ss
-    server: 82.38.31.202
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇬🇧 Enterprise SS 28
-    type: ss
-    server: 51.38.71.51
-    port: 2083
-    cipher: 2022-blake3-aes-256-gcm
-    password: cOiC+3JhAXMwdGV5exnrMSorJU0Rl5qlLCbCAuDlWY4=:2tFqykGqZ101XW11f6iRiERnPycFAjjYq0y2zUYhKho=
-    udp: true
-  - name: 🇳🇱 Enterprise SS 29
-    type: ss
-    server: 82.38.31.157
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 30
-    type: ss
-    server: 158.173.20.171
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇬🇧 Enterprise SS 31
-    type: ss
-    server: 82.110.60.9
-    port: 19999
-    cipher: aes-256-gcm
-    password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
-    udp: true
-  - name: 🇳🇱 Enterprise SS 32
-    type: ss
-    server: 82.38.31.212
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 33
-    type: ss
-    server: 82.38.31.194
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 34
-    type: ss
-    server: 82.38.31.183
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇺🇸 Enterprise SS 39
-    type: ss
-    server: 156.146.38.169
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 40
-    type: ss
-    server: 82.38.31.16
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 41
-    type: ss
-    server: 82.38.31.61
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 43
-    type: ss
-    server: 82.38.31.47
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 45
-    type: ss
-    server: 82.38.31.193
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 46
-    type: ss
-    server: 193.29.139.198
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 47
-    type: ss
-    server: 82.38.31.208
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇺🇸 Enterprise SS 48
-    type: ss
-    server: 37.19.198.236
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 51
-    type: ss
-    server: 82.38.31.203
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇨🇦 Enterprise SS 52
-    type: ss
-    server: 51.222.155.113
-    port: 5601
-    cipher: aes-256-gcm
-    password: Y6R9pAtvxxzmGC
-    udp: true
-  - name: 🇳🇱 Enterprise SS 53
-    type: ss
-    server: 193.29.139.225
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇯🇵 Enterprise SS 54
-    type: ss
-    server: 149.22.87.241
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 56
-    type: ss
-    server: 82.38.31.184
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 61
-    type: ss
-    server: 82.38.31.201
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 62
-    type: ss
-    server: 82.38.31.182
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 64
-    type: ss
-    server: 82.38.31.216
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 67
-    type: ss
-    server: 82.38.31.49
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 68
-    type: ss
-    server: 82.38.31.195
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 69
-    type: ss
-    server: 82.38.31.9
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 70
-    type: ss
-    server: 82.38.31.205
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 72
-    type: ss
-    server: 193.29.139.188
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇺🇸 Enterprise SS 76
-    type: ss
-    server: 15.204.233.41
-    port: 8882
-    cipher: aes-256-gcm
-    password: kDWvXYZoTBcGkC4
-    udp: true
-  - name: 🇮🇹 Enterprise SS 77
-    type: ss
-    server: 57.131.48.45
-    port: 8388
-    cipher: aes-256-gcm
-    password: itzvpn@321
-    udp: true
-  - name: 🇩🇪 Enterprise SS 78
-    type: ss
-    server: 213.202.208.199
-    port: 5000
-    cipher: aes-256-gcm
-    password: Y6R9pAtvxxzmGC
-    udp: true
-  - name: 🇳🇱 Enterprise SS 83
-    type: ss
-    server: 82.38.31.170
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 84
-    type: ss
-    server: 82.38.31.34
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇨🇦 Enterprise SS 85
-    type: ss
-    server: 149.22.95.183
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇮🇳 Enterprise SS 86
-    type: ss
-    server: 172.105.39.124
-    port: 7002
-    cipher: aes-256-gcm
-    password: RexnBgU7EV5ADxG
-    udp: true
-  - name: 🇺🇸 Enterprise SS 87
-    type: ss
-    server: 15.204.247.175
-    port: 8008
-    cipher: aes-256-gcm
-    password: XKFKl2rULjIp74
-    udp: true
-  - name: 🇳🇱 Enterprise SS 90
-    type: ss
-    server: 82.38.31.39
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇬🇧 Enterprise SS 93
-    type: ss
-    server: 141.98.101.181
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 96
-    type: ss
-    server: 82.38.31.7
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 97
-    type: ss
-    server: 82.38.31.218
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇩🇪 Enterprise SS 98
-    type: ss
-    server: 57.129.113.16
-    port: 8388
-    cipher: chacha20-ietf-poly1305
-    password: NcAXc0UZI6yQJE1p8QmOv8
-    udp: true
-  - name: 🇳🇱 Enterprise SS 99
-    type: ss
-    server: 82.38.31.181
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 100
-    type: ss
-    server: 193.29.139.223
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 101
-    type: ss
-    server: 158.173.20.208
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 103
-    type: ss
-    server: 82.38.31.42
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 104
-    type: ss
-    server: 82.38.31.186
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇺🇸 Enterprise SS 105
-    type: ss
-    server: 173.244.56.6
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇺🇸 Enterprise SS 106
-    type: ss
-    server: 15.204.247.206
-    port: 4444
-    cipher: aes-256-gcm
-    password: pKEW8JPByTVTLtM
-    udp: true
-  - name: 🇯🇵 Enterprise SS 107
-    type: ss
-    server: 84.247.155.196
-    port: 80
-    cipher: aes-256-gcm
-    password: 3eOFeNssde7PYYMv
-    udp: true
-  - name: 🇿🇦 Enterprise SS 109
-    type: ss
-    server: 102.133.165.160
-    port: 16233
-    cipher: chacha20-ietf-poly1305
-    password: Xsy8Ox4yOV3xLlpxtjzs3X
-    udp: true
-  - name: 🇳🇱 Enterprise SS 111
-    type: ss
-    server: 82.38.31.26
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 112
-    type: ss
-    server: 82.38.31.17
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 113
-    type: ss
-    server: 82.38.31.191
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 114
-    type: ss
-    server: 82.38.31.180
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇺🇸 Enterprise SS 119
-    type: ss
-    server: 37.19.198.243
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇨🇦 Enterprise SS 120
-    type: ss
-    server: 51.222.141.125
-    port: 445
-    cipher: aes-256-gcm
-    password: zDNVedRFPQexG9v
-    udp: true
-  - name: 🇯🇵 Enterprise SS 122
-    type: ss
-    server: 149.22.87.240
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇺🇸 Enterprise SS 127
-    type: ss
-    server: 216.105.168.18
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: hCCWOcIsK5wrFz4OX70rWf
-    udp: true
-  - name: 🇳🇱 Enterprise SS 128
-    type: ss
-    server: 82.38.31.187
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇩🇪 Enterprise SS 129
-    type: ss
-    server: 213.202.208.199
-    port: 7001
-    cipher: aes-256-gcm
-    password: RexnBgU7EV5ADxG
-    udp: true
-  - name: 🇳🇱 Enterprise SS 130
-    type: ss
-    server: 82.38.31.207
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇯🇵 Enterprise SS 131
-    type: ss
-    server: 84.247.155.196
-    port: 443
-    cipher: aes-256-gcm
-    password: 3eOFeNssde7PYYMv
-    udp: true
-  - name: 🇳🇱 Enterprise SS 132
-    type: ss
-    server: 82.38.31.48
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇨🇦 Enterprise SS 133
-    type: ss
-    server: 51.222.200.165
-    port: 5000
-    cipher: aes-256-gcm
-    password: Y6R9pAtvxxzmGC
-    udp: true
-  - name: 🇩🇪 Enterprise SS 136
-    type: ss
-    server: 185.226.172.8
-    port: 8008
-    cipher: aes-256-gcm
-    password: XKFKl2rULjIp74
-    udp: true
-  - name: 🇨🇦 Enterprise SS 137
-    type: ss
-    server: 51.222.12.127
-    port: 445
-    cipher: aes-256-gcm
-    password: zDNVedRFPQexG9v
-    udp: true
-  - name: 🇺🇸 Enterprise SS 138
-    type: ss
-    server: 37.19.198.244
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 139
-    type: ss
-    server: 193.29.139.235
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇺🇸 Enterprise SS 141
-    type: ss
-    server: 156.146.38.167
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 142
-    type: ss
-    server: 82.38.31.69
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 143
-    type: ss
-    server: 193.29.139.179
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇺🇸 Enterprise SS 144
-    type: ss
-    server: 15.204.246.132
-    port: 7307
-    cipher: aes-256-gcm
-    password: FoOiGlkAA9yPEGP
-    udp: true
-  - name: 🇳🇱 Enterprise SS 145
-    type: ss
-    server: 193.29.139.147
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 146
-    type: ss
-    server: 82.38.31.155
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇬🇧 Enterprise SS 147
-    type: ss
-    server: 185.164.175.81
-    port: 19999
-    cipher: aes-256-gcm
-    password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
-    udp: true
-  - name: 🇳🇱 Enterprise SS 148
-    type: ss
-    server: 82.38.31.175
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 153
-    type: ss
-    server: 82.38.31.156
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇺🇸 Enterprise SS 154
-    type: ss
-    server: 156.146.38.168
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 155
-    type: ss
-    server: 82.38.31.217
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 157
-    type: ss
-    server: 82.38.31.175
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 159
-    type: ss
-    server: 82.38.31.149
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 160
-    type: ss
-    server: 193.29.139.235
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 161
-    type: ss
-    server: 82.38.31.149
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 162
-    type: ss
-    server: 82.38.31.213
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 163
-    type: ss
-    server: 82.38.31.189
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇰🇷 Enterprise SS 164
-    type: ss
-    server: 141.164.45.187
-    port: 2376
-    cipher: aes-256-gcm
-    password: faBAoD54k87UJG7
-    udp: true
-  - name: 🇿🇦 Enterprise SS 165
-    type: ss
-    server: 102.37.156.224
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: aduB9HGxQHjA2SBMRjkHX6
-    udp: true
-  - name: 🇳🇱 Enterprise SS 166
-    type: ss
-    server: 82.38.31.185
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇺🇸 Enterprise SS 167
-    type: ss
-    server: 15.204.247.244
-    port: 4444
-    cipher: aes-256-gcm
-    password: pKEW8JPByTVTLtM
-    udp: true
-  - name: 🇨🇭 Enterprise SS 168
-    type: ss
-    server: 132.243.175.144
-    port: 8388
-    cipher: chacha20-ietf-poly1305
-    password: e8KgS8fD0yDqYFpgN4G5piCOt9aFyqA3
-    udp: true
-  - name: 🇳🇱 Enterprise SS 169
-    type: ss
-    server: 82.38.31.28
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 170
-    type: ss
-    server: 82.38.31.171
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇨🇦 Enterprise SS 171
-    type: ss
-    server: 51.222.136.236
-    port: 8882
-    cipher: aes-256-gcm
-    password: kDWvXYZoTBcGkC4
-    udp: true
-  - name: 🇳🇱 Enterprise SS 173
-    type: ss
-    server: 82.38.31.62
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 174
-    type: ss
-    server: 82.38.31.211
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇰🇷 Enterprise SS 176
-    type: ss
-    server: 141.164.45.187
-    port: 9090
-    cipher: aes-256-gcm
-    password: Y6R9pAtvxxzmGC
-    udp: true
-  - name: 🇺🇸 Enterprise SS 179
-    type: ss
-    server: 198.98.53.130
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: eDfN7SODQceIOmIAbtJJtK
-    udp: true
-  - name: 🇳🇱 Enterprise SS 180
-    type: ss
-    server: 82.38.31.214
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇰🇷 Enterprise SS 181
-    type: ss
-    server: 141.164.45.187
-    port: 8091
-    cipher: aes-256-gcm
-    password: PCnnH6SQSnfoS27
-    udp: true
-  - name: 🇳🇱 Enterprise SS 182
-    type: ss
-    server: 193.29.139.132
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 183
-    type: ss
-    server: 82.38.31.3
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 185
-    type: ss
-    server: 193.29.139.234
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: 4a2rfixophdjffa8KVA4Aa
-    udp: true
-  - name: 🇳🇱 Enterprise SS 186
-    type: ss
-    server: 82.38.31.198
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇺🇸 Enterprise SS 187
-    type: ss
-    server: 173.244.56.9
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 188
-    type: ss
-    server: 193.29.139.151
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 189
-    type: ss
-    server: 82.38.31.162
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 190
-    type: ss
-    server: 82.38.31.215
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 192
-    type: ss
-    server: 193.29.139.202
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 194
-    type: ss
-    server: 82.38.31.200
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 195
-    type: ss
-    server: 82.38.31.190
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 196
-    type: ss
-    server: 82.38.31.219
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 197
-    type: ss
-    server: 82.38.31.174
-    port: 443
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇴 Enterprise SS 199
-    type: ss
-    server: 185.213.23.63
-    port: 990
-    cipher: chacha20-ietf-poly1305
-    password: ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44=
-    udp: true
-  - name: 🇳🇱 Enterprise SS 201
-    type: ss
-    server: 82.38.31.11
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 202
-    type: ss
-    server: 193.29.139.197
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 204
-    type: ss
-    server: 82.38.31.210
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 205
-    type: ss
-    server: 82.38.31.179
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 206
-    type: ss
-    server: 193.29.139.168
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: QCXDxuDlTTMD7jtgHUjIoj
-    udp: true
-  - name: 🇳🇱 Enterprise SS 207
-    type: ss
-    server: 82.38.31.199
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: k1dBOmOB4oqi7Ump37a1bQ
-    udp: true
-  - name: 🇳🇱 Enterprise SS 209
-    type: ss
-    server: 82.38.31.174
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 211
-    type: ss
-    server: 193.29.139.204
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇳🇱 Enterprise SS 212
-    type: ss
-    server: 82.38.31.35
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
-  - name: 🇯🇵 Enterprise SS 214
-    type: ss
-    server: 149.22.87.204
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇺🇸 Enterprise SS 215
-    type: ss
-    server: 37.19.198.160
-    port: 443
-    cipher: aes-128-gcm
-    password: shadowsocks
-    udp: true
-  - name: 🇳🇱 Enterprise SS 217
-    type: ss
-    server: 82.38.31.171
-    port: 8080
-    cipher: chacha20-ietf-poly1305
-    password: oZIoA69Q8yhcQV8ka3Pa3A
-    udp: true
+    ws-opts:
+      path: /api/v2/live/e44bb5c7db576856/segment
 proxy-groups:
   - name: 🚀 Каналы
     type: select
     proxies:
-      - ♻️ Авто-выбор
-      - 📹 YouTube
-      - ✈️ Telegram
-      - 🧱 Заблокированное
-      - 🤖 AI
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - 🇮🇳 Enterprise 308
-      - 🇫🇷 Enterprise 335
-      - Enterprise 396
-      - Enterprise 412
-      - 🇫🇷 Enterprise 414
-      - Enterprise 531
-      - Enterprise 535
-      - Enterprise 537
-      - Enterprise 541
-      - 🇦🇪 Enterprise 563
-      - Enterprise 625
-      - Enterprise 799
-      - Enterprise 952
-      - Enterprise 992
-      - 🇩🇪 Enterprise 1028
-      - Enterprise 1099
-      - Enterprise 1208
-      - 🇳🇱 Enterprise 1259
-      - Enterprise 1361
-      - Enterprise 1571
-      - 🇮🇳 Enterprise 1611
-      - 🇫🇷 Enterprise 1612
-      - Enterprise 1641
-      - Enterprise 1646
-      - Enterprise 1647
-      - 🇦🇲 Enterprise 1651
-      - 🇵🇱 Enterprise 1652
-      - 🇫🇷 Enterprise 1655
-      - 🇳🇱 Enterprise 1657
-      - 🇨🇭 Enterprise 1664
-      - 🇰🇿 Enterprise 1675
-      - 🇫🇮 Enterprise 1676
-      - Enterprise 1682
-      - 🇳🇱 Enterprise 1703
-      - 🇯🇵 Enterprise 1704
-      - 🇬🇧 Enterprise 1713
-      - 🇮🇹 Enterprise 1718
-      - 🇬🇧 Enterprise 1720
-      - 🇹🇷 Enterprise 1725
-      - 🇪🇸 Enterprise 1726
-      - 🇻🇳 Enterprise 1729
-      - 🇨🇦 Enterprise 1733
-      - 🇰🇷 Enterprise 1738
-      - Enterprise SS 3
-      - Enterprise SS 4
-      - Enterprise SS 6
-      - Enterprise SS 8
-      - Enterprise SS 9
-      - Enterprise SS 11
-      - Enterprise SS 13
-      - 🇳🇱 Enterprise SS 15
-      - 🇺🇸 Enterprise SS 18
-      - 🇳🇱 Enterprise SS 20
-      - 🇳🇱 Enterprise SS 22
-      - 🇺🇸 Enterprise SS 23
-      - 🇳🇱 Enterprise SS 25
-      - 🇳🇱 Enterprise SS 26
-      - 🇬🇧 Enterprise SS 28
-      - 🇳🇱 Enterprise SS 29
-      - 🇳🇱 Enterprise SS 30
-      - 🇬🇧 Enterprise SS 31
-      - 🇳🇱 Enterprise SS 32
-      - 🇳🇱 Enterprise SS 33
-      - 🇳🇱 Enterprise SS 34
-      - 🇺🇸 Enterprise SS 39
-      - 🇳🇱 Enterprise SS 40
-      - 🇳🇱 Enterprise SS 41
-      - 🇳🇱 Enterprise SS 43
-      - 🇳🇱 Enterprise SS 45
-      - 🇳🇱 Enterprise SS 46
-      - 🇳🇱 Enterprise SS 47
-      - 🇺🇸 Enterprise SS 48
-      - 🇳🇱 Enterprise SS 51
-      - 🇨🇦 Enterprise SS 52
-      - 🇳🇱 Enterprise SS 53
-      - 🇯🇵 Enterprise SS 54
-      - 🇳🇱 Enterprise SS 56
-      - 🇳🇱 Enterprise SS 61
-      - 🇳🇱 Enterprise SS 62
-      - 🇳🇱 Enterprise SS 64
-      - 🇳🇱 Enterprise SS 67
-      - 🇳🇱 Enterprise SS 68
-      - 🇳🇱 Enterprise SS 69
-      - 🇳🇱 Enterprise SS 70
-      - 🇳🇱 Enterprise SS 72
-      - 🇺🇸 Enterprise SS 76
-      - 🇮🇹 Enterprise SS 77
-      - 🇩🇪 Enterprise SS 78
-      - 🇳🇱 Enterprise SS 83
-      - 🇳🇱 Enterprise SS 84
-      - 🇨🇦 Enterprise SS 85
-      - 🇮🇳 Enterprise SS 86
-      - 🇺🇸 Enterprise SS 87
-      - 🇳🇱 Enterprise SS 90
-      - 🇬🇧 Enterprise SS 93
-      - 🇳🇱 Enterprise SS 96
-      - 🇳🇱 Enterprise SS 97
-      - 🇩🇪 Enterprise SS 98
-      - 🇳🇱 Enterprise SS 99
-      - 🇳🇱 Enterprise SS 100
-      - 🇳🇱 Enterprise SS 101
-      - 🇳🇱 Enterprise SS 103
-      - 🇳🇱 Enterprise SS 104
-      - 🇺🇸 Enterprise SS 105
-      - 🇺🇸 Enterprise SS 106
-      - 🇯🇵 Enterprise SS 107
-      - 🇿🇦 Enterprise SS 109
-      - 🇳🇱 Enterprise SS 111
-      - 🇳🇱 Enterprise SS 112
-      - 🇳🇱 Enterprise SS 113
-      - 🇳🇱 Enterprise SS 114
-      - 🇺🇸 Enterprise SS 119
-      - 🇨🇦 Enterprise SS 120
-      - 🇯🇵 Enterprise SS 122
-      - 🇺🇸 Enterprise SS 127
-      - 🇳🇱 Enterprise SS 128
-      - 🇩🇪 Enterprise SS 129
-      - 🇳🇱 Enterprise SS 130
-      - 🇯🇵 Enterprise SS 131
-      - 🇳🇱 Enterprise SS 132
-      - 🇨🇦 Enterprise SS 133
-      - 🇩🇪 Enterprise SS 136
-      - 🇨🇦 Enterprise SS 137
-      - 🇺🇸 Enterprise SS 138
-      - 🇳🇱 Enterprise SS 139
-      - 🇺🇸 Enterprise SS 141
-      - 🇳🇱 Enterprise SS 142
-      - 🇳🇱 Enterprise SS 143
-      - 🇺🇸 Enterprise SS 144
-      - 🇳🇱 Enterprise SS 145
-      - 🇳🇱 Enterprise SS 146
-      - 🇬🇧 Enterprise SS 147
-      - 🇳🇱 Enterprise SS 148
-      - 🇳🇱 Enterprise SS 153
-      - 🇺🇸 Enterprise SS 154
-      - 🇳🇱 Enterprise SS 155
-      - 🇳🇱 Enterprise SS 157
-      - 🇳🇱 Enterprise SS 159
-      - 🇳🇱 Enterprise SS 160
-      - 🇳🇱 Enterprise SS 161
-      - 🇳🇱 Enterprise SS 162
-      - 🇳🇱 Enterprise SS 163
-      - 🇰🇷 Enterprise SS 164
-      - 🇿🇦 Enterprise SS 165
-      - 🇳🇱 Enterprise SS 166
-      - 🇺🇸 Enterprise SS 167
-      - 🇨🇭 Enterprise SS 168
-      - 🇳🇱 Enterprise SS 169
-      - 🇳🇱 Enterprise SS 170
-      - 🇨🇦 Enterprise SS 171
-      - 🇳🇱 Enterprise SS 173
-      - 🇳🇱 Enterprise SS 174
-      - 🇰🇷 Enterprise SS 176
-      - 🇺🇸 Enterprise SS 179
-      - 🇳🇱 Enterprise SS 180
-      - 🇰🇷 Enterprise SS 181
-      - 🇳🇱 Enterprise SS 182
-      - 🇳🇱 Enterprise SS 183
-      - 🇳🇱 Enterprise SS 185
-      - 🇳🇱 Enterprise SS 186
-      - 🇺🇸 Enterprise SS 187
-      - 🇳🇱 Enterprise SS 188
-      - 🇳🇱 Enterprise SS 189
-      - 🇳🇱 Enterprise SS 190
-      - 🇳🇱 Enterprise SS 192
-      - 🇳🇱 Enterprise SS 194
-      - 🇳🇱 Enterprise SS 195
-      - 🇳🇱 Enterprise SS 196
-      - 🇳🇱 Enterprise SS 197
-      - 🇳🇴 Enterprise SS 199
-      - 🇳🇱 Enterprise SS 201
-      - 🇳🇱 Enterprise SS 202
-      - 🇳🇱 Enterprise SS 204
-      - 🇳🇱 Enterprise SS 205
-      - 🇳🇱 Enterprise SS 206
-      - 🇳🇱 Enterprise SS 207
-      - 🇳🇱 Enterprise SS 209
-      - 🇳🇱 Enterprise SS 211
-      - 🇳🇱 Enterprise SS 212
-      - 🇯🇵 Enterprise SS 214
-      - 🇺🇸 Enterprise SS 215
-      - 🇳🇱 Enterprise SS 217
+    - ♻️ Авто-выбор
+    - Enterprise Польша
+    - Enterprise Германия
+    - Enterprise Чехия
+    - Enterprise Франция
+    - Enterprise Нидерланды
+    - Enterprise Беларусь
+    - Enterprise Финляндия
+    - Enterprise Канада
+    - Enterprise Индия
+    - Enterprise Казахстан
+    - Enterprise Турция
+    - Enterprise США
+    - Enterprise Великобритания
+    - Enterprise Сингапур
+    - Enterprise LTE (Германия)
+    - Enterprise LTE 2 (Сургут)
+    - Enterprise LTE 3 (Москва)
   - name: "♻️ Авто-выбор"
     type: url-test
-    url: "https://www.instagram.com"
-    interval: 300
+    url: "https://www.gstatic.com/generate_204"
+    interval: 120
     lazy: true
-    tolerance: 80
-    proxies:
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - 🇮🇳 Enterprise 308
-      - 🇫🇷 Enterprise 335
-      - Enterprise 396
-      - Enterprise 412
-      - 🇫🇷 Enterprise 414
-      - Enterprise 531
-      - Enterprise 535
-      - Enterprise 537
-      - Enterprise 541
-      - 🇦🇪 Enterprise 563
-      - Enterprise 625
-      - Enterprise 799
-      - Enterprise 952
-      - Enterprise 992
-      - 🇩🇪 Enterprise 1028
-      - Enterprise 1099
-      - Enterprise 1208
-      - 🇳🇱 Enterprise 1259
-      - Enterprise 1361
-      - Enterprise 1571
-      - 🇮🇳 Enterprise 1611
-      - 🇫🇷 Enterprise 1612
-      - Enterprise 1641
-      - Enterprise 1646
-      - Enterprise 1647
-      - 🇦🇲 Enterprise 1651
-      - 🇵🇱 Enterprise 1652
-      - 🇫🇷 Enterprise 1655
-      - 🇳🇱 Enterprise 1657
-      - 🇨🇭 Enterprise 1664
-      - 🇰🇿 Enterprise 1675
-      - 🇫🇮 Enterprise 1676
-      - Enterprise 1682
-      - 🇳🇱 Enterprise 1703
-      - 🇯🇵 Enterprise 1704
-      - 🇬🇧 Enterprise 1713
-      - 🇮🇹 Enterprise 1718
-      - 🇬🇧 Enterprise 1720
-      - 🇹🇷 Enterprise 1725
-      - 🇪🇸 Enterprise 1726
-      - 🇻🇳 Enterprise 1729
-      - 🇨🇦 Enterprise 1733
-      - 🇰🇷 Enterprise 1738
-      - Enterprise SS 3
-      - Enterprise SS 4
-      - Enterprise SS 6
-      - Enterprise SS 8
-      - Enterprise SS 9
-      - Enterprise SS 11
-      - Enterprise SS 13
-      - 🇳🇱 Enterprise SS 15
-      - 🇺🇸 Enterprise SS 18
-      - 🇳🇱 Enterprise SS 20
-      - 🇳🇱 Enterprise SS 22
-      - 🇺🇸 Enterprise SS 23
-      - 🇳🇱 Enterprise SS 25
-      - 🇳🇱 Enterprise SS 26
-      - 🇬🇧 Enterprise SS 28
-      - 🇳🇱 Enterprise SS 29
-      - 🇳🇱 Enterprise SS 30
-      - 🇬🇧 Enterprise SS 31
-      - 🇳🇱 Enterprise SS 32
-      - 🇳🇱 Enterprise SS 33
-      - 🇳🇱 Enterprise SS 34
-      - 🇺🇸 Enterprise SS 39
-      - 🇳🇱 Enterprise SS 40
-      - 🇳🇱 Enterprise SS 41
-      - 🇳🇱 Enterprise SS 43
-      - 🇳🇱 Enterprise SS 45
-      - 🇳🇱 Enterprise SS 46
-      - 🇳🇱 Enterprise SS 47
-      - 🇺🇸 Enterprise SS 48
-      - 🇳🇱 Enterprise SS 51
-      - 🇨🇦 Enterprise SS 52
-      - 🇳🇱 Enterprise SS 53
-      - 🇯🇵 Enterprise SS 54
-      - 🇳🇱 Enterprise SS 56
-      - 🇳🇱 Enterprise SS 61
-      - 🇳🇱 Enterprise SS 62
-      - 🇳🇱 Enterprise SS 64
-      - 🇳🇱 Enterprise SS 67
-      - 🇳🇱 Enterprise SS 68
-      - 🇳🇱 Enterprise SS 69
-      - 🇳🇱 Enterprise SS 70
-      - 🇳🇱 Enterprise SS 72
-      - 🇺🇸 Enterprise SS 76
-      - 🇮🇹 Enterprise SS 77
-      - 🇩🇪 Enterprise SS 78
-      - 🇳🇱 Enterprise SS 83
-      - 🇳🇱 Enterprise SS 84
-      - 🇨🇦 Enterprise SS 85
-      - 🇮🇳 Enterprise SS 86
-      - 🇺🇸 Enterprise SS 87
-      - 🇳🇱 Enterprise SS 90
-      - 🇬🇧 Enterprise SS 93
-      - 🇳🇱 Enterprise SS 96
-      - 🇳🇱 Enterprise SS 97
-      - 🇩🇪 Enterprise SS 98
-      - 🇳🇱 Enterprise SS 99
-      - 🇳🇱 Enterprise SS 100
-      - 🇳🇱 Enterprise SS 101
-      - 🇳🇱 Enterprise SS 103
-      - 🇳🇱 Enterprise SS 104
-      - 🇺🇸 Enterprise SS 105
-      - 🇺🇸 Enterprise SS 106
-      - 🇯🇵 Enterprise SS 107
-      - 🇿🇦 Enterprise SS 109
-      - 🇳🇱 Enterprise SS 111
-      - 🇳🇱 Enterprise SS 112
-      - 🇳🇱 Enterprise SS 113
-      - 🇳🇱 Enterprise SS 114
-      - 🇺🇸 Enterprise SS 119
-      - 🇨🇦 Enterprise SS 120
-      - 🇯🇵 Enterprise SS 122
-      - 🇺🇸 Enterprise SS 127
-      - 🇳🇱 Enterprise SS 128
-      - 🇩🇪 Enterprise SS 129
-      - 🇳🇱 Enterprise SS 130
-      - 🇯🇵 Enterprise SS 131
-      - 🇳🇱 Enterprise SS 132
-      - 🇨🇦 Enterprise SS 133
-      - 🇩🇪 Enterprise SS 136
-      - 🇨🇦 Enterprise SS 137
-      - 🇺🇸 Enterprise SS 138
-      - 🇳🇱 Enterprise SS 139
-      - 🇺🇸 Enterprise SS 141
-      - 🇳🇱 Enterprise SS 142
-      - 🇳🇱 Enterprise SS 143
-      - 🇺🇸 Enterprise SS 144
-      - 🇳🇱 Enterprise SS 145
-      - 🇳🇱 Enterprise SS 146
-      - 🇬🇧 Enterprise SS 147
-      - 🇳🇱 Enterprise SS 148
-      - 🇳🇱 Enterprise SS 153
-      - 🇺🇸 Enterprise SS 154
-      - 🇳🇱 Enterprise SS 155
-      - 🇳🇱 Enterprise SS 157
-      - 🇳🇱 Enterprise SS 159
-      - 🇳🇱 Enterprise SS 160
-      - 🇳🇱 Enterprise SS 161
-      - 🇳🇱 Enterprise SS 162
-      - 🇳🇱 Enterprise SS 163
-      - 🇰🇷 Enterprise SS 164
-      - 🇿🇦 Enterprise SS 165
-      - 🇳🇱 Enterprise SS 166
-      - 🇺🇸 Enterprise SS 167
-      - 🇨🇭 Enterprise SS 168
-      - 🇳🇱 Enterprise SS 169
-      - 🇳🇱 Enterprise SS 170
-      - 🇨🇦 Enterprise SS 171
-      - 🇳🇱 Enterprise SS 173
-      - 🇳🇱 Enterprise SS 174
-      - 🇰🇷 Enterprise SS 176
-      - 🇺🇸 Enterprise SS 179
-      - 🇳🇱 Enterprise SS 180
-      - 🇰🇷 Enterprise SS 181
-      - 🇳🇱 Enterprise SS 182
-      - 🇳🇱 Enterprise SS 183
-      - 🇳🇱 Enterprise SS 185
-      - 🇳🇱 Enterprise SS 186
-      - 🇺🇸 Enterprise SS 187
-      - 🇳🇱 Enterprise SS 188
-      - 🇳🇱 Enterprise SS 189
-      - 🇳🇱 Enterprise SS 190
-      - 🇳🇱 Enterprise SS 192
-      - 🇳🇱 Enterprise SS 194
-      - 🇳🇱 Enterprise SS 195
-      - 🇳🇱 Enterprise SS 196
-      - 🇳🇱 Enterprise SS 197
-      - 🇳🇴 Enterprise SS 199
-      - 🇳🇱 Enterprise SS 201
-      - 🇳🇱 Enterprise SS 202
-      - 🇳🇱 Enterprise SS 204
-      - 🇳🇱 Enterprise SS 205
-      - 🇳🇱 Enterprise SS 206
-      - 🇳🇱 Enterprise SS 207
-      - 🇳🇱 Enterprise SS 209
-      - 🇳🇱 Enterprise SS 211
-      - 🇳🇱 Enterprise SS 212
-      - 🇯🇵 Enterprise SS 214
-      - 🇺🇸 Enterprise SS 215
-      - 🇳🇱 Enterprise SS 217
+    tolerance: 150
+    proxies: &id001
+    - Enterprise Польша
+    - Enterprise Германия
+    - Enterprise Чехия
+    - Enterprise Франция
+    - Enterprise Нидерланды
+    - Enterprise Беларусь
+    - Enterprise Финляндия
+    - Enterprise Канада
+    - Enterprise Индия
+    - Enterprise Казахстан
+    - Enterprise Турция
+    - Enterprise США
+    - Enterprise Великобритания
+    - Enterprise Сингапур
+    - Enterprise LTE (Германия)
+    - Enterprise LTE 2 (Сургут)
+    - Enterprise LTE 3 (Москва)
   - name: 📹 YouTube
     type: url-test
-    url: https://www.youtube.com/generate_204
-    interval: 900
-    lazy: true
-    tolerance: 120
-    proxies:
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - 🇮🇳 Enterprise 308
-      - 🇫🇷 Enterprise 335
-      - Enterprise 396
-      - Enterprise 412
-      - 🇫🇷 Enterprise 414
-      - Enterprise 531
-      - Enterprise 535
-      - Enterprise 537
-      - Enterprise 541
-      - 🇦🇪 Enterprise 563
-      - Enterprise 625
-      - Enterprise 799
-      - Enterprise 952
-      - Enterprise 992
-      - 🇩🇪 Enterprise 1028
-      - Enterprise 1099
-      - Enterprise 1208
-      - 🇳🇱 Enterprise 1259
-      - Enterprise 1361
-      - Enterprise 1571
-      - 🇮🇳 Enterprise 1611
-      - 🇫🇷 Enterprise 1612
-      - Enterprise 1641
-      - Enterprise 1646
-      - Enterprise 1647
-      - 🇦🇲 Enterprise 1651
-      - 🇵🇱 Enterprise 1652
-      - 🇫🇷 Enterprise 1655
-      - 🇳🇱 Enterprise 1657
-      - 🇨🇭 Enterprise 1664
-      - 🇰🇿 Enterprise 1675
-      - 🇫🇮 Enterprise 1676
-      - Enterprise 1682
-      - 🇳🇱 Enterprise 1703
-      - 🇯🇵 Enterprise 1704
-      - 🇬🇧 Enterprise 1713
-      - 🇮🇹 Enterprise 1718
-      - 🇬🇧 Enterprise 1720
-      - 🇹🇷 Enterprise 1725
-      - 🇪🇸 Enterprise 1726
-      - 🇻🇳 Enterprise 1729
-      - 🇨🇦 Enterprise 1733
-      - 🇰🇷 Enterprise 1738
-      - Enterprise SS 3
-      - Enterprise SS 4
-      - Enterprise SS 6
-      - Enterprise SS 8
-      - Enterprise SS 9
-      - Enterprise SS 11
-      - Enterprise SS 13
-      - 🇳🇱 Enterprise SS 15
-      - 🇺🇸 Enterprise SS 18
-      - 🇳🇱 Enterprise SS 20
-      - 🇳🇱 Enterprise SS 22
-      - 🇺🇸 Enterprise SS 23
-      - 🇳🇱 Enterprise SS 25
-      - 🇳🇱 Enterprise SS 26
-      - 🇬🇧 Enterprise SS 28
-      - 🇳🇱 Enterprise SS 29
-      - 🇳🇱 Enterprise SS 30
-      - 🇬🇧 Enterprise SS 31
-      - 🇳🇱 Enterprise SS 32
-      - 🇳🇱 Enterprise SS 33
-      - 🇳🇱 Enterprise SS 34
-      - 🇺🇸 Enterprise SS 39
-      - 🇳🇱 Enterprise SS 40
-      - 🇳🇱 Enterprise SS 41
-      - 🇳🇱 Enterprise SS 43
-      - 🇳🇱 Enterprise SS 45
-      - 🇳🇱 Enterprise SS 46
-      - 🇳🇱 Enterprise SS 47
-      - 🇺🇸 Enterprise SS 48
-      - 🇳🇱 Enterprise SS 51
-      - 🇨🇦 Enterprise SS 52
-      - 🇳🇱 Enterprise SS 53
-      - 🇯🇵 Enterprise SS 54
-      - 🇳🇱 Enterprise SS 56
-      - 🇳🇱 Enterprise SS 61
-      - 🇳🇱 Enterprise SS 62
-      - 🇳🇱 Enterprise SS 64
-      - 🇳🇱 Enterprise SS 67
-      - 🇳🇱 Enterprise SS 68
-      - 🇳🇱 Enterprise SS 69
-      - 🇳🇱 Enterprise SS 70
-      - 🇳🇱 Enterprise SS 72
-      - 🇺🇸 Enterprise SS 76
-      - 🇮🇹 Enterprise SS 77
-      - 🇩🇪 Enterprise SS 78
-      - 🇳🇱 Enterprise SS 83
-      - 🇳🇱 Enterprise SS 84
-      - 🇨🇦 Enterprise SS 85
-      - 🇮🇳 Enterprise SS 86
-      - 🇺🇸 Enterprise SS 87
-      - 🇳🇱 Enterprise SS 90
-      - 🇬🇧 Enterprise SS 93
-      - 🇳🇱 Enterprise SS 96
-      - 🇳🇱 Enterprise SS 97
-      - 🇩🇪 Enterprise SS 98
-      - 🇳🇱 Enterprise SS 99
-      - 🇳🇱 Enterprise SS 100
-      - 🇳🇱 Enterprise SS 101
-      - 🇳🇱 Enterprise SS 103
-      - 🇳🇱 Enterprise SS 104
-      - 🇺🇸 Enterprise SS 105
-      - 🇺🇸 Enterprise SS 106
-      - 🇯🇵 Enterprise SS 107
-      - 🇿🇦 Enterprise SS 109
-      - 🇳🇱 Enterprise SS 111
-      - 🇳🇱 Enterprise SS 112
-      - 🇳🇱 Enterprise SS 113
-      - 🇳🇱 Enterprise SS 114
-      - 🇺🇸 Enterprise SS 119
-      - 🇨🇦 Enterprise SS 120
-      - 🇯🇵 Enterprise SS 122
-      - 🇺🇸 Enterprise SS 127
-      - 🇳🇱 Enterprise SS 128
-      - 🇩🇪 Enterprise SS 129
-      - 🇳🇱 Enterprise SS 130
-      - 🇯🇵 Enterprise SS 131
-      - 🇳🇱 Enterprise SS 132
-      - 🇨🇦 Enterprise SS 133
-      - 🇩🇪 Enterprise SS 136
-      - 🇨🇦 Enterprise SS 137
-      - 🇺🇸 Enterprise SS 138
-      - 🇳🇱 Enterprise SS 139
-      - 🇺🇸 Enterprise SS 141
-      - 🇳🇱 Enterprise SS 142
-      - 🇳🇱 Enterprise SS 143
-      - 🇺🇸 Enterprise SS 144
-      - 🇳🇱 Enterprise SS 145
-      - 🇳🇱 Enterprise SS 146
-      - 🇬🇧 Enterprise SS 147
-      - 🇳🇱 Enterprise SS 148
-      - 🇳🇱 Enterprise SS 153
-      - 🇺🇸 Enterprise SS 154
-      - 🇳🇱 Enterprise SS 155
-      - 🇳🇱 Enterprise SS 157
-      - 🇳🇱 Enterprise SS 159
-      - 🇳🇱 Enterprise SS 160
-      - 🇳🇱 Enterprise SS 161
-      - 🇳🇱 Enterprise SS 162
-      - 🇳🇱 Enterprise SS 163
-      - 🇰🇷 Enterprise SS 164
-      - 🇿🇦 Enterprise SS 165
-      - 🇳🇱 Enterprise SS 166
-      - 🇺🇸 Enterprise SS 167
-      - 🇨🇭 Enterprise SS 168
-      - 🇳🇱 Enterprise SS 169
-      - 🇳🇱 Enterprise SS 170
-      - 🇨🇦 Enterprise SS 171
-      - 🇳🇱 Enterprise SS 173
-      - 🇳🇱 Enterprise SS 174
-      - 🇰🇷 Enterprise SS 176
-      - 🇺🇸 Enterprise SS 179
-      - 🇳🇱 Enterprise SS 180
-      - 🇰🇷 Enterprise SS 181
-      - 🇳🇱 Enterprise SS 182
-      - 🇳🇱 Enterprise SS 183
-      - 🇳🇱 Enterprise SS 185
-      - 🇳🇱 Enterprise SS 186
-      - 🇺🇸 Enterprise SS 187
-      - 🇳🇱 Enterprise SS 188
-      - 🇳🇱 Enterprise SS 189
-      - 🇳🇱 Enterprise SS 190
-      - 🇳🇱 Enterprise SS 192
-      - 🇳🇱 Enterprise SS 194
-      - 🇳🇱 Enterprise SS 195
-      - 🇳🇱 Enterprise SS 196
-      - 🇳🇱 Enterprise SS 197
-      - 🇳🇴 Enterprise SS 199
-      - 🇳🇱 Enterprise SS 201
-      - 🇳🇱 Enterprise SS 202
-      - 🇳🇱 Enterprise SS 204
-      - 🇳🇱 Enterprise SS 205
-      - 🇳🇱 Enterprise SS 206
-      - 🇳🇱 Enterprise SS 207
-      - 🇳🇱 Enterprise SS 209
-      - 🇳🇱 Enterprise SS 211
-      - 🇳🇱 Enterprise SS 212
-      - 🇯🇵 Enterprise SS 214
-      - 🇺🇸 Enterprise SS 215
-      - 🇳🇱 Enterprise SS 217
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    proxies: *id001
   - name: ✈️ Telegram
     type: url-test
-    url: https://api.telegram.org
-    interval: 900
-    lazy: true
-    tolerance: 120
-    proxies:
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - 🇮🇳 Enterprise 308
-      - 🇫🇷 Enterprise 335
-      - Enterprise 396
-      - Enterprise 412
-      - 🇫🇷 Enterprise 414
-      - Enterprise 531
-      - Enterprise 535
-      - Enterprise 537
-      - Enterprise 541
-      - 🇦🇪 Enterprise 563
-      - Enterprise 625
-      - Enterprise 799
-      - Enterprise 952
-      - Enterprise 992
-      - 🇩🇪 Enterprise 1028
-      - Enterprise 1099
-      - Enterprise 1208
-      - 🇳🇱 Enterprise 1259
-      - Enterprise 1361
-      - Enterprise 1571
-      - 🇮🇳 Enterprise 1611
-      - 🇫🇷 Enterprise 1612
-      - Enterprise 1641
-      - Enterprise 1646
-      - Enterprise 1647
-      - 🇦🇲 Enterprise 1651
-      - 🇵🇱 Enterprise 1652
-      - 🇫🇷 Enterprise 1655
-      - 🇳🇱 Enterprise 1657
-      - 🇨🇭 Enterprise 1664
-      - 🇰🇿 Enterprise 1675
-      - 🇫🇮 Enterprise 1676
-      - Enterprise 1682
-      - 🇳🇱 Enterprise 1703
-      - 🇯🇵 Enterprise 1704
-      - 🇬🇧 Enterprise 1713
-      - 🇮🇹 Enterprise 1718
-      - 🇬🇧 Enterprise 1720
-      - 🇹🇷 Enterprise 1725
-      - 🇪🇸 Enterprise 1726
-      - 🇻🇳 Enterprise 1729
-      - 🇨🇦 Enterprise 1733
-      - 🇰🇷 Enterprise 1738
-      - Enterprise SS 3
-      - Enterprise SS 4
-      - Enterprise SS 6
-      - Enterprise SS 8
-      - Enterprise SS 9
-      - Enterprise SS 11
-      - Enterprise SS 13
-      - 🇳🇱 Enterprise SS 15
-      - 🇺🇸 Enterprise SS 18
-      - 🇳🇱 Enterprise SS 20
-      - 🇳🇱 Enterprise SS 22
-      - 🇺🇸 Enterprise SS 23
-      - 🇳🇱 Enterprise SS 25
-      - 🇳🇱 Enterprise SS 26
-      - 🇬🇧 Enterprise SS 28
-      - 🇳🇱 Enterprise SS 29
-      - 🇳🇱 Enterprise SS 30
-      - 🇬🇧 Enterprise SS 31
-      - 🇳🇱 Enterprise SS 32
-      - 🇳🇱 Enterprise SS 33
-      - 🇳🇱 Enterprise SS 34
-      - 🇺🇸 Enterprise SS 39
-      - 🇳🇱 Enterprise SS 40
-      - 🇳🇱 Enterprise SS 41
-      - 🇳🇱 Enterprise SS 43
-      - 🇳🇱 Enterprise SS 45
-      - 🇳🇱 Enterprise SS 46
-      - 🇳🇱 Enterprise SS 47
-      - 🇺🇸 Enterprise SS 48
-      - 🇳🇱 Enterprise SS 51
-      - 🇨🇦 Enterprise SS 52
-      - 🇳🇱 Enterprise SS 53
-      - 🇯🇵 Enterprise SS 54
-      - 🇳🇱 Enterprise SS 56
-      - 🇳🇱 Enterprise SS 61
-      - 🇳🇱 Enterprise SS 62
-      - 🇳🇱 Enterprise SS 64
-      - 🇳🇱 Enterprise SS 67
-      - 🇳🇱 Enterprise SS 68
-      - 🇳🇱 Enterprise SS 69
-      - 🇳🇱 Enterprise SS 70
-      - 🇳🇱 Enterprise SS 72
-      - 🇺🇸 Enterprise SS 76
-      - 🇮🇹 Enterprise SS 77
-      - 🇩🇪 Enterprise SS 78
-      - 🇳🇱 Enterprise SS 83
-      - 🇳🇱 Enterprise SS 84
-      - 🇨🇦 Enterprise SS 85
-      - 🇮🇳 Enterprise SS 86
-      - 🇺🇸 Enterprise SS 87
-      - 🇳🇱 Enterprise SS 90
-      - 🇬🇧 Enterprise SS 93
-      - 🇳🇱 Enterprise SS 96
-      - 🇳🇱 Enterprise SS 97
-      - 🇩🇪 Enterprise SS 98
-      - 🇳🇱 Enterprise SS 99
-      - 🇳🇱 Enterprise SS 100
-      - 🇳🇱 Enterprise SS 101
-      - 🇳🇱 Enterprise SS 103
-      - 🇳🇱 Enterprise SS 104
-      - 🇺🇸 Enterprise SS 105
-      - 🇺🇸 Enterprise SS 106
-      - 🇯🇵 Enterprise SS 107
-      - 🇿🇦 Enterprise SS 109
-      - 🇳🇱 Enterprise SS 111
-      - 🇳🇱 Enterprise SS 112
-      - 🇳🇱 Enterprise SS 113
-      - 🇳🇱 Enterprise SS 114
-      - 🇺🇸 Enterprise SS 119
-      - 🇨🇦 Enterprise SS 120
-      - 🇯🇵 Enterprise SS 122
-      - 🇺🇸 Enterprise SS 127
-      - 🇳🇱 Enterprise SS 128
-      - 🇩🇪 Enterprise SS 129
-      - 🇳🇱 Enterprise SS 130
-      - 🇯🇵 Enterprise SS 131
-      - 🇳🇱 Enterprise SS 132
-      - 🇨🇦 Enterprise SS 133
-      - 🇩🇪 Enterprise SS 136
-      - 🇨🇦 Enterprise SS 137
-      - 🇺🇸 Enterprise SS 138
-      - 🇳🇱 Enterprise SS 139
-      - 🇺🇸 Enterprise SS 141
-      - 🇳🇱 Enterprise SS 142
-      - 🇳🇱 Enterprise SS 143
-      - 🇺🇸 Enterprise SS 144
-      - 🇳🇱 Enterprise SS 145
-      - 🇳🇱 Enterprise SS 146
-      - 🇬🇧 Enterprise SS 147
-      - 🇳🇱 Enterprise SS 148
-      - 🇳🇱 Enterprise SS 153
-      - 🇺🇸 Enterprise SS 154
-      - 🇳🇱 Enterprise SS 155
-      - 🇳🇱 Enterprise SS 157
-      - 🇳🇱 Enterprise SS 159
-      - 🇳🇱 Enterprise SS 160
-      - 🇳🇱 Enterprise SS 161
-      - 🇳🇱 Enterprise SS 162
-      - 🇳🇱 Enterprise SS 163
-      - 🇰🇷 Enterprise SS 164
-      - 🇿🇦 Enterprise SS 165
-      - 🇳🇱 Enterprise SS 166
-      - 🇺🇸 Enterprise SS 167
-      - 🇨🇭 Enterprise SS 168
-      - 🇳🇱 Enterprise SS 169
-      - 🇳🇱 Enterprise SS 170
-      - 🇨🇦 Enterprise SS 171
-      - 🇳🇱 Enterprise SS 173
-      - 🇳🇱 Enterprise SS 174
-      - 🇰🇷 Enterprise SS 176
-      - 🇺🇸 Enterprise SS 179
-      - 🇳🇱 Enterprise SS 180
-      - 🇰🇷 Enterprise SS 181
-      - 🇳🇱 Enterprise SS 182
-      - 🇳🇱 Enterprise SS 183
-      - 🇳🇱 Enterprise SS 185
-      - 🇳🇱 Enterprise SS 186
-      - 🇺🇸 Enterprise SS 187
-      - 🇳🇱 Enterprise SS 188
-      - 🇳🇱 Enterprise SS 189
-      - 🇳🇱 Enterprise SS 190
-      - 🇳🇱 Enterprise SS 192
-      - 🇳🇱 Enterprise SS 194
-      - 🇳🇱 Enterprise SS 195
-      - 🇳🇱 Enterprise SS 196
-      - 🇳🇱 Enterprise SS 197
-      - 🇳🇴 Enterprise SS 199
-      - 🇳🇱 Enterprise SS 201
-      - 🇳🇱 Enterprise SS 202
-      - 🇳🇱 Enterprise SS 204
-      - 🇳🇱 Enterprise SS 205
-      - 🇳🇱 Enterprise SS 206
-      - 🇳🇱 Enterprise SS 207
-      - 🇳🇱 Enterprise SS 209
-      - 🇳🇱 Enterprise SS 211
-      - 🇳🇱 Enterprise SS 212
-      - 🇯🇵 Enterprise SS 214
-      - 🇺🇸 Enterprise SS 215
-      - 🇳🇱 Enterprise SS 217
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    proxies: *id001
   - name: 🧱 Заблокированное
-    type: url-test
-    url: https://www.instagram.com
-    interval: 900
-    lazy: true
-    tolerance: 120
+    type: select
     proxies:
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - 🇮🇳 Enterprise 308
-      - 🇫🇷 Enterprise 335
-      - Enterprise 396
-      - Enterprise 412
-      - 🇫🇷 Enterprise 414
-      - Enterprise 531
-      - Enterprise 535
-      - Enterprise 537
-      - Enterprise 541
-      - 🇦🇪 Enterprise 563
-      - Enterprise 625
-      - Enterprise 799
-      - Enterprise 952
-      - Enterprise 992
-      - 🇩🇪 Enterprise 1028
-      - Enterprise 1099
-      - Enterprise 1208
-      - 🇳🇱 Enterprise 1259
-      - Enterprise 1361
-      - Enterprise 1571
-      - 🇮🇳 Enterprise 1611
-      - 🇫🇷 Enterprise 1612
-      - Enterprise 1641
-      - Enterprise 1646
-      - Enterprise 1647
-      - 🇦🇲 Enterprise 1651
-      - 🇵🇱 Enterprise 1652
-      - 🇫🇷 Enterprise 1655
-      - 🇳🇱 Enterprise 1657
-      - 🇨🇭 Enterprise 1664
-      - 🇰🇿 Enterprise 1675
-      - 🇫🇮 Enterprise 1676
-      - Enterprise 1682
-      - 🇳🇱 Enterprise 1703
-      - 🇯🇵 Enterprise 1704
-      - 🇬🇧 Enterprise 1713
-      - 🇮🇹 Enterprise 1718
-      - 🇬🇧 Enterprise 1720
-      - 🇹🇷 Enterprise 1725
-      - 🇪🇸 Enterprise 1726
-      - 🇻🇳 Enterprise 1729
-      - 🇨🇦 Enterprise 1733
-      - 🇰🇷 Enterprise 1738
-      - Enterprise SS 3
-      - Enterprise SS 4
-      - Enterprise SS 6
-      - Enterprise SS 8
-      - Enterprise SS 9
-      - Enterprise SS 11
-      - Enterprise SS 13
-      - 🇳🇱 Enterprise SS 15
-      - 🇺🇸 Enterprise SS 18
-      - 🇳🇱 Enterprise SS 20
-      - 🇳🇱 Enterprise SS 22
-      - 🇺🇸 Enterprise SS 23
-      - 🇳🇱 Enterprise SS 25
-      - 🇳🇱 Enterprise SS 26
-      - 🇬🇧 Enterprise SS 28
-      - 🇳🇱 Enterprise SS 29
-      - 🇳🇱 Enterprise SS 30
-      - 🇬🇧 Enterprise SS 31
-      - 🇳🇱 Enterprise SS 32
-      - 🇳🇱 Enterprise SS 33
-      - 🇳🇱 Enterprise SS 34
-      - 🇺🇸 Enterprise SS 39
-      - 🇳🇱 Enterprise SS 40
-      - 🇳🇱 Enterprise SS 41
-      - 🇳🇱 Enterprise SS 43
-      - 🇳🇱 Enterprise SS 45
-      - 🇳🇱 Enterprise SS 46
-      - 🇳🇱 Enterprise SS 47
-      - 🇺🇸 Enterprise SS 48
-      - 🇳🇱 Enterprise SS 51
-      - 🇨🇦 Enterprise SS 52
-      - 🇳🇱 Enterprise SS 53
-      - 🇯🇵 Enterprise SS 54
-      - 🇳🇱 Enterprise SS 56
-      - 🇳🇱 Enterprise SS 61
-      - 🇳🇱 Enterprise SS 62
-      - 🇳🇱 Enterprise SS 64
-      - 🇳🇱 Enterprise SS 67
-      - 🇳🇱 Enterprise SS 68
-      - 🇳🇱 Enterprise SS 69
-      - 🇳🇱 Enterprise SS 70
-      - 🇳🇱 Enterprise SS 72
-      - 🇺🇸 Enterprise SS 76
-      - 🇮🇹 Enterprise SS 77
-      - 🇩🇪 Enterprise SS 78
-      - 🇳🇱 Enterprise SS 83
-      - 🇳🇱 Enterprise SS 84
-      - 🇨🇦 Enterprise SS 85
-      - 🇮🇳 Enterprise SS 86
-      - 🇺🇸 Enterprise SS 87
-      - 🇳🇱 Enterprise SS 90
-      - 🇬🇧 Enterprise SS 93
-      - 🇳🇱 Enterprise SS 96
-      - 🇳🇱 Enterprise SS 97
-      - 🇩🇪 Enterprise SS 98
-      - 🇳🇱 Enterprise SS 99
-      - 🇳🇱 Enterprise SS 100
-      - 🇳🇱 Enterprise SS 101
-      - 🇳🇱 Enterprise SS 103
-      - 🇳🇱 Enterprise SS 104
-      - 🇺🇸 Enterprise SS 105
-      - 🇺🇸 Enterprise SS 106
-      - 🇯🇵 Enterprise SS 107
-      - 🇿🇦 Enterprise SS 109
-      - 🇳🇱 Enterprise SS 111
-      - 🇳🇱 Enterprise SS 112
-      - 🇳🇱 Enterprise SS 113
-      - 🇳🇱 Enterprise SS 114
-      - 🇺🇸 Enterprise SS 119
-      - 🇨🇦 Enterprise SS 120
-      - 🇯🇵 Enterprise SS 122
-      - 🇺🇸 Enterprise SS 127
-      - 🇳🇱 Enterprise SS 128
-      - 🇩🇪 Enterprise SS 129
-      - 🇳🇱 Enterprise SS 130
-      - 🇯🇵 Enterprise SS 131
-      - 🇳🇱 Enterprise SS 132
-      - 🇨🇦 Enterprise SS 133
-      - 🇩🇪 Enterprise SS 136
-      - 🇨🇦 Enterprise SS 137
-      - 🇺🇸 Enterprise SS 138
-      - 🇳🇱 Enterprise SS 139
-      - 🇺🇸 Enterprise SS 141
-      - 🇳🇱 Enterprise SS 142
-      - 🇳🇱 Enterprise SS 143
-      - 🇺🇸 Enterprise SS 144
-      - 🇳🇱 Enterprise SS 145
-      - 🇳🇱 Enterprise SS 146
-      - 🇬🇧 Enterprise SS 147
-      - 🇳🇱 Enterprise SS 148
-      - 🇳🇱 Enterprise SS 153
-      - 🇺🇸 Enterprise SS 154
-      - 🇳🇱 Enterprise SS 155
-      - 🇳🇱 Enterprise SS 157
-      - 🇳🇱 Enterprise SS 159
-      - 🇳🇱 Enterprise SS 160
-      - 🇳🇱 Enterprise SS 161
-      - 🇳🇱 Enterprise SS 162
-      - 🇳🇱 Enterprise SS 163
-      - 🇰🇷 Enterprise SS 164
-      - 🇿🇦 Enterprise SS 165
-      - 🇳🇱 Enterprise SS 166
-      - 🇺🇸 Enterprise SS 167
-      - 🇨🇭 Enterprise SS 168
-      - 🇳🇱 Enterprise SS 169
-      - 🇳🇱 Enterprise SS 170
-      - 🇨🇦 Enterprise SS 171
-      - 🇳🇱 Enterprise SS 173
-      - 🇳🇱 Enterprise SS 174
-      - 🇰🇷 Enterprise SS 176
-      - 🇺🇸 Enterprise SS 179
-      - 🇳🇱 Enterprise SS 180
-      - 🇰🇷 Enterprise SS 181
-      - 🇳🇱 Enterprise SS 182
-      - 🇳🇱 Enterprise SS 183
-      - 🇳🇱 Enterprise SS 185
-      - 🇳🇱 Enterprise SS 186
-      - 🇺🇸 Enterprise SS 187
-      - 🇳🇱 Enterprise SS 188
-      - 🇳🇱 Enterprise SS 189
-      - 🇳🇱 Enterprise SS 190
-      - 🇳🇱 Enterprise SS 192
-      - 🇳🇱 Enterprise SS 194
-      - 🇳🇱 Enterprise SS 195
-      - 🇳🇱 Enterprise SS 196
-      - 🇳🇱 Enterprise SS 197
-      - 🇳🇴 Enterprise SS 199
-      - 🇳🇱 Enterprise SS 201
-      - 🇳🇱 Enterprise SS 202
-      - 🇳🇱 Enterprise SS 204
-      - 🇳🇱 Enterprise SS 205
-      - 🇳🇱 Enterprise SS 206
-      - 🇳🇱 Enterprise SS 207
-      - 🇳🇱 Enterprise SS 209
-      - 🇳🇱 Enterprise SS 211
-      - 🇳🇱 Enterprise SS 212
-      - 🇯🇵 Enterprise SS 214
-      - 🇺🇸 Enterprise SS 215
-      - 🇳🇱 Enterprise SS 217
+    - ♻️ Авто-выбор
+    - DIRECT
   - name: 🤖 AI
     type: url-test
-    url: https://gemini.google.com
-    interval: 900
-    lazy: true
-    tolerance: 120
-    proxies:
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - Enterprise Extra 1
-      - Enterprise Extra 2
-      - 🇮🇳 Enterprise 308
-      - 🇫🇷 Enterprise 335
-      - Enterprise 396
-      - Enterprise 412
-      - 🇫🇷 Enterprise 414
-      - Enterprise 531
-      - Enterprise 535
-      - Enterprise 537
-      - Enterprise 541
-      - 🇦🇪 Enterprise 563
-      - Enterprise 625
-      - Enterprise 799
-      - Enterprise 952
-      - Enterprise 992
-      - 🇩🇪 Enterprise 1028
-      - Enterprise 1099
-      - Enterprise 1208
-      - 🇳🇱 Enterprise 1259
-      - Enterprise 1361
-      - Enterprise 1571
-      - 🇮🇳 Enterprise 1611
-      - 🇫🇷 Enterprise 1612
-      - Enterprise 1641
-      - Enterprise 1646
-      - Enterprise 1647
-      - 🇦🇲 Enterprise 1651
-      - 🇵🇱 Enterprise 1652
-      - 🇫🇷 Enterprise 1655
-      - 🇳🇱 Enterprise 1657
-      - 🇨🇭 Enterprise 1664
-      - 🇰🇿 Enterprise 1675
-      - 🇫🇮 Enterprise 1676
-      - Enterprise 1682
-      - 🇳🇱 Enterprise 1703
-      - 🇯🇵 Enterprise 1704
-      - 🇬🇧 Enterprise 1713
-      - 🇮🇹 Enterprise 1718
-      - 🇬🇧 Enterprise 1720
-      - 🇹🇷 Enterprise 1725
-      - 🇪🇸 Enterprise 1726
-      - 🇻🇳 Enterprise 1729
-      - 🇨🇦 Enterprise 1733
-      - 🇰🇷 Enterprise 1738
-      - Enterprise SS 3
-      - Enterprise SS 4
-      - Enterprise SS 6
-      - Enterprise SS 8
-      - Enterprise SS 9
-      - Enterprise SS 11
-      - Enterprise SS 13
-      - 🇳🇱 Enterprise SS 15
-      - 🇺🇸 Enterprise SS 18
-      - 🇳🇱 Enterprise SS 20
-      - 🇳🇱 Enterprise SS 22
-      - 🇺🇸 Enterprise SS 23
-      - 🇳🇱 Enterprise SS 25
-      - 🇳🇱 Enterprise SS 26
-      - 🇬🇧 Enterprise SS 28
-      - 🇳🇱 Enterprise SS 29
-      - 🇳🇱 Enterprise SS 30
-      - 🇬🇧 Enterprise SS 31
-      - 🇳🇱 Enterprise SS 32
-      - 🇳🇱 Enterprise SS 33
-      - 🇳🇱 Enterprise SS 34
-      - 🇺🇸 Enterprise SS 39
-      - 🇳🇱 Enterprise SS 40
-      - 🇳🇱 Enterprise SS 41
-      - 🇳🇱 Enterprise SS 43
-      - 🇳🇱 Enterprise SS 45
-      - 🇳🇱 Enterprise SS 46
-      - 🇳🇱 Enterprise SS 47
-      - 🇺🇸 Enterprise SS 48
-      - 🇳🇱 Enterprise SS 51
-      - 🇨🇦 Enterprise SS 52
-      - 🇳🇱 Enterprise SS 53
-      - 🇯🇵 Enterprise SS 54
-      - 🇳🇱 Enterprise SS 56
-      - 🇳🇱 Enterprise SS 61
-      - 🇳🇱 Enterprise SS 62
-      - 🇳🇱 Enterprise SS 64
-      - 🇳🇱 Enterprise SS 67
-      - 🇳🇱 Enterprise SS 68
-      - 🇳🇱 Enterprise SS 69
-      - 🇳🇱 Enterprise SS 70
-      - 🇳🇱 Enterprise SS 72
-      - 🇺🇸 Enterprise SS 76
-      - 🇮🇹 Enterprise SS 77
-      - 🇩🇪 Enterprise SS 78
-      - 🇳🇱 Enterprise SS 83
-      - 🇳🇱 Enterprise SS 84
-      - 🇨🇦 Enterprise SS 85
-      - 🇮🇳 Enterprise SS 86
-      - 🇺🇸 Enterprise SS 87
-      - 🇳🇱 Enterprise SS 90
-      - 🇬🇧 Enterprise SS 93
-      - 🇳🇱 Enterprise SS 96
-      - 🇳🇱 Enterprise SS 97
-      - 🇩🇪 Enterprise SS 98
-      - 🇳🇱 Enterprise SS 99
-      - 🇳🇱 Enterprise SS 100
-      - 🇳🇱 Enterprise SS 101
-      - 🇳🇱 Enterprise SS 103
-      - 🇳🇱 Enterprise SS 104
-      - 🇺🇸 Enterprise SS 105
-      - 🇺🇸 Enterprise SS 106
-      - 🇯🇵 Enterprise SS 107
-      - 🇿🇦 Enterprise SS 109
-      - 🇳🇱 Enterprise SS 111
-      - 🇳🇱 Enterprise SS 112
-      - 🇳🇱 Enterprise SS 113
-      - 🇳🇱 Enterprise SS 114
-      - 🇺🇸 Enterprise SS 119
-      - 🇨🇦 Enterprise SS 120
-      - 🇯🇵 Enterprise SS 122
-      - 🇺🇸 Enterprise SS 127
-      - 🇳🇱 Enterprise SS 128
-      - 🇩🇪 Enterprise SS 129
-      - 🇳🇱 Enterprise SS 130
-      - 🇯🇵 Enterprise SS 131
-      - 🇳🇱 Enterprise SS 132
-      - 🇨🇦 Enterprise SS 133
-      - 🇩🇪 Enterprise SS 136
-      - 🇨🇦 Enterprise SS 137
-      - 🇺🇸 Enterprise SS 138
-      - 🇳🇱 Enterprise SS 139
-      - 🇺🇸 Enterprise SS 141
-      - 🇳🇱 Enterprise SS 142
-      - 🇳🇱 Enterprise SS 143
-      - 🇺🇸 Enterprise SS 144
-      - 🇳🇱 Enterprise SS 145
-      - 🇳🇱 Enterprise SS 146
-      - 🇬🇧 Enterprise SS 147
-      - 🇳🇱 Enterprise SS 148
-      - 🇳🇱 Enterprise SS 153
-      - 🇺🇸 Enterprise SS 154
-      - 🇳🇱 Enterprise SS 155
-      - 🇳🇱 Enterprise SS 157
-      - 🇳🇱 Enterprise SS 159
-      - 🇳🇱 Enterprise SS 160
-      - 🇳🇱 Enterprise SS 161
-      - 🇳🇱 Enterprise SS 162
-      - 🇳🇱 Enterprise SS 163
-      - 🇰🇷 Enterprise SS 164
-      - 🇿🇦 Enterprise SS 165
-      - 🇳🇱 Enterprise SS 166
-      - 🇺🇸 Enterprise SS 167
-      - 🇨🇭 Enterprise SS 168
-      - 🇳🇱 Enterprise SS 169
-      - 🇳🇱 Enterprise SS 170
-      - 🇨🇦 Enterprise SS 171
-      - 🇳🇱 Enterprise SS 173
-      - 🇳🇱 Enterprise SS 174
-      - 🇰🇷 Enterprise SS 176
-      - 🇺🇸 Enterprise SS 179
-      - 🇳🇱 Enterprise SS 180
-      - 🇰🇷 Enterprise SS 181
-      - 🇳🇱 Enterprise SS 182
-      - 🇳🇱 Enterprise SS 183
-      - 🇳🇱 Enterprise SS 185
-      - 🇳🇱 Enterprise SS 186
-      - 🇺🇸 Enterprise SS 187
-      - 🇳🇱 Enterprise SS 188
-      - 🇳🇱 Enterprise SS 189
-      - 🇳🇱 Enterprise SS 190
-      - 🇳🇱 Enterprise SS 192
-      - 🇳🇱 Enterprise SS 194
-      - 🇳🇱 Enterprise SS 195
-      - 🇳🇱 Enterprise SS 196
-      - 🇳🇱 Enterprise SS 197
-      - 🇳🇴 Enterprise SS 199
-      - 🇳🇱 Enterprise SS 201
-      - 🇳🇱 Enterprise SS 202
-      - 🇳🇱 Enterprise SS 204
-      - 🇳🇱 Enterprise SS 205
-      - 🇳🇱 Enterprise SS 206
-      - 🇳🇱 Enterprise SS 207
-      - 🇳🇱 Enterprise SS 209
-      - 🇳🇱 Enterprise SS 211
-      - 🇳🇱 Enterprise SS 212
-      - 🇯🇵 Enterprise SS 214
-      - 🇺🇸 Enterprise SS 215
-      - 🇳🇱 Enterprise SS 217
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    proxies: *id001
 rules:
+  - GEOSITE,category-ads-all,REJECT
+  - GEOSITE,category-ru,DIRECT
+  - GEOIP,private,DIRECT,no-resolve
+  - GEOIP,ru,DIRECT
   - MATCH,🚀 Каналы

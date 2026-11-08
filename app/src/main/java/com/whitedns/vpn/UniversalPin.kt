@@ -56,10 +56,39 @@ object UniversalPin {
                         .putInt("last_total", 8)
                         .putLong("last_at", System.currentTimeMillis())
                         .apply()
+                    startWatchdog(context, port, sec, winner)
                 }
             } catch (_: Exception) {
             } finally {
                 pinning.set(false)
+            }
+        }
+    }
+
+    /**
+     * Сторож закреплённого сервера: каждые 60с проверяем его задержку.
+     * Умер (нет ответа) — снимаем фиксацию, возвращаем «🚀 Каналы» на «♻️ Авто-выбор»,
+     * и ядро само молча выбирает живого. Авто-переключение работает всегда.
+     */
+    private fun startWatchdog(context: Context, port: Int, sec: String, pinned: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            while (true) {
+                try {
+                    delay(60_000)
+                    val q = java.net.URLEncoder.encode(pinned, "UTF-8")
+                    val now = CoreEndpoint.api(port, sec,
+                        "/proxies/$q/delay?url=https://www.gstatic.com/generate_204&timeout=5000")
+                    val ok = now != null && now.optInt("delay", 0) > 0
+                    if (!ok) {
+                        // закреплённый умер — вернуть авто-выбор ядра
+                        CoreEndpoint.put(port, sec,
+                            "/proxies/" + java.net.URLEncoder.encode(GROUP_MAIN, "UTF-8"),
+                            """{"name":"$GROUP_AUTO"}""")
+                        context.getSharedPreferences("white_dns_smart_selector", Context.MODE_PRIVATE).edit()
+                            .putString("last_server", "auto-released").apply()
+                        break
+                    }
+                } catch (_: Exception) { /* продолжаем сторожить */ }
             }
         }
     }

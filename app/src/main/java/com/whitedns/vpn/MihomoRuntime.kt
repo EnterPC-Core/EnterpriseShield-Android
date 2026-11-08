@@ -797,13 +797,9 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
             }
             val subscriptionYaml = stripTopLevelKeys(rawYaml, keysToReplace)
                 .let { yaml ->
-                    // Тумблер «Умный выбор сервера» выключен: interval 86400 (раз в сутки —
-                    // практически не листает). Включён: interval 300 (умный подбор + фиксация).
-                    val smartOff = runCatching {
-                        val ctx = appContext
-                        ctx != null && !UniversalPinPolicy.readEnabled(ctx)
-                    }.getOrDefault(false)
-                    if (!smartOff) yaml else yaml.replace(
+                    // Авто-выбор всегда живой: ядро тестирует пул каждые 120с и
+                    // молча перескакивает на живого, если выбранный умер (tolerance 150).
+                    yaml.replace(
                         """  - name: "♻️ Авто-выбор"
     type: url-test
     url: "https://www.instagram.com"
@@ -812,10 +808,10 @@ internal class MihomoRuntimeConfigBuilder(private val context: Context) {
     tolerance: 80""",
                         """  - name: "♻️ Авто-выбор"
     type: url-test
-    url: "https://www.instagram.com"
-    interval: 86400
+    url: "https://www.gstatic.com/generate_204"
+    interval: 120
     lazy: true
-    tolerance: 999999""",
+    tolerance: 150""",
                     )
                 }
                 .let { yaml ->
