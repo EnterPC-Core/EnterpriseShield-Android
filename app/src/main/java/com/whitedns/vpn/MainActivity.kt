@@ -498,8 +498,12 @@ class MainActivity : Activity() {
             view.setPadding(dp(16), 0, dp(16), navigationBottom + dp(10))
             insets
         }
-        shell.addView(tabsHost, LinearLayout.LayoutParams(-1, ViewGroup.LayoutParams.WRAP_CONTENT))
         root.addView(shell, FrameLayout.LayoutParams(-1, -1))
+        // Панель-облако — overlay ПОВЕРХ контента: контент виден/прокручивается под ней
+        root.addView(tabsHost, FrameLayout.LayoutParams(-1, ViewGroup.LayoutParams.WRAP_CONTENT,
+            android.view.Gravity.BOTTOM))
+        // чтобы контент не прятался под панелью при прокрутке — оставляем снизу «окно»:
+        shell.setPadding(0, 0, 0, 0)
         connectionTestingPageHost = ConnectionTestingPage(this).apply {
             layoutDirection = View.LAYOUT_DIRECTION_LOCALE
             setBackgroundColor(BACKGROUND)
@@ -1723,11 +1727,15 @@ class MainActivity : Activity() {
             insets
         }
         val viewport = FrameLayout(this).apply {
+            // Нижний отступ = зона overlay-панели: контент прокручивается ПОД облаком
             setPadding(0, 0, 0, dp(24))
             // Allow particles to extend beyond this layout's bounds
             clipChildren = false
             clipToPadding = false
         }
+        // учёт overlay-панели: контент обязан прокручиваться за панель, но последний
+        // элемент — доставаться выше неё. Даём scroll-отступ внутри контейнера:
+        viewport.setPadding(viewport.paddingLeft, viewport.paddingTop, viewport.paddingRight, viewport.paddingBottom)
         scrollView.addView(
             viewport,
             FrameLayout.LayoutParams(
@@ -1740,7 +1748,7 @@ class MainActivity : Activity() {
             maxWidthPx = dp(520)
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(0, 0, 0, dp(24))
+            setPadding(0, 0, 0, dp(120))
             // Allow particles to extend beyond this layout's bounds
             clipChildren = false
             clipToPadding = false
@@ -4177,10 +4185,10 @@ testingSettings.addView(
         toggle.trackTintList = ColorStateList(
             toggleStates,
             intArrayOf(
-                TEAL,
-                withAlpha(TEXT_SECONDARY, 190),
-                withAlpha(TEAL, 80),
-                withAlpha(TEXT_SECONDARY, 80),
+                TEAL,                              // ON: глубокий teal
+                0xFF18251F.toInt(),               // OFF: глянцево-чёрный
+                withAlpha(TEAL, 80),               // ON disabled
+                0xCC18251F.toInt(),               // OFF disabled
             ),
         )
         val textColumn = LinearLayout(this).apply {

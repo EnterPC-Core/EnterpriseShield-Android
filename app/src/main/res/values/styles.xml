@@ -85,5 +85,8 @@
         <item name="thumbHeight">24dp</item>
         <item name="colorPrimary">@color/whitedns_primary</item>
         <item name="android:colorPrimary">@color/whitedns_primary</item>
+        <item name="colorSurface">#101915</item>
+        <item name="android:elevation">4dp</item>
+        <item name="thumbElevation">6dp</item>
     </style>
 </resources>
