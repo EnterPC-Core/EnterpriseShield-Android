@@ -340,6 +340,11 @@ internal fun StringBuilder.appendRussiaSplitRules(target: String?, quote: (Strin
         RussiaBypassProxyGeosites.forEach { g ->
             append("  - ").append(quote("GEOSITE,$g,$target")).append("\n")
         }
+        // Telegram MTProto ходит по IP напрямую (домена в потоке нет):
+        // GEOIP-категория telegram + запасные диапазоны Telegram DC.
+        append("  - ").append(quote("GEOIP,telegram,$target")).append("\n")
+        append("  - ").append(quote("IP-CIDR,149.154.160.0/20,$target,no-resolve")).append("\n")
+        append("  - ").append(quote("IP-CIDR,91.108.0.0/16,$target,no-resolve")).append("\n")
     }
     RussiaBypassDirectGeosites.forEach { g ->
         append("  - ").append(quote("GEOSITE,$g,DIRECT")).append("\n")
