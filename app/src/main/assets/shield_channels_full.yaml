@@ -1,3 +1,43 @@
+dns:
+    enable: true
+    listen: 0.0.0.0:1053
+    enhanced-mode: fake-ip
+    fake-ip-range: 198.18.0.1/16
+    fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+    - time.*.com
+    - +.market.xiaomi.com
+    - +.msftconnecttest.com
+    - +.msftncsi.com
+    - +.stun.*
+    - localhost.ptlogin2.qq.com
+    - +.srv.nintendo.net
+    default-nameserver:
+    - 1.1.1.1
+    - 8.8.8.8
+    nameserver:
+    - https://1.1.1.1/dns-query
+    - https://dns.google/dns-query
+    - tls://1.0.0.1:853
+profile:
+    store-selected: true
+    store-fake-ip: true
+experimental:
+    fragment:
+      packets: 1-3
+      length: 100-200
+      interval: 10-20
+sniffer:
+    enable: true
+    sniff:
+      HTTP:
+        ports:
+        - 80
+      TLS:
+        ports:
+        - 443
+        - 8443
 proxies:
   - name: Enterprise Польша
     type: vless
@@ -26,6 +66,20 @@ proxies:
     reality-opts:
       public-key: THLsoaSfze_QSwiphxzvGt_1JluHMxbV1H1Z1FHOZiU
       short-id: 9fa993935e441c65
+    flow: xtls-rprx-vision
+  - name: Enterprise Чехия
+    type: vless
+    server: cz.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: cz.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: zDC-DrJmOpnMCDmJQyupmEE3WiHsPzSG7jVGmDTm2h4
+      short-id: b6c826c38f85690e
     flow: xtls-rprx-vision
   - name: Enterprise Франция
     type: vless
@@ -69,6 +123,90 @@ proxies:
       public-key: ArpQ56NmCBjOYGEejjYj8pB9PyDM_FgEQ6TMySKOMx8
       short-id: 91883d70222b006d
     flow: xtls-rprx-vision
+  - name: Enterprise Финляндия
+    type: vless
+    server: fi.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: fi.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: 8Cu6QJUvBG0QosuGVsyA2G2Y3y5jgK8DaTwNZNJ6mXc
+      short-id: be896fcf88db63e0
+    flow: xtls-rprx-vision
+  - name: Enterprise Индия
+    type: vless
+    server: in.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: in.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: rU6n8PIhbrFueSifm4LcyrcjdLqKYInQMfu653LS7Cc
+      short-id: 213ddc36ed98af7c
+    flow: xtls-rprx-vision
+  - name: Enterprise Казахстан
+    type: vless
+    server: kazah.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: kazah.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: dYg-nojflWbpoB4MFQRy878sxe4xaTCZEh6xEP9qTVk
+      short-id: bb39a8c7a263f780
+    flow: xtls-rprx-vision
+  - name: Enterprise Турция
+    type: vless
+    server: turk.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: turk.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: 9uITYNOn-z6f_k3keV6M07TjAN-J8FKVfJJ5AO7jSlM
+      short-id: cc6303b83a257b52
+    flow: xtls-rprx-vision
+  - name: Enterprise США
+    type: vless
+    server: us.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: us.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: E72BpOBGvjxUONZbzPaAHxoqL7wvvtF4b8ScVNxZxVc
+      short-id: 48f9aff751ea9ca0
+    flow: xtls-rprx-vision
+  - name: Enterprise Великобритания
+    type: vless
+    server: uk.iapps.sbs
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: uk.iapps.sbs
+    network: tcp
+    client-fingerprint: firefox
+    reality-opts:
+      public-key: y-KKifqqjx0Hby6TEadzGVzr3M9ifd0PwIe9TGpK-24
+      short-id: 213ddc36ed98af7c
+    flow: xtls-rprx-vision
   - name: Enterprise Сингапур
     type: vless
     server: main.iapps.sbs
@@ -109,6 +247,31 @@ proxies:
     client-fingerprint: firefox
     ws-opts:
       path: /api/v2/session/j87avhkuoUwr
+  - name: Enterprise LTE 3 (Москва)
+    type: vless
+    server: 6197cc658025.vps.myjino.ru
+    port: 443
+    uuid: 90d22d17-2383-4b79-9e27-e7fd212e8d3b
+    udp: true
+    tls: true
+    servername: 6197cc658025.vps.myjino.ru
+    network: ws
+    client-fingerprint: firefox
+    ws-opts:
+      path: /api/v2/live/e44bb5c7db576856/segment
+  - name: Enterprise Extra 1
+    type: vless
+    server: s11.cpii.ru
+    port: 1443
+    uuid: 9576180b-1c0b-4832-bdef-69fd8e03ddc5
+    udp: true
+    tls: true
+    servername: fonts.gstatic.com
+    client-fingerprint: chrome
+    network: tcp
+    reality-opts:
+      public-key: w8GkraWIIMmDE8mFQEbMtM7GajfNPRb2htJxBV8zgE8
+      short-id: b0c357d9785679c0
 proxy-groups:
   - name: 🚀 Каналы
     type: select
@@ -116,12 +279,21 @@ proxy-groups:
     - ♻️ Авто-выбор
     - Enterprise Польша
     - Enterprise Германия
+    - Enterprise Чехия
     - Enterprise Франция
     - Enterprise Нидерланды
     - Enterprise Беларусь
+    - Enterprise Финляндия
+    - Enterprise Индия
+    - Enterprise Казахстан
+    - Enterprise Турция
+    - Enterprise США
+    - Enterprise Великобритания
     - Enterprise Сингапур
     - Enterprise LTE (Германия)
     - Enterprise LTE 2 (Сургут)
+    - Enterprise LTE 3 (Москва)
+    - Enterprise Extra 1
   - name: "♻️ Авто-выбор"
     type: url-test
     url: "https://www.gstatic.com/generate_204"
@@ -131,20 +303,29 @@ proxy-groups:
     proxies: &id001
     - Enterprise Польша
     - Enterprise Германия
+    - Enterprise Чехия
     - Enterprise Франция
     - Enterprise Нидерланды
     - Enterprise Беларусь
+    - Enterprise Финляндия
+    - Enterprise Индия
+    - Enterprise Казахстан
+    - Enterprise Турция
+    - Enterprise США
+    - Enterprise Великобритания
     - Enterprise Сингапур
     - Enterprise LTE (Германия)
     - Enterprise LTE 2 (Сургут)
+    - Enterprise LTE 3 (Москва)
+    - Enterprise Extra 1
   - name: 📹 YouTube
     type: url-test
-    url: https://www.gstatic.com/generate_204
+    url: https://www.youtube.com/generate_204
     interval: 300
     proxies: *id001
   - name: ✈️ Telegram
     type: url-test
-    url: https://www.gstatic.com/generate_204
+    url: https://web.telegram.org
     interval: 300
     proxies: *id001
   - name: 🧱 Заблокированное
@@ -154,12 +335,38 @@ proxy-groups:
     - DIRECT
   - name: 🤖 AI
     type: url-test
-    url: https://www.gstatic.com/generate_204
+    url: https://chatgpt.com
     interval: 300
     proxies: *id001
 rules:
+  - AND,((NETWORK,udp),(DST-PORT,443)),REJECT
   - GEOSITE,category-ads-all,REJECT
   - GEOSITE,category-ru,DIRECT
   - GEOIP,private,DIRECT,no-resolve
   - GEOIP,ru,DIRECT
+  - GEOSITE,instagram,🚀 Каналы
+  - GEOSITE,facebook,🚀 Каналы
+  - GEOSITE,twitter,🚀 Каналы
+  - GEOSITE,youtube,📹 YouTube
+  - GEOSITE,google,🚀 Каналы
+  - GEOSITE,telegram,✈️ Telegram
+  - GEOSITE,openai,🤖 AI
+  - GEOSITE,netflix,🚀 Каналы
+  - GEOSITE,spotify,🚀 Каналы
+  - GEOSITE,discord,🚀 Каналы
+  - GEOSITE,twitch,🚀 Каналы
+  - GEOSITE,reddit,🚀 Каналы
+  - GEOSITE,steam,🚀 Каналы
+  - GEOSITE,pixiv,🚀 Каналы
+  - GEOSITE,ehentai,🚀 Каналы
+  - DOMAIN-SUFFIX,medium.com,🚀 Каналы
+  - DOMAIN-SUFFIX,thepiratebay.org,🚀 Каналы
+  - DOMAIN-SUFFIX,rutracker.org,🚀 Каналы
+  - DOMAIN-SUFFIX,linkedin.com,🚀 Каналы
+  - DOMAIN-SUFFIX,x.com,🚀 Каналы
+  - DOMAIN-KEYWORD,whatsapp,🚀 Каналы
+  - DOMAIN-KEYWORD,viber,🚀 Каналы
+  - DOMAIN-SUFFIX,habr.com,🚀 Каналы
+  - DOMAIN-SUFFIX,4pda.to,🚀 Каналы
+  - DOMAIN-SUFFIX,tvrain.ru,🚀 Каналы
   - MATCH,🚀 Каналы
