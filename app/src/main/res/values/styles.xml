@@ -41,7 +41,7 @@
     </style>
 
     <style name="WhiteDnsPopupMenu" parent="Widget.AppCompat.PopupMenu">
-        <item name="android:popupBackground">@color/whitedns_surface</item>
+        <item name="android:popupBackground">@drawable/popup_glass_bg</item>
     </style>
 
     <style name="WhiteDnsPopupTheme" parent="ThemeOverlay.AppCompat">

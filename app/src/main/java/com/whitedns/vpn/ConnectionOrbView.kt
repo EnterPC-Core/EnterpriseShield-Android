@@ -851,7 +851,19 @@ class ConnectionOrbView(context: Context) : View(context) {
             (evaluator.evaluate(0.08f, palette.red, palette.textPrimary) as Int) to
                 (evaluator.evaluate(0.22f, palette.red, palette.textPrimary) as Int)
         }
-        VpnState.Stopped -> palette.textSecondary to palette.neutral
+        VpnState.Stopped -> {
+            // Стеклянный орб: полупрозрачный тон поверхности, а не глухая серая тарелка
+            val glassStart = blend(palette.surface, palette.textSecondary, 0.30f)
+            val glassEnd = blend(palette.surface, palette.neutral, 0.55f)
+            glassStart to glassEnd
+        }
+    }
+
+    private fun blend(a: Int, b: Int, t: Float): Int {
+        val av = (a shr 16 and 0xFF) + (((b shr 16 and 0xFF) - (a shr 16 and 0xFF)) * t).toInt()
+        val rv = (a shr 8 and 0xFF) + (((b shr 8 and 0xFF) - (a shr 8 and 0xFF)) * t).toInt()
+        val gv = (a and 0xFF) + (((b and 0xFF) - (a and 0xFF)) * t).toInt()
+        return (0xFF shl 24) or (av shl 16) or (rv shl 8) or gv
     }
 
     private fun currentAccent(): Int =

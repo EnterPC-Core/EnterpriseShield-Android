@@ -440,23 +440,25 @@ class MainActivity : Activity() {
             minimumHeight = dp(76)
             // Плавающая стеклянная капсула: скруглённый верх, полупрозрачное «стекло» + кромка
             background = GradientDrawable().apply {
-                cornerRadius = dp(22).toFloat()
                 shape = GradientDrawable.RECTANGLE
-                cornerRadii = floatArrayOf(
-                    dp(28).toFloat(), dp(28).toFloat(),   // верх-лево, верх-право
-                    dp(28).toFloat(), dp(28).toFloat(),
-                    0f, 0f,                               // низ-лево/право — прилегает к краю
-                    0f, 0f,
-                )
-                setColor(withAlpha(SURFACE, 180))
-                setStroke(dp(1), withAlpha(TEAL, 36))
+                cornerRadius = dp(32).toFloat()
+                setColor(withAlpha(SURFACE, 200))
+                setStroke(1, withAlpha(TEAL, 40))
             }
-            elevation = dp(6).toFloat()
-            // Мягкий pill-индикатор выбранной вкладки
+            elevation = dp(10).toFloat()
+            outlineAmbientShadowColor = withAlpha(TEAL, 30)
+            outlineSpotShadowColor = withAlpha(TEAL, 60)
+            // Индикатор — «таблетка» со скруглением 16dp (никаких квадратов)
             setSelectedTabIndicatorHeight(dp(44))
-            setSelectedTabIndicatorColor(withAlpha(TEAL, 36))
             setSelectedTabIndicatorGravity(TabLayout.INDICATOR_GRAVITY_CENTER)
             setTabIndicatorFullWidth(false)
+            setSelectedTabIndicator(
+                GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    cornerRadius = dp(16).toFloat()
+                    setColor(withAlpha(TEAL, 42))
+                }
+            )
             tabRippleColor = ColorStateList.valueOf(withAlpha(TEAL, 24))
             setTabTextColors(TEXT_SECONDARY, TEAL)
             tabIconTint = ColorStateList(
@@ -496,12 +498,12 @@ class MainActivity : Activity() {
         appTabs = tabs
         val tabsHost = FrameLayout(this).apply {
             setBackgroundColor(Color.TRANSPARENT)
-            setPadding(dp(18), 0, dp(18), dp(18))
-            addView(tabs, FrameLayout.LayoutParams(-1, dp(72)))
+            setPadding(dp(16), 0, dp(16), dp(6))
+            addView(tabs, FrameLayout.LayoutParams(-1, dp(64)))
         }
         ViewCompat.setOnApplyWindowInsetsListener(tabsHost) { view, insets ->
             val navigationBottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
-            view.setPadding(dp(18), 0, dp(18), navigationBottom + dp(18))
+            view.setPadding(dp(16), 0, dp(16), navigationBottom + dp(10))
             insets
         }
         shell.addView(tabsHost, LinearLayout.LayoutParams(-1, ViewGroup.LayoutParams.WRAP_CONTENT))
@@ -7700,7 +7702,7 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
      */
     private fun glassSurfaceDrawable(radiusDp: Int, highlighted: Boolean = false): GradientDrawable {
         val base = if (highlighted) palette.surfaceElevated2 else palette.surfaceElevated1
-        val tint = if (highlighted) 236 else if (palette.isDark) 214 else 196
+        val tint = if (highlighted) 225 else if (palette.isDark) 178 else 188
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = dp(radiusDp).toFloat()
