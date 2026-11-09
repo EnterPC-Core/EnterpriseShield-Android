@@ -12,6 +12,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.RenderEffect
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
@@ -2097,9 +2098,13 @@ class MainActivity : Activity() {
                 this@MainActivity,
                 palette,
                 radiusDp = EsDs.Radius.card,
-                tintAlpha = if (palette.isDark) 200 else 172,
+                tintAlpha = if (palette.isDark) 178 else 165,
             )
             elevation = dp(if (palette.isDark) 2 else 3).toFloat()
+            // Frosted: слой размытия фона под карточкой (Telegram-подход)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setRenderEffect(RenderEffect.createBlurEffect(dp(18).toFloat(), dp(18).toFloat(), android.graphics.Shader.TileMode.CLAMP))
+            }
             addView(timerRow, LinearLayout.LayoutParams(-1, dp(44)))
             addView(
                 View(this@MainActivity).apply { setBackgroundColor(withAlpha(OUTLINE, 150)) },
