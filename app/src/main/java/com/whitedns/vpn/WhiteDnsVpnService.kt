@@ -3180,7 +3180,8 @@ class WhiteDnsVpnService : VpnService() {
             val universal = ConnectionLocationPreferenceStore(this).readSelectedCountryCode() ==
                 ConnectionLocationPolicy.UNIVERSAL_CODE
             if (universal) {
-                UniversalPin.pinBestOnce(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret)
+                // Авто-фиксация сервера убрана по требованию: выбор только руками юзера.
+                // UniversalPin.pinBestOnce(this, startedRuntime.paths.controlPort, startedRuntime.paths.secret)
             }
         }
         runCatching {
