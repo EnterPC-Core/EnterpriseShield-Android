@@ -84,6 +84,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.Locale
 import java.text.DateFormat
 
@@ -2359,6 +2360,36 @@ buildDeviceSectionContent(deviceSettings)
             advancedSectionLabel(getString(R.string.diag_title)),
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(24) },
         )
+        // Экран «Журнал Щита»: полный лог (ядро + приложение) с кнопкой копирования
+        run {
+            val logPanel = advancedSettingsPanel()
+            val logLabel = TextView(this).apply {
+                text = getString(R.string.shield_log_title)
+                textSize = 15f
+                setTextColor(palette.textPrimary)
+                setPadding(dp(20), dp(16), dp(20), dp(8))
+            }
+            val logBody = TextView(this).apply {
+                textSize = 11f
+                typeface = android.graphics.Typeface.MONOSPACE
+                setTextColor(palette.textSecondary)
+                setTextIsSelectable(true)
+                setPadding(dp(20), 0, dp(20), dp(12))
+                text = readShieldLog()
+            }
+            val copyBtn = TextView(this).apply {
+                text = getString(R.string.shield_log_copy)
+                textSize = 14f
+                setTextColor(palette.teal)
+                setPadding(dp(20), dp(8), dp(20), dp(16))
+                setSelectableBackground()
+                setOnClickListener { copyDiagnosticsToClipboard() }
+            }
+            logPanel.addView(logLabel)
+            logPanel.addView(logBody)
+            logPanel.addView(copyBtn)
+            testingSettings.addView(logPanel, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
+        }
 testingSettings.addView(
             diagPanel,
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) },
@@ -7544,6 +7575,23 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
         val minutes = (totalSeconds % 3_600L) / 60L
         val seconds = totalSeconds % 60L
         return String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
+    private fun readShieldLog(): String {
+        val appLog = runCatching { DiagnosticLogger.read(this) }.getOrDefault("")
+        val coreLog = runCatching {
+            val base = File(filesDir, "mihomo")
+            val files = listOf(File(base, "service_core.log"), File(base, "service_error.log"))
+                .filter { it.isFile }
+            files.joinToString("\n") { f ->
+                "--- ${f.name} ---\n" + runCatching {
+                    f.inputStream().bufferedReader().useLines { lines ->
+                        lines.toList().takeLast(120).joinToString("\n")
+                    }
+                }.getOrDefault("(пусто)")
+            }
+        }.getOrDefault("")
+        return (coreLog + "\n--- Приложение ---\n" + appLog).ifBlank { getString(R.string.diagnostics_empty) }
     }
 
     private fun copyDiagnosticsToClipboard() {

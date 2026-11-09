@@ -17,7 +17,7 @@ object DiagnosticLogger {
     private const val MAX_STDERR_READ_BYTES = 128 * 1024
     private const val MAX_COPIED_CHARS = 128 * 1024
     @Volatile
-    private var captureEnabled = BuildConfig.DEBUG
+    private var captureEnabled = true
 
     fun beginCapture(context: Context) {
         if (captureEnabled) return
