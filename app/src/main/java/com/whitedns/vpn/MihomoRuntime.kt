@@ -324,10 +324,21 @@ private val RussiaBypassDirectGeosites = listOf(
     "F-DROID", "TWITCH", "CATEGORY-RU",
 )
 
+/** Геосеты сервисов, заблокированных в РФ: через Щит ДО правил RU-direct. */
+private val RussiaBypassProxyGeosites = listOf(
+    "instagram", "facebook", "twitter", "youtube", "google",
+    "telegram", "openai", "netflix", "spotify", "discord",
+    "twitch", "reddit", "steam", "pixiv",
+)
+
 internal fun StringBuilder.appendRussiaSplitRules(target: String?, quote: (String) -> String) {
     if (target != null) {
         RussiaBypassProxyDomains.forEach { d ->
             append("  - ").append(quote("DOMAIN-SUFFIX,$d,$target")).append("\n")
+        }
+        // Заблокированные сервисы — через Щит (ПЕРЕД RU-direct, иначе утонут в GEOIP,ru)
+        RussiaBypassProxyGeosites.forEach { g ->
+            append("  - ").append(quote("GEOSITE,$g,$target")).append("\n")
         }
     }
     RussiaBypassDirectGeosites.forEach { g ->
