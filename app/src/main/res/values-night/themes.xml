@@ -16,5 +16,36 @@
         <item name="android:navigationBarColor">@color/whitedns_background</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
+            <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.WhiteDns</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.WhiteDns.Large</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.WhiteDns.Large</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.WhiteDns.Dialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.WhiteDns.Dialog</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.WhiteDns.BottomSheet</item>
+</style>
+
+    <!-- ЕДИНЫЕ ЗАКРУГЛЕНИЯ ВО ВСЁМ ПРИЛОЖЕНИИ -->
+    <style name="ShapeAppearance.WhiteDns" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">22dp</item>
+        <item name="cornerSizeTopRight">22dp</item>
+        <item name="cornerSizeBottomLeft">22dp</item>
+        <item name="cornerSizeBottomRight">22dp</item>
+    </style>
+    <style name="ShapeAppearance.WhiteDns.Large" parent="ShapeAppearance.WhiteDns">
+        <item name="cornerSizeTopLeft">28dp</item>
+        <item name="cornerSizeTopRight">28dp</item>
+        <item name="cornerSizeBottomLeft">28dp</item>
+        <item name="cornerSizeBottomRight">28dp</item>
+    </style>
+    <style name="ShapeAppearance.WhiteDns.Dialog" parent="ShapeAppearance.WhiteDns.Large" />
+
+    <!-- ДИАЛОГИ: цвет и закругления -->
+    <style name="ThemeOverlay.WhiteDns.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/whitedns_surface</item>
+        <item name="colorOnSurface">@color/whitedns_on_surface</item>
+        <item name="colorPrimary">@color/whitedns_primary</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.WhiteDns.Dialog</item>
+        <item name="dialogCornerRadius">28dp</item>
     </style>
 </resources>

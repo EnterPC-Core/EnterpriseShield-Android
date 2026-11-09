@@ -437,19 +437,28 @@ class MainActivity : Activity() {
         // New bottom navigation with pill-shaped container
         val tabs = TabLayout(this).apply {
             layoutDirection = View.LAYOUT_DIRECTION_LOCALE
-            minimumHeight = dp(72)
+            minimumHeight = dp(76)
+            // Плавающая стеклянная капсула: скруглённый верх, полупрозрачное «стекло» + кромка
             background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
                 cornerRadius = dp(22).toFloat()
-                setColor(withAlpha(SURFACE, 205))
+                shape = GradientDrawable.RECTANGLE
+                cornerRadii = floatArrayOf(
+                    dp(28).toFloat(), dp(28).toFloat(),   // верх-лево, верх-право
+                    dp(28).toFloat(), dp(28).toFloat(),
+                    0f, 0f,                               // низ-лево/право — прилегает к краю
+                    0f, 0f,
+                )
+                setColor(withAlpha(SURFACE, 180))
+                setStroke(dp(1), withAlpha(TEAL, 36))
             }
-            elevation = 0f
-            setSelectedTabIndicatorHeight(dp(3))
-            setSelectedTabIndicatorColor(TEAL)
-            setSelectedTabIndicatorGravity(TabLayout.INDICATOR_GRAVITY_BOTTOM)
+            elevation = dp(6).toFloat()
+            // Мягкий pill-индикатор выбранной вкладки
+            setSelectedTabIndicatorHeight(dp(44))
+            setSelectedTabIndicatorColor(withAlpha(TEAL, 36))
+            setSelectedTabIndicatorGravity(TabLayout.INDICATOR_GRAVITY_CENTER)
             setTabIndicatorFullWidth(false)
-            setTabTextColors(TEXT_SECONDARY, TEAL)
             tabRippleColor = ColorStateList.valueOf(withAlpha(TEAL, 24))
+            setTabTextColors(TEXT_SECONDARY, TEAL)
             tabIconTint = ColorStateList(
                 arrayOf(intArrayOf(android.R.attr.state_selected), intArrayOf()),
                 intArrayOf(TEAL, TEXT_SECONDARY),
@@ -1083,7 +1092,7 @@ class MainActivity : Activity() {
                         setPaddingRelative(dp(8), dp(4), dp(8), dp(4))
                         background = GradientDrawable().apply {
                             shape = GradientDrawable.RECTANGLE
-                            cornerRadius = dp(12).toFloat()
+                            cornerRadius = dp(16).toFloat()
                             setColor(withAlpha(TEAL, if (palette.isDark) 34 else 22))
                             setStroke(dp(1), withAlpha(TEAL, 92))
                         }
@@ -1313,7 +1322,7 @@ class MainActivity : Activity() {
                 if (existing == null) R.string.subscription_add else R.string.split_tunnel_save,
                 null,
             )
-            .create()
+            .create().also { applyDialogGlass(it) }
         dialog.showWhiteDnsDialog {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val name = nameInput.text.toString()
@@ -1434,7 +1443,7 @@ class MainActivity : Activity() {
                 renderSubscriptions()
                 refreshLocationOptions()
             }
-            .create()
+            .create().also { applyDialogGlass(it) }
         dialog.showWhiteDnsDialog(positiveColor = ERROR)
     }
 
@@ -1802,13 +1811,13 @@ class MainActivity : Activity() {
             insetTop = 0
             insetBottom = 0
             setPadding(0, 0, 0, 0)
-            cornerRadius = dp(12)
+            cornerRadius = dp(16)
             strokeWidth = 0
             elevation = 0f
             stateListAnimator = null
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
-            val selectedBackground = withAlpha(TEAL, if (palette.isDark) 64 else 32)
+            val selectedBackground = withAlpha(TEAL, if (palette.isDark) 72 else 40)
             backgroundTintList = ColorStateList(
                 connectionModeButtonColors,
                 intArrayOf(selectedBackground, Color.TRANSPARENT, withAlpha(TEAL, 24), Color.TRANSPARENT),
@@ -3725,6 +3734,18 @@ testingSettings.addView(
         }
     }
 
+
+    /**
+     * НАСТОЯЩЕЕ системное стекло (Android 12+): размытие фона ЗА диалогом,
+     * как в Telegram. Радиус 80px, полупрозрачный фон, на старых API — плотнее фон.
+     */
+    private fun applyDialogGlass(dialog: androidx.appcompat.app.AlertDialog) {
+        val window = dialog.window ?: return
+        if (android.os.Build.VERSION.SDK_INT >= 31) {
+            window.setBackgroundBlurRadius(80)
+        }
+    }
+
     private fun showResetSettingsDialog() {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.settings_reset)
@@ -4282,7 +4303,7 @@ testingSettings.addView(
             .setView(scrollView)
             .setNegativeButton(R.string.privacy_policy_not_now, null)
             .setPositiveButton(R.string.privacy_policy_accept, null)
-            .create()
+            .create().also { applyDialogGlass(it) }
 
         dialog.setOnDismissListener {
             if (privacyPolicyDialog === dialog) {
@@ -4454,7 +4475,7 @@ testingSettings.addView(
     }
 
     private fun showRootBlockedDialog() {
-        val dialog = android.app.AlertDialog.Builder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.root_blocked_title))
             .setMessage(getString(R.string.root_blocked_message))
             .setPositiveButton(getString(R.string.root_blocked_request)) { d, _ ->
@@ -4471,7 +4492,7 @@ testingSettings.addView(
                 }
             }
             .setNegativeButton(getString(R.string.root_blocked_cancel), null)
-            .create()
+            .create().also { applyDialogGlass(it) }
         dialog.show()
     }
 
@@ -6075,7 +6096,7 @@ testingSettings.addView(
                 handleLocationSelected(options[which])
                 dialog.dismiss()
             }
-            .create()
+            .create().also { applyDialogGlass(it) }
         dialog.showWhiteDnsDialog()
     }
 
@@ -6184,7 +6205,7 @@ testingSettings.addView(
                 recreate()
             }
             .setNegativeButton(R.string.split_tunnel_cancel, null)
-            .create()
+            .create().also { applyDialogGlass(it) }
         dialog.showWhiteDnsDialog()
     }
 
@@ -6206,7 +6227,7 @@ testingSettings.addView(
                 recreate()
             }
             .setNegativeButton(R.string.split_tunnel_cancel, null)
-            .create()
+            .create().also { applyDialogGlass(it) }
         dialog.showWhiteDnsDialog()
     }
 
@@ -6222,7 +6243,7 @@ testingSettings.addView(
             ) { dialog, which ->
                 if (handleDnsPrivacySelected(modes[which])) dialog.dismiss()
             }
-            .create()
+            .create().also { applyDialogGlass(it) }
         dialog.showWhiteDnsDialog()
     }
 
@@ -6244,7 +6265,7 @@ testingSettings.addView(
                 renderRoutingModeSelection()
                 reconnectForConnectionOptionChange()
             }
-            .create()
+            .create().also { applyDialogGlass(it) }
         dialog.showWhiteDnsDialog()
     }
 
