@@ -570,6 +570,4 @@
     <string name="smart_pin_detail">When the Shield starts, pick the best server for all services and lock it in</string>
     <string name="tgproxy_open">Telegram proxy</string>
     <string name="tab_warp">WARP</string>
-    <string name="shield_log_title">Shield log (core + app)</string>
-    <string name="shield_log_copy">Copy log</string>
 </resources>

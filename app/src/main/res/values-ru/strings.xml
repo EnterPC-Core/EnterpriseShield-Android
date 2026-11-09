@@ -559,6 +559,4 @@
     <string name="smart_pin_detail">При включении Щита подобрать лучший сервер по всем сервисам и зафиксировать его</string>
     <string name="tgproxy_open">Telegram-прокси</string>
     <string name="tab_warp">WARP</string>
-    <string name="shield_log_title">Журнал Щита (ядро + приложение)</string>
-    <string name="shield_log_copy">Копировать журнал</string>
 </resources>
