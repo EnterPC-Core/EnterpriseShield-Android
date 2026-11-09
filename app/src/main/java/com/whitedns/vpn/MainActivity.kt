@@ -448,17 +448,9 @@ class MainActivity : Activity() {
             elevation = dp(10).toFloat()
             outlineAmbientShadowColor = withAlpha(TEAL, 30)
             outlineSpotShadowColor = withAlpha(TEAL, 60)
-            // Индикатор — «таблетка» со скруглением 16dp (никаких квадратов)
-            setSelectedTabIndicatorHeight(dp(44))
-            setSelectedTabIndicatorGravity(TabLayout.INDICATOR_GRAVITY_CENTER)
-            setTabIndicatorFullWidth(false)
-            setSelectedTabIndicator(
-                GradientDrawable().apply {
-                    shape = GradientDrawable.RECTANGLE
-                    cornerRadius = dp(16).toFloat()
-                    setColor(withAlpha(TEAL, 42))
-                }
-            )
+            // Без индикатора вовсе: выделение — только цветом иконки/текста
+            setSelectedTabIndicatorHeight(0)
+            setSelectedTabIndicatorColor(Color.TRANSPARENT)
             tabRippleColor = ColorStateList.valueOf(withAlpha(TEAL, 24))
             setTabTextColors(TEXT_SECONDARY, TEAL)
             tabIconTint = ColorStateList(
@@ -7677,7 +7669,7 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
         window.decorView.textDirection = View.TEXT_DIRECTION_LOCALE
         window.statusBarColor = BACKGROUND
-        window.navigationBarColor = SURFACE
+        window.navigationBarColor = Color.TRANSPARENT
         var flags = window.decorView.systemUiVisibility
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             flags = if (palette.isDark) {
@@ -7692,6 +7684,10 @@ private fun buildDeviceSectionContent(container: LinearLayout) {
             } else {
                 flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
             }
+        }
+        // Edge-to-edge: системная полоса прозрачная, жесты видны поверх фона приложения
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
         }
         window.decorView.systemUiVisibility = flags
     }
