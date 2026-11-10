@@ -229,8 +229,11 @@ object GitHubReleaseClient {
                 if (uri.host !in setOf("api.enterprise-shield.ru", "github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com")) {
                     throw IOException("GitHub asset redirected to an invalid host")
                 }
-            } else if (url != LATEST_RELEASE_URL) {
-                throw IOException("GitHub API redirected to an invalid URL")
+            } else {
+                val latestApi = uri.host == "api.github.com" &&
+                    uri.rawPath == "/repos/EnterPC-Core/EnterpriseShield-Android/releases/latest" &&
+                    uri.rawQuery == null
+                if (!latestApi) throw IOException("GitHub API redirected to an invalid URL")
             }
             val connection = URL(url).openConnection() as HttpURLConnection
             connection.connectTimeout = 5_000
@@ -267,6 +270,7 @@ object GitHubReleaseClient {
         throw IOException("GitHub release redirected too many times")
     }
 
+    // Release discovery is direct via GitHub; VPS manifest is not required.
     private const val LATEST_RELEASE_URL =
-        "https://api.enterprise-shield.ru/app/es/latest.json"
+        "https://api.github.com/repos/EnterPC-Core/EnterpriseShield-Android/releases/latest"
 }
