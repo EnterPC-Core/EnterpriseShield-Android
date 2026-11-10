@@ -1,6 +1,7 @@
 package com.whitedns.vpn
 
 import android.app.Activity
+import android.content.ClipData
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -274,10 +275,7 @@ internal class AppUpdateUi(
                 verifiedForInstall = true
                 if (!resumed) return@launch
                 val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.updates", file)
-                activity.startActivity(Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "application/vnd.android.package-archive")
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                })
+                openApkInstaller(uri)
                 notice = null
             } catch (error: CancellationException) {
                 throw error
@@ -287,6 +285,35 @@ internal class AppUpdateUi(
             } finally {
                 busy = false
                 render()
+            }
+        }
+    }
+
+    /** Opens Android's package installer reliably on Android 12+/OEM firmware. */
+    private fun openApkInstaller(uri: Uri) {
+        val install = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
+            setDataAndType(uri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            clipData = ClipData.newRawUri("Enterprise Shield update", uri)
+            putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+            putExtra(Intent.EXTRA_RETURN_RESULT, false)
+        }
+        try {
+            activity.startActivity(install)
+        } catch (primary: Exception) {
+            // Some vendor installers expose only ACTION_VIEW.
+            val view = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                clipData = ClipData.newRawUri("Enterprise Shield update", uri)
+            }
+            try {
+                activity.startActivity(view)
+            } catch (fallback: Exception) {
+                fallback.addSuppressed(primary)
+                throw fallback
             }
         }
     }
