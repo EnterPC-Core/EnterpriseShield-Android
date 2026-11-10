@@ -63,7 +63,10 @@ class AppUpdateManager(context: Context) {
     }
 
     @Suppress("DEPRECATION")
-    suspend fun download(release: AppRelease) = withContext(Dispatchers.IO) {
+    suspend fun download(
+        release: AppRelease,
+        onProgress: (downloaded: Long, total: Long) -> Unit = { _, _ -> },
+    ) = withContext(Dispatchers.IO) {
         mutationLock.withLock {
             reconcileInstalledUpdate()
             val installed = installedMetadata()
@@ -82,12 +85,14 @@ class AppUpdateManager(context: Context) {
             destination.delete()
             DiagnosticLogger.info(context, "ota.manager.download", "version=${release.version} asset=${apk.name} size=${apk.size}")
             // Собственная загрузка: редиректы GitHub -> CDN обслуживаем сами.
-            downloadInline(apk.url, destination, apk.size)
-            val id = -1L
+            // Persist before download so progress survives navigation/recreation.
+            val pending = PendingDownload(-1L, release, digest)
+            savePending(pending)
+            File(updateDirectory, "update.progress").writeText("0 ${apk.size}")
             try {
-                savePending(PendingDownload(id, release, digest))
+                downloadInline(apk.url, destination, apk.size, onProgress)
             } catch (error: Exception) {
-                downloads.remove(id)
+                savePending(pending.copy(failed = true))
                 throw error
             }
         }
@@ -95,7 +100,12 @@ class AppUpdateManager(context: Context) {
 
 
     /** Скачивает APK по ссылке, следуя редиректам, с ограничением размера. */
-    private fun downloadInline(url: String, target: File, expectedSize: Long) {
+    private fun downloadInline(
+        url: String,
+        target: File,
+        expectedSize: Long,
+        onProgress: (downloaded: Long, total: Long) -> Unit,
+    ) {
         var current = url
         var hops = 0
         while (true) {
@@ -126,6 +136,7 @@ class AppUpdateManager(context: Context) {
                             if (count == -1) break
                             out.write(buffer, 0, count)
                             total += count
+                            onProgress(total, expectedSize)
                             if (expectedSize > 0 && total > expectedSize) {
                                 throw IOException("Update file is larger than announced")
                             }
@@ -295,6 +306,7 @@ class AppUpdateManager(context: Context) {
         verified = null
         snapshot.delete()
         File(updateDirectory, "update.apk.part").delete()
+        File(updateDirectory, "update.progress").delete()
         context.getExternalFilesDir("updates")?.let { File(it, "download.apk").delete() }
     }
 
@@ -314,7 +326,7 @@ class AppUpdateManager(context: Context) {
             val release = readRelease(json.getJSONObject("release").toString()) ?: return@let null
             val id = json.getLong("id")
             val digest = json.getString("sha256")
-            if (id < 0 || !release.downloadable || !digest.matches(Regex("[a-f0-9]{64}"))) return@let null
+            if (id < -1 || !release.downloadable || !digest.matches(Regex("[a-f0-9]{64}"))) return@let null
             PendingDownload(id, release, digest, json.getBoolean("failed"))
         }
     } catch (_: Exception) {

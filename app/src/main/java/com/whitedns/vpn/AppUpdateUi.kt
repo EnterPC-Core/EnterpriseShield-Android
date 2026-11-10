@@ -40,10 +40,14 @@ internal class AppUpdateUi(
     private var busy = false
     private var installWhenReady = false
     private var installAfterPermission = false
+    private var waitingForInstallPermission = false
     private var requestedDownloadVersion: String? = null
     private var readyDialogVersion: String? = null
     private var notice: String? = null
     private var dialog: AlertDialog? = null
+    private var downloadDialog: AlertDialog? = null
+    private var downloadDialogProgress: ProgressBar? = null
+    private var downloadDialogStatus: TextView? = null
     private lateinit var versions: TextView
     private lateinit var status: TextView
     private lateinit var badge: TextView
@@ -103,7 +107,14 @@ internal class AppUpdateUi(
 
     fun onResume() {
         resumed = true
+        if (waitingForInstallPermission && activity.packageManager.canRequestPackageInstalls()) {
+            waitingForInstallPermission = false
+            installAfterPermission = true
+        }
         poll()
+        if (state is AppDownloadState.Downloading && downloadDialog == null) {
+            manager.pendingRelease()?.let { showDownloadDialog(it) }
+        }
         if (installAfterPermission) {
             installAfterPermission = false
             install()
@@ -116,10 +127,13 @@ internal class AppUpdateUi(
         polling?.cancel()
         dialog?.dismiss()
         dialog = null
+        downloadDialog?.dismiss()
+        downloadDialog = null
     }
 
     fun onActivityResult(requestCode: Int): Boolean {
         if (requestCode != INSTALL_PERMISSION_REQUEST) return false
+        waitingForInstallPermission = false
         installAfterPermission = activity.packageManager.canRequestPackageInstalls()
         if (!installAfterPermission) notice = activity.getString(R.string.update_permission_denied)
         render()
@@ -195,21 +209,40 @@ internal class AppUpdateUi(
             return
         }
         busy = true
-        notice = activity.getString(R.string.update_preparing)
+        notice = activity.getString(R.string.update_downloading)
+        state = AppDownloadState.Downloading(0L, release.apk?.size ?: -1L, paused = false)
+        showDownloadDialog(release)
         render()
         scope.launch {
             try {
-                manager.download(release)
+                manager.download(release) { downloaded, total ->
+                    activity.runOnUiThread {
+                        if (total > 0L) {
+                            state = AppDownloadState.Downloading(downloaded, total, paused = false)
+                            downloadDialogProgress?.progress = ((downloaded * 100L) / total).toInt().coerceIn(0, 100)
+                            downloadDialogStatus?.text = activity.getString(
+                                R.string.update_download_progress,
+                                NumberFormat.getPercentInstance(activity.resources.configuration.locales[0])
+                                    .format((downloaded.toDouble() / total).coerceIn(0.0, 1.0)),
+                            )
+                            render()
+                        }
+                    }
+                }
                 notice = null
                 // Не запускаем установщик автоматически: это вызывало повторное окно
                 // после возврата из системных настроек неизвестных источников.
                 installWhenReady = false
                 busy = false
+                downloadDialog?.dismiss()
+                downloadDialog = null
                 poll()
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
                 requestedDownloadVersion = null
+                downloadDialog?.dismiss()
+                downloadDialog = null
                 state = AppDownloadState.Failed
                 fail("update.download.failed", error, R.string.update_download_failed)
             } finally {
@@ -217,6 +250,39 @@ internal class AppUpdateUi(
                 render()
             }
         }
+    }
+
+    private fun showDownloadDialog(release: AppRelease) {
+        downloadDialog?.dismiss()
+        val box = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(24), dp(8), dp(24), dp(8))
+        }
+        val title = TextView(activity).apply {
+            text = activity.getString(R.string.update_downloading)
+            textSize = 16f
+            setTextColor(palette.textPrimary)
+        }
+        val status = TextView(activity).apply {
+            text = activity.getString(R.string.update_download_progress, "0%")
+            textSize = 13f
+            setTextColor(palette.textSecondary)
+        }
+        val bar = ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progress = 0
+            progressTintList = ColorStateList.valueOf(palette.teal)
+        }
+        box.addView(title)
+        box.addView(status, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        box.addView(bar, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(12) })
+        downloadDialogProgress = bar
+        downloadDialogStatus = status
+        downloadDialog = MaterialAlertDialogBuilder(activity)
+            .setTitle(activity.getString(R.string.update_available_title))
+            .setView(box)
+            .setCancelable(false)
+            .create().also { it.show() }
     }
 
     private fun cancelDownload() {
@@ -249,6 +315,19 @@ internal class AppUpdateUi(
                 try {
                     state = manager.refreshDownload()
                     render()
+                    val downloadingState = state as? AppDownloadState.Downloading
+                    if (downloadingState != null && resumed && downloadDialog == null) {
+                        manager.pendingRelease()?.let { showDownloadDialog(it) }
+                        if (downloadingState.total > 0L) {
+                            downloadDialogProgress?.progress =
+                                ((downloadingState.downloaded * 100L) / downloadingState.total).toInt().coerceIn(0, 100)
+                            downloadDialogStatus?.text = activity.getString(
+                                R.string.update_download_progress,
+                                NumberFormat.getPercentInstance(activity.resources.configuration.locales[0])
+                                    .format((downloadingState.downloaded.toDouble() / downloadingState.total).coerceIn(0.0, 1.0)),
+                            )
+                        }
+                    }
                     val readyState = state as? AppDownloadState.Ready
                     if (readyState != null && resumed &&
                         readyDialogVersion != readyState.release.version) {
@@ -292,6 +371,7 @@ internal class AppUpdateUi(
         // Returning from a cancelled installer must leave the Install button available.
         if (!activity.packageManager.canRequestPackageInstalls()) {
             try {
+                waitingForInstallPermission = true
                 activity.startActivityForResult(
                     Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${activity.packageName}")),
                     INSTALL_PERMISSION_REQUEST,
