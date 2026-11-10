@@ -40,6 +40,8 @@ internal class AppUpdateUi(
     private var busy = false
     private var installWhenReady = false
     private var installAfterPermission = false
+    private var requestedDownloadVersion: String? = null
+    private var readyDialogVersion: String? = null
     private var notice: String? = null
     private var dialog: AlertDialog? = null
     private lateinit var versions: TextView
@@ -142,8 +144,12 @@ internal class AppUpdateUi(
                 val prompt = manual || AppUpdatePolicy.shouldPrompt(
                     release.version, BuildConfig.VERSION_NAME, manager.skippedVersion(),
                 )
+                val pendingVersion = manager.pendingRelease()?.version
+                val promptSuppressed = requestedDownloadVersion == release.version ||
+                    pendingVersion == release.version ||
+                    readyDialogVersion == release.version
                 if (resumed && newer && release.downloadable && idle && prompt &&
-                    (manual || manager.pendingRelease() == null)) {
+                    !promptSuppressed && (manual || pendingVersion == null)) {
                     showUpdate(release)
                 }
             } catch (error: CancellationException) {
@@ -164,9 +170,16 @@ internal class AppUpdateUi(
         dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.update_available_title)
             .setMessage(activity.getString(R.string.update_available_message, version(release.version)))
-            .setNegativeButton(R.string.update_skip) { _, _ -> manager.skipVersion(release.version); render() }
-            .setPositiveButton(R.string.update_download) { _, _ -> download(release) }
-            .create().also { it.show() }
+            .setNegativeButton(R.string.update_skip) { _, _ -> manager.skipVersion(release.version); dialog = null; render() }
+            .setPositiveButton(R.string.update_download) { _, _ ->
+                requestedDownloadVersion = release.version
+                dialog = null
+                download(release)
+            }
+            .create().also { alert ->
+                alert.setOnDismissListener { if (dialog === alert) dialog = null }
+                alert.show()
+            }
     }
 
     private fun download(release: AppRelease) {
@@ -188,12 +201,15 @@ internal class AppUpdateUi(
             try {
                 manager.download(release)
                 notice = null
-                installWhenReady = resumed
+                // Не запускаем установщик автоматически: это вызывало повторное окно
+                // после возврата из системных настроек неизвестных источников.
+                installWhenReady = false
                 busy = false
                 poll()
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
+                requestedDownloadVersion = null
                 state = AppDownloadState.Failed
                 fail("update.download.failed", error, R.string.update_download_failed)
             } finally {
@@ -206,6 +222,7 @@ internal class AppUpdateUi(
     private fun cancelDownload() {
         if (busy) return
         installWhenReady = false
+        requestedDownloadVersion = null
         busy = true
         polling?.cancel()
         scope.launch {
@@ -232,7 +249,13 @@ internal class AppUpdateUi(
                 try {
                     state = manager.refreshDownload()
                     render()
-                    if (state is AppDownloadState.Ready && installWhenReady && resumed) {
+                    val readyState = state as? AppDownloadState.Ready
+                    if (readyState != null && resumed &&
+                        readyDialogVersion != readyState.release.version) {
+                        readyDialogVersion = readyState.release.version
+                        showInstallReady(readyState.release)
+                    }
+                    if (readyState != null && installWhenReady && resumed) {
                         installWhenReady = false
                         install()
                     }
@@ -247,6 +270,19 @@ internal class AppUpdateUi(
                 delay(1_000)
             } while (resumed)
         }
+    }
+
+    private fun showInstallReady(release: AppRelease) {
+        dialog?.dismiss()
+        dialog = MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.update_ready)
+            .setMessage(activity.getString(R.string.update_ready, version(release.version)))
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.update_install) { _, _ -> install() }
+            .create().also { alert ->
+                alert.setOnDismissListener { if (dialog === alert) dialog = null }
+                alert.show()
+            }
     }
 
     @Suppress("DEPRECATION")
