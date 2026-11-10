@@ -469,11 +469,12 @@ object MihomoLinkConfigBuilder {
 }
 
 class UserSubscriptionManager(
-    context: Context,
+    private val context: Context,
     private val store: SubscriptionStore = SubscriptionStore(context),
 ) {
     private val snapshots = SubscriptionSnapshotResolver(
         persistence = AndroidSubscriptionSnapshotAdapter(context, store),
+        context = context,
     )
 
     fun list(): List<UserSubscription> = store.readUserSubscriptions()
@@ -540,7 +541,7 @@ class UserSubscriptionManager(
     fun cachedSnapshot(id: String): MihomoSubscriptionSnapshot? = snapshots.cached(id)
 
     private suspend fun compile(input: String): CompiledSubscription {
-        val content = SubscriptionSourceLoader.load(userSubscriptionSource(input))
+        val content = SubscriptionSourceLoader.load(userSubscriptionSource(input), context)
         return SubscriptionCompiler.compile(content, System.currentTimeMillis())
     }
 }

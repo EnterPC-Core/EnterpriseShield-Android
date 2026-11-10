@@ -1,6 +1,7 @@
 package com.whitedns.vpn
 
 import android.content.Context
+import android.os.Build
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -39,12 +40,12 @@ internal sealed interface SubscriptionSource {
 }
 
 internal object SubscriptionSourceLoader {
-    suspend fun load(source: SubscriptionSource): String = when (source) {
+    suspend fun load(source: SubscriptionSource, context: Context? = null): String = when (source) {
         is SubscriptionSource.Inline -> source.content
-        is SubscriptionSource.RemoteHttps -> loadHttps(source.url)
+        is SubscriptionSource.RemoteHttps -> loadHttps(source.url, context)
     }
 
-    private suspend fun loadHttps(value: String): String = runInterruptible(Dispatchers.IO) {
+    private suspend fun loadHttps(value: String, context: Context?): String = runInterruptible(Dispatchers.IO) {
         val uri = runCatching { URI(value) }
             .getOrElse { throw IOException("Subscription Source URL is invalid", it) }
         val directVps = uri.host == "89.208.103.229"
@@ -56,9 +57,27 @@ internal object SubscriptionSourceLoader {
         connection.readTimeout = 20_000
         connection.requestMethod = "GET"
         connection.setRequestProperty("Accept", "text/yaml,application/json,text/plain,*/*;q=0.1")
+        // Совместимость с Remnawave/Happ/v2RayTun: HWID и сведения об устройстве.
+        // HWID стабилен для устройства и одинаков для всех пользовательских подписок.
+        val device = SubscriptionHeaders.forContext(context)
+        connection.setRequestProperty("User-Agent", device.userAgent)
+        connection.setRequestProperty("x-hwid", device.hwid)
+        connection.setRequestProperty("x-device-os", device.os)
+        connection.setRequestProperty("x-ver-os", device.osVersion)
+        connection.setRequestProperty("x-device-model", device.model)
+        connection.setRequestProperty("x-app-version", device.appVersion)
+        connection.instanceFollowRedirects = true
         try {
-            if (connection.responseCode !in 200..299) {
-                throw IOException("Subscription Source returned HTTP ${connection.responseCode}")
+            val responseCode = connection.responseCode
+            if (responseCode !in 200..299) {
+                val reason = when {
+                    connection.getHeaderField("x-hwid-not-supported").equals("true", true) -> "сервер не принял HWID"
+                    connection.getHeaderField("x-hwid-max-devices-reached").equals("true", true) -> "достигнут лимит устройств"
+                    connection.getHeaderField("x-hwid-limit").equals("true", true) -> "достигнут лимит HWID"
+                    responseCode == 404 -> "сервер не выдал подписку (проверьте HWID/доступ)"
+                    else -> null
+                }
+                throw IOException("Subscription Source returned HTTP $responseCode${reason?.let { ": $it" } ?: ""}")
             }
             val bytes = connection.inputStream.use {
                 it.readAtMost(UserSubscriptionImporter.MAX_SUBSCRIPTION_BYTES + 1)
@@ -284,7 +303,10 @@ internal enum class SubscriptionRefreshPolicy {
 
 internal class SubscriptionSnapshotResolver(
     private val persistence: SubscriptionSnapshotPersistence,
-    private val loadSource: suspend (SubscriptionSource) -> String = SubscriptionSourceLoader::load,
+    private val context: Context? = null,
+    private val loadSource: suspend (SubscriptionSource) -> String = { source ->
+        SubscriptionSourceLoader.load(source, context)
+    },
     private val nowMs: () -> Long = System::currentTimeMillis,
     private val freshnessMs: Long = WhiteDnsConfig.SUBSCRIPTION_REFRESH_INTERVAL_MS,
 ) {
@@ -359,3 +381,37 @@ private fun parseSubscriptionSnapshot(yaml: String, fetchedAt: Long): MihomoSubs
             throw IOException("Subscription did not contain proxies")
         }
     }
+
+
+internal object SubscriptionHeaders {
+    data class Device(
+        val userAgent: String,
+        val hwid: String,
+        val os: String,
+        val osVersion: String,
+        val model: String,
+        val appVersion: String,
+    )
+
+    /**
+     * Happ-compatible request identity. Remnawave v3 accepts 10..64 ASCII chars [A-Za-z0-9=-].
+     * ShieldDevice uses ANDROID_ID and a persistent fallback, so refreshes do not create devices.
+     */
+    fun forContext(context: Context?): Device {
+        val hwid = context?.let { ShieldDevice.hwid(it) }
+            ?.trim()
+            ?.takeIf { it.matches(Regex("[A-Za-z0-9=-]{10,64}")) }
+            ?: "0000000000000000"
+        val osVersion = Build.VERSION.RELEASE?.takeIf { it.isNotBlank() } ?: Build.VERSION.SDK_INT.toString()
+        val model = ShieldDevice.deviceModel().ifBlank { "Android" }.take(80)
+        return Device(
+            // Happ providers commonly recognize this UA shape; all standard device headers remain present.
+            userAgent = "Happ/4.8.0/Android/$hwid",
+            hwid = hwid,
+            os = "Android",
+            osVersion = osVersion,
+            model = model,
+            appVersion = BuildConfig.VERSION_NAME,
+        )
+    }
+}

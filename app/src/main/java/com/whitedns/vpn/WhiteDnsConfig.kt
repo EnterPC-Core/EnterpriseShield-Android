@@ -90,6 +90,7 @@ class ConfigRepository(private val context: Context) {
     private val userSubscriptionManager = UserSubscriptionManager(context, subscriptionStore)
     private val subscriptionSnapshots = SubscriptionSnapshotResolver(
         persistence = AndroidSubscriptionSnapshotAdapter(context, subscriptionStore),
+        context = context,
     )
     private val scanStateStore = WhiteDnsScanStateStore(context)
 
