@@ -808,11 +808,16 @@ class MainActivity : Activity() {
                     val a=org.json.JSONObject(c.inputStream.bufferedReader().use{it.readText()}).optJSONArray("shares")
                     (0 until (a?.length()?:0)).map { a!!.getJSONObject(it) }
                 }.getOrElse { emptyList() }
+                val deviceCode = com.whitedns.vpn.ShieldDevice.code(this@MainActivity)
                 val admin = runCatching {
-                    val dc=com.whitedns.vpn.ShieldDevice.code(this@MainActivity)
-                    val ac=java.net.URL("https://api.enterprise-shield.ru/v1/shares/admin?code="+java.net.URLEncoder.encode(dc,"UTF-8")).openConnection() as java.net.HttpURLConnection
+                    val ac=java.net.URL("https://api.enterprise-shield.ru/v1/shares/admin?code="+java.net.URLEncoder.encode(deviceCode,"UTF-8")).openConnection() as java.net.HttpURLConnection
                     org.json.JSONObject(ac.inputStream.bufferedReader().use{it.readText()}).optBoolean("admin", false)
                 }.getOrElse { false }
+                val ownedIds = runCatching {
+                    val mine=java.net.URL("https://api.enterprise-shield.ru/v1/shares/mine?code="+java.net.URLEncoder.encode(deviceCode,"UTF-8")).openConnection() as java.net.HttpURLConnection
+                    val a=org.json.JSONObject(mine.inputStream.bufferedReader().use{it.readText()}).optJSONArray("shares")
+                    if (a == null) emptySet<Int>() else (0 until a.length()).mapNotNull { a.optJSONObject(it)?.optInt("id")?.takeIf { id -> id > 0 } }.toSet()
+                }.getOrElse { emptySet() }
                 runOnUiThread {
                     list.removeAllViews()
                     addPublishButton()
@@ -820,26 +825,34 @@ class MainActivity : Activity() {
                     shares.forEachIndexed { n,x ->
                         val id=x.optInt("id"); val title=x.optString("title"); val url=x.optString("url")
                         val detail="#${n+1} · ${x.optString("proto")} · ${x.optString("host")}\n${x.optString("owner_username").ifBlank{x.optString("owner")}} · ${getString(R.string.shares_meta_fmt,x.optInt("taken"),x.optInt("health_score"),"")}" 
-                        val acts=mutableListOf<Pair<Int,()->Unit>>(R.string.shares_take to {
+                        val takeAction: () -> Unit = {
                             activityScope.launch { runCatching { userSubscriptionManager.add(title,url) }.onSuccess { item ->
                                 SubscriptionStore(this@MainActivity).saveSelectedSubscriptionId(item.id); renderSubscriptions()
                                 activityScope.launch(kotlinx.coroutines.Dispatchers.IO){runCatching { val c=java.net.URL("https://api.enterprise-shield.ru/v1/shares/taken").openConnection() as java.net.HttpURLConnection;c.requestMethod="POST";c.doOutput=true;c.outputStream.use{it.write("{\"id\":$id}".toByteArray())};c.responseCode }}
                                 Toast.makeText(this@MainActivity,getString(R.string.shares_added),Toast.LENGTH_SHORT).show()
                             }.onFailure { Toast.makeText(this@MainActivity,getString(R.string.shares_add_failed),Toast.LENGTH_SHORT).show() } }
-                        })
-                        if (admin) acts.add(R.string.shares_admin_remove to {
+                            Unit
+                        }
+                        // В карточке раздачи первая кнопка — только «Забрать».
+                        // Тест серверов здесь не нужен: раздача уже опубликована владельцем.
+                        // «Забрать» уже является основной кнопкой; в «Опции» не дублируем её.
+                        // Для администратора здесь остаётся удаление раздачи.
+                        val acts=mutableListOf<Pair<Int,()->Unit>>()
+                        if (admin || id in ownedIds) acts.add(R.string.shares_admin_remove to {
                             activityScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                                 runCatching {
                                     val dc=com.whitedns.vpn.ShieldDevice.code(this@MainActivity)
                                     val rc=java.net.URL("https://api.enterprise-shield.ru/v1/shares/remove").openConnection() as java.net.HttpURLConnection
                                     rc.requestMethod="POST"; rc.doOutput=true; rc.setRequestProperty("Content-Type","application/json")
-                                    rc.outputStream.use{ it.write(org.json.JSONObject().put("id",id).put("code",dc).toString().toByteArray()) }
-                                    rc.responseCode
+                                    rc.outputStream.use{ it.write(org.json.JSONObject().put("id",id).put("code",deviceCode).toString().toByteArray()) }
+                                    val responseCode = rc.responseCode
+                                    if (responseCode !in 200..299) throw java.io.IOException("HTTP $responseCode")
+                                    responseCode
                                 }.onSuccess { runOnUiThread { Toast.makeText(this@MainActivity,getString(R.string.shares_admin_removed),Toast.LENGTH_SHORT).show(); doRefresh() } }
                                 .onFailure { runOnUiThread { Toast.makeText(this@MainActivity,getString(R.string.shares_admin_remove_failed),Toast.LENGTH_SHORT).show() } }
                             }
                         })
-                        list.addView(subscriptionCard(title,detail,false,"",{},acts),LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=dp(10)})
+                        list.addView(subscriptionCard(title,detail,false,"",takeAction,acts, R.string.shares_take, R.drawable.ic_enterprise_shield),LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=dp(10)})
                     }
                 }
             }
@@ -864,7 +877,9 @@ class MainActivity : Activity() {
         val content = MaxWidthLinearLayout(this).apply {
             maxWidthPx = dp(520)
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(24), dp(34), dp(24), dp(40))
+            // Та же нижняя зона, что и на экране раздачи серверов:
+            // последний элемент списка поднимается выше плавающей панели.
+            setPadding(dp(24), dp(34), dp(24), dp(112))
         }
         val subscriptionsHeaderCopy = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -1030,6 +1045,8 @@ class MainActivity : Activity() {
         error: String,
         onTestConnections: () -> Unit,
         actions: List<Pair<Int, () -> Unit>>,
+        primaryActionLabel: Int = R.string.subscription_action_test,
+        primaryActionIcon: Int = R.drawable.ic_connection_test,
     ): View = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         layoutDirection = View.LAYOUT_DIRECTION_LOCALE
@@ -1162,8 +1179,8 @@ class MainActivity : Activity() {
                 layoutDirection = View.LAYOUT_DIRECTION_LOCALE
                 addView(
                     actionButton(
-                        labelRes = R.string.subscription_action_test,
-                        iconRes = R.drawable.ic_connection_test,
+                        labelRes = primaryActionLabel,
+                        iconRes = primaryActionIcon,
                         accent = true,
                     ) { onTestConnections() },
                     LinearLayout.LayoutParams(0, dp(48), 1f),
