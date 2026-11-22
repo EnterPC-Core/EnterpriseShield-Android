@@ -11,6 +11,12 @@
   <img src="https://img.shields.io/badge/Android-6.0+-3FBE90?style=for-the-badge" alt="Android 6.0+">
 </p>
 
+<p align="center">
+  <a href="https://t.me/Enterprise_vpn_bot">🤖 Telegram-бот</a> ·
+  <a href="https://github.com/EnterPC-Core/EnterpriseShield-Android/releases/latest">⬇️ Релизы</a> ·
+  <a href="https://chat.89-208-103-229.sslip.io">💬 Чат тестирования</a>
+</p>
+
 ---
 
 ## Что такое Enterprise Shield
