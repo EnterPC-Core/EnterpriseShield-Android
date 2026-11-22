@@ -14,7 +14,7 @@
 <p align="center">
   <a href="https://t.me/Enterprise_vpn_bot">🤖 Telegram-бот</a> ·
   <a href="https://github.com/EnterPC-Core/EnterpriseShield-Android/releases/latest">⬇️ Релизы</a> ·
-  <a href="https://chat.89-208-103-229.sslip.io">💬 Чат тестирования</a>
+  <a href="https://t.me/+8MRRCNZ5wOdkZjdi">💬 Чат тестирования</a>
 </p>
 
 ---
