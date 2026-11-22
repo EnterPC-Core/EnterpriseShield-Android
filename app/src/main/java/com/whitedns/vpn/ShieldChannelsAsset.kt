@@ -83,6 +83,22 @@ proxies:
       path: /assets/img/7b2c.js
       headers:
         Host: enterprisechat.ru
+  - name: "🇫🇮 Enterprise Direct"
+    type: vless
+    server: 138.124.99.46
+    port: 15448
+    uuid: e5714788-bab6-4502-9220-375d29428583
+    udp: true
+    tls: true
+    servername: chat.138-124-99-46.sslip.io
+    client-fingerprint: chrome
+    alpn:
+    - http/1.1
+    network: ws
+    ws-opts:
+      path: /direct
+      headers:
+        Host: chat.138-124-99-46.sslip.io
 proxy-groups:
   - name: "🚀 Каналы"
     type: select
@@ -90,6 +106,7 @@ proxy-groups:
     - "♻️ Авто-выбор"
     - "🇷🇺 Прямой"
     - "🇫🇮 Enterprise WiFi/LTE"
+    - "🇫🇮 Enterprise Direct"
   - name: "♻️ Авто-выбор"
     type: url-test
     url: "https://www.gstatic.com/generate_204"
