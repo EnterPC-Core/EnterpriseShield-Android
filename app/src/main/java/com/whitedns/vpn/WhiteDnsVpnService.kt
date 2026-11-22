@@ -1702,7 +1702,8 @@ class WhiteDnsVpnService : VpnService() {
             dotEndpoint = dnsPrivacyPreferenceStore.readDotEndpoint(),
         ),
         connectionMode = connectionModePreferenceStore.read(),
-        dpiBypassEnabled = dpiBypassPreferenceStore.isEnabled(),
+        // DPI-обход отключён: наши каналы сами маскируют трафик, а ByeByeDPI ломал TLS.
+        dpiBypassEnabled = false,
         alwaysOn = alwaysOnActive,
         lockdown = lockdownActive,
         tlsIntegrityEnabled = tlsIntegrityPreferenceStore.isEnabled(),

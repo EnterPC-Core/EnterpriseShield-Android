@@ -274,7 +274,7 @@ enum class RoutingMode(val wireName: String, val labelRes: Int, val detailRes: I
 
     companion object {
         fun fromWireName(value: String?): RoutingMode {
-            return values().firstOrNull { it.wireName == value } ?: Subscription
+            return values().firstOrNull { it.wireName == value } ?: RussiaBypass
         }
     }
 }
@@ -528,15 +528,22 @@ data class MihomoRuntimePaths(
 internal object MihomoGeoDataInstaller {
     val fileNames = listOf("GEOIP.metadb", "GEOIP.dat", "GEOSITE.dat", "ASN.mmdb")
 
+    /** Версия встроенных гео-баз: при её изменении файлы в каталоге приложения заменяются. */
+    private const val GEODATA_VERSION = "2026-11-22"
+    private const val VERSION_FILE = "geodata.version"
+
     @Synchronized
     fun install(baseDir: File, openAsset: (String) -> InputStream): List<String> {
         baseDir.mkdirs()
-        return fileNames.mapNotNull { fileName ->
+        val versionFile = File(baseDir, VERSION_FILE)
+        val installedVersion = runCatching { versionFile.readText().trim() }.getOrNull()
+        val refresh = installedVersion != GEODATA_VERSION
+        val installed = fileNames.mapNotNull { fileName ->
             val target = File(baseDir, fileName)
             val existing = baseDir.listFiles()?.firstOrNull { candidate ->
                 candidate.name.equals(fileName, ignoreCase = true)
             }
-            if (existing?.isFile == true && existing.length() > 0L) return@mapNotNull null
+            if (!refresh && existing?.isFile == true && existing.length() > 0L) return@mapNotNull null
 
             val temporary = File(baseDir, ".$fileName.tmp")
             try {
@@ -556,6 +563,8 @@ internal object MihomoGeoDataInstaller {
                 temporary.delete()
             }
         }
+        if (refresh) runCatching { versionFile.writeText(GEODATA_VERSION) }
+        return installed
     }
 }
 

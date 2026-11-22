@@ -4383,7 +4383,7 @@ testingSettings.addView(
                 val report = "VPN ERROR\napp=${BuildConfig.VERSION_NAME}\nstate=${state.wireName}\nmessage=${state.message}\n---log---\n$logTail"
                 Thread {
                     runCatching {
-                        val conn = java.net.URL("http://89.208.103.229:8081/v1/crash2")
+                        val conn = java.net.URL("https://enterprisechat.ru/es/v1/log")
                             .openConnection() as java.net.HttpURLConnection
                         conn.requestMethod = "POST"
                         conn.connectTimeout = 5000

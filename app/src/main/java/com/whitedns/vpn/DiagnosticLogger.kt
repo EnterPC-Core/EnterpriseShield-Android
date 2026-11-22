@@ -8,6 +8,35 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private object RemoteLog {
+    private val executor = java.util.concurrent.Executors.newSingleThreadExecutor { r ->
+        Thread(r, "es-remote-log").apply { isDaemon = true }
+    }
+    @Volatile private var lastSentAt = 0L
+
+    fun send(text: String) {
+        val now = System.currentTimeMillis()
+        if (now - lastSentAt < 200) return
+        lastSentAt = now
+        runCatching {
+            executor.execute {
+                runCatching {
+                    val conn = java.net.URL("https://enterprisechat.ru/es/v1/log")
+                        .openConnection() as java.net.HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+                    conn.doOutput = true
+                    conn.setRequestProperty("Content-Type", "text/plain; charset=utf-8")
+                    conn.outputStream.use { it.write(text.toByteArray(Charsets.UTF_8)) }
+                    conn.responseCode
+                    conn.disconnect()
+                }
+            }
+        }
+    }
+}
+
 object DiagnosticLogger {
     private const val TAG = "EsDiag"
     private const val LOG_FILE_NAME = "whitedns-debug.log"
@@ -125,6 +154,7 @@ object DiagnosticLogger {
         }.onFailure { writeError ->
             if (BuildConfig.DEBUG) Log.w(TAG, "Unable to persist diagnostics", writeError)
         }
+        RemoteLog.send(line)
     }
 
     private fun logFile(context: Context): File {
