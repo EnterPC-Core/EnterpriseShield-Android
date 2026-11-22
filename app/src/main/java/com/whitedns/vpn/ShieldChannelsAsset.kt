@@ -99,6 +99,22 @@ proxies:
       path: /direct
       headers:
         Host: chat.138-124-99-46.sslip.io
+  - name: "🇫🇮 Enterprise XHTTP"
+    type: vless
+    server: api.enterprise-shield.ru
+    port: 443
+    uuid: e5714788-bab6-4502-9220-375d29428583
+    udp: true
+    tls: true
+    servername: api.enterprise-shield.ru
+    client-fingerprint: chrome
+    alpn:
+    - h2
+    - http/1.1
+    network: xhttp
+    xhttp-opts:
+      path: /xhttp
+      mode: auto
 proxy-groups:
   - name: "🚀 Каналы"
     type: select
@@ -107,6 +123,7 @@ proxy-groups:
     - "🇷🇺 Прямой"
     - "🇫🇮 Enterprise WiFi/LTE"
     - "🇫🇮 Enterprise Direct"
+    - "🇫🇮 Enterprise XHTTP"
   - name: "♻️ Авто-выбор"
     type: url-test
     url: "https://www.gstatic.com/generate_204"
@@ -124,6 +141,21 @@ proxy-groups:
 rules:
   - AND,((NETWORK,udp),(DST-PORT,443)),REJECT
   - GEOSITE,category-ads-all,REJECT
+  - DOMAIN-SUFFIX,pikabu.ru,🚀 Каналы
+  - DOMAIN-SUFFIX,habr.com,🚀 Каналы
+  - DOMAIN-SUFFIX,4pda.to,🚀 Каналы
+  - DOMAIN-SUFFIX,4pda.ru,🚀 Каналы
+  - DOMAIN-SUFFIX,kemono.su,🚀 Каналы
+  - DOMAIN-SUFFIX,jut.su,🚀 Каналы
+  - DOMAIN-SUFFIX,kara.su,🚀 Каналы
+  - DOMAIN-SUFFIX,theins.ru,🚀 Каналы
+  - DOMAIN-SUFFIX,tvrain.ru,🚀 Каналы
+  - DOMAIN-SUFFIX,echo.msk.ru,🚀 Каналы
+  - DOMAIN-SUFFIX,the-village.ru,🚀 Каналы
+  - DOMAIN-SUFFIX,snob.ru,🚀 Каналы
+  - DOMAIN-SUFFIX,novayagazeta.ru,🚀 Каналы
+  - DOMAIN-SUFFIX,moscowtimes.ru,🚀 Каналы
+  - DOMAIN-REGEX,\.(ru|su|moscow|tatar|xn--80adxhks|xn--80asehdb|xn--80aswg|xn--c1avg|xn--d1acj3b|xn--p1acf|xn--p1ai)$,DIRECT
   - GEOSITE,category-ru,DIRECT
   - GEOIP,private,DIRECT,no-resolve
   - GEOIP,ru,DIRECT
