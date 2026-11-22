@@ -26,7 +26,7 @@ sniffer:
         - 8443
 proxies:
 
-  - name: "🇩🇪 Enterprise LTE"
+  - name: "🇫🇮 Enterprise LTE"
     type: vless
     server: enterprisechat.ru
     port: 443
@@ -64,7 +64,7 @@ proxy-groups:
     proxies:
     - "♻️ Авто-выбор"
     - "🇷🇺 Прямой"
-    - "🇩🇪 Enterprise LTE"
+    - "🇫🇮 Enterprise LTE"
   - name: "♻️ Авто-выбор"
     type: url-test
     url: "https://www.gstatic.com/generate_204"
@@ -73,7 +73,7 @@ proxy-groups:
     tolerance: 150
     proxies:
     - "🇷🇺 Прямой"
-    - "🇩🇪 Enterprise LTE"
+    - "🇫🇮 Enterprise LTE"
   - name: "🧱 Заблокированное"
     type: select
     proxies:
