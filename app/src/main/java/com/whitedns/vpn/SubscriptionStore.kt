@@ -430,10 +430,9 @@ class SubscriptionStore(private val context: Context) {
         const val PRIVATE_SUBSCRIPTION_ID = "whitevpn-private"
         const val PUBLIC_SUBSCRIPTION_ID = "whitedns"
         const val TTR_SUBSCRIPTION_ID = "ttr-extra"
-        val BUILT_IN_SUBSCRIPTION_IDS = listOfNotNull(
-            PRIVATE_SUBSCRIPTION_ID.takeIf { BuildConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL.isNotBlank() },
-            // PUBLIC (резерв) скрыт: VPS-резерв выведен из эксплуатации
-        )
+        // Каналы Щита зашиты в APK (ShieldChannelsAsset) и не требуют сетевого адреса:
+        // подписка всегда доступна, URL нужен только для фонового обновления каталога.
+        val BUILT_IN_SUBSCRIPTION_IDS = listOf(PRIVATE_SUBSCRIPTION_ID)
         // Список встроенных подписок может быть пустым (публичный резерв отключён), .first() здесь роняло приложение.
         val DEFAULT_SUBSCRIPTION_ID = BUILT_IN_SUBSCRIPTION_IDS.firstOrNull().orEmpty()
         fun isBuiltInSubscription(id: String): Boolean = id in BUILT_IN_SUBSCRIPTION_IDS
