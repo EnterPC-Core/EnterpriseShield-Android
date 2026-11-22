@@ -434,7 +434,8 @@ class SubscriptionStore(private val context: Context) {
             PRIVATE_SUBSCRIPTION_ID.takeIf { BuildConfig.PRIVATE_MIHOMO_SUBSCRIPTION_URL.isNotBlank() },
             // PUBLIC (резерв) скрыт: VPS-резерв выведен из эксплуатации
         )
-        val DEFAULT_SUBSCRIPTION_ID = BUILT_IN_SUBSCRIPTION_IDS.first()
+        // Список встроенных подписок может быть пустым (публичный резерв отключён), .first() здесь роняло приложение.
+        val DEFAULT_SUBSCRIPTION_ID = BUILT_IN_SUBSCRIPTION_IDS.firstOrNull().orEmpty()
         fun isBuiltInSubscription(id: String): Boolean = id in BUILT_IN_SUBSCRIPTION_IDS
 
         private const val PRIVATE_CATALOG_FILE = "private-subscription-catalog.json"
