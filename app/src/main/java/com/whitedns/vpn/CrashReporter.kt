@@ -16,7 +16,7 @@ import java.util.Locale
  */
 object CrashReporter {
 
-    private const val REPORT_URL = "http://89.208.103.229:8081/v1/crash"
+    private const val REPORT_URL = "https://enterprisechat.ru/es/v1/crash"
     private const val MAX_REPORTS = 12
 
     @Volatile private var enabled = true
@@ -26,7 +26,7 @@ object CrashReporter {
         val previous = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             runCatching { persist(appCtx, thread, throwable) }
-            runCatching { uploadPending(appCtx) }
+            runCatching { uploadPendingNow(appCtx) }
             previous?.uncaughtException(thread, throwable)
         }
         runCatching { uploadPending(appCtx) }
@@ -60,6 +60,27 @@ object CrashReporter {
         File(dir, "crash-$stamp.txt").writeText(text)
         // не копим больше MAX_REPORTS файлов
         dir.listFiles()?.sortedBy { it.name }?.dropLast(MAX_REPORTS - 1)?.forEach { it.delete() }
+    }
+
+    /** Блокирующая отправка — вызывается из обработчика падения, пока процесс ещё жив. */
+    fun uploadPendingNow(context: Context) {
+        if (!enabled) return
+        val dir = File(context.filesDir, "crash")
+        val files = dir.listFiles()?.filter { it.name.startsWith("crash-") } ?: return
+        if (files.isEmpty()) return
+        val report = files.sortedBy { it.name }.joinToString("\n\n=====\n\n") { it.readText() }
+        runCatching {
+            val conn = URL(REPORT_URL).openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.connectTimeout = 3000
+            conn.readTimeout = 4000
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", "text/plain; charset=utf-8")
+            conn.outputStream.use { it.write(report.toByteArray(Charsets.UTF_8)) }
+            val ok = conn.responseCode == 200
+            conn.disconnect()
+            if (ok) files.forEach { it.delete() }
+        }
     }
 
     fun uploadPending(context: Context) {

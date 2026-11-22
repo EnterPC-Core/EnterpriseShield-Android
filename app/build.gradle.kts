@@ -73,8 +73,8 @@ android {
         applicationId = "com.enterprise.shield.vpn"
         minSdk = 26
         targetSdk = 35
-        versionCode = 273
-        versionName = "1.6.25"
+        versionCode = 274
+        versionName = "1.6.26"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resourceConfigurations += listOf("en", "ru")
@@ -115,8 +115,8 @@ android {
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             }
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             // CMake and Go already strip release binaries; generated .sym files only duplicate them.
             ndk.debugSymbolLevel = "NONE"
             proguardFiles(
