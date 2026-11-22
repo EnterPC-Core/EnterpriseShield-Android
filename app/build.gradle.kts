@@ -73,8 +73,8 @@ android {
         applicationId = "com.enterprise.shield.vpn"
         minSdk = 26
         targetSdk = 35
-        versionCode = 272
-        versionName = "1.6.24"
+        versionCode = 273
+        versionName = "1.6.25"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resourceConfigurations += listOf("en", "ru")
