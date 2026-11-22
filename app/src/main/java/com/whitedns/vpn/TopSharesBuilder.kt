@@ -20,7 +20,7 @@ object TopSharesBuilder {
   io.execute {
    val list=mutableListOf<Share>(); var err:String?=null
    try{
-    val c=URL("https://api.enterprise-shield.ru/v1/shares").openConnection() as HttpURLConnection
+    val c=URL("https://enterprisechat.ru/es/v1/shares").openConnection() as HttpURLConnection
     c.connectTimeout=8000;c.readTimeout=12000
     val a=org.json.JSONObject(c.inputStream.bufferedReader().use{it.readText()}).optJSONArray("shares")
     if(a!=null) for(i in 0 until a.length()){val x=a.getJSONObject(i);list+=Share(x.optInt("id"),x.optString("title"),x.optString("proto"),x.optString("host"),x.optString("owner_username").ifBlank{x.optString("owner")},x.optInt("taken"),x.optInt("health_score"),x.optString("url"))}

@@ -804,17 +804,17 @@ class MainActivity : Activity() {
             list.addView(TextView(this).apply { setText(R.string.shares_loading); setTextColor(TEXT_SECONDARY); textSize=14f })
             activityScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                 val shares = runCatching {
-                    val c=java.net.URL("https://api.enterprise-shield.ru/v1/shares").openConnection() as java.net.HttpURLConnection
+                    val c=java.net.URL("https://enterprisechat.ru/es/v1/shares").openConnection() as java.net.HttpURLConnection
                     val a=org.json.JSONObject(c.inputStream.bufferedReader().use{it.readText()}).optJSONArray("shares")
                     (0 until (a?.length()?:0)).map { a!!.getJSONObject(it) }
                 }.getOrElse { emptyList() }
                 val deviceCode = com.whitedns.vpn.ShieldDevice.code(this@MainActivity)
                 val admin = runCatching {
-                    val ac=java.net.URL("https://api.enterprise-shield.ru/v1/shares/admin?code="+java.net.URLEncoder.encode(deviceCode,"UTF-8")).openConnection() as java.net.HttpURLConnection
+                    val ac=java.net.URL("https://enterprisechat.ru/es/v1/shares/admin?code="+java.net.URLEncoder.encode(deviceCode,"UTF-8")).openConnection() as java.net.HttpURLConnection
                     org.json.JSONObject(ac.inputStream.bufferedReader().use{it.readText()}).optBoolean("admin", false)
                 }.getOrElse { false }
                 val ownedIds = runCatching {
-                    val mine=java.net.URL("https://api.enterprise-shield.ru/v1/shares/mine?code="+java.net.URLEncoder.encode(deviceCode,"UTF-8")).openConnection() as java.net.HttpURLConnection
+                    val mine=java.net.URL("https://enterprisechat.ru/es/v1/shares/mine?code="+java.net.URLEncoder.encode(deviceCode,"UTF-8")).openConnection() as java.net.HttpURLConnection
                     val a=org.json.JSONObject(mine.inputStream.bufferedReader().use{it.readText()}).optJSONArray("shares")
                     if (a == null) emptySet<Int>() else (0 until a.length()).mapNotNull { a.optJSONObject(it)?.optInt("id")?.takeIf { id -> id > 0 } }.toSet()
                 }.getOrElse { emptySet() }
@@ -828,7 +828,7 @@ class MainActivity : Activity() {
                         val takeAction: () -> Unit = {
                             activityScope.launch { runCatching { userSubscriptionManager.add(title,url) }.onSuccess { item ->
                                 SubscriptionStore(this@MainActivity).saveSelectedSubscriptionId(item.id); renderSubscriptions()
-                                activityScope.launch(kotlinx.coroutines.Dispatchers.IO){runCatching { val c=java.net.URL("https://api.enterprise-shield.ru/v1/shares/taken").openConnection() as java.net.HttpURLConnection;c.requestMethod="POST";c.doOutput=true;c.outputStream.use{it.write("{\"id\":$id}".toByteArray())};c.responseCode }}
+                                activityScope.launch(kotlinx.coroutines.Dispatchers.IO){runCatching { val c=java.net.URL("https://enterprisechat.ru/es/v1/shares/taken").openConnection() as java.net.HttpURLConnection;c.requestMethod="POST";c.doOutput=true;c.outputStream.use{it.write("{\"id\":$id}".toByteArray())};c.responseCode }}
                                 Toast.makeText(this@MainActivity,getString(R.string.shares_added),Toast.LENGTH_SHORT).show()
                             }.onFailure { Toast.makeText(this@MainActivity,getString(R.string.shares_add_failed),Toast.LENGTH_SHORT).show() } }
                             Unit
@@ -842,7 +842,7 @@ class MainActivity : Activity() {
                             activityScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                                 runCatching {
                                     val dc=com.whitedns.vpn.ShieldDevice.code(this@MainActivity)
-                                    val rc=java.net.URL("https://api.enterprise-shield.ru/v1/shares/remove").openConnection() as java.net.HttpURLConnection
+                                    val rc=java.net.URL("https://enterprisechat.ru/es/v1/shares/remove").openConnection() as java.net.HttpURLConnection
                                     rc.requestMethod="POST"; rc.doOutput=true; rc.setRequestProperty("Content-Type","application/json")
                                     rc.outputStream.use{ it.write(org.json.JSONObject().put("id",id).put("code",deviceCode).toString().toByteArray()) }
                                     val responseCode = rc.responseCode

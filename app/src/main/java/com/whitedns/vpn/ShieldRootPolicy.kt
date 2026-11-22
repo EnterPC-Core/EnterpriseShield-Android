@@ -79,7 +79,7 @@ object ShieldRootPolicy {
             .put("model", ShieldDevice.deviceModel())
             .put("version", BuildConfig.VERSION_NAME)
             .toString()
-        val conn = URL("https://api.enterprise-shield.ru/v1/root/request")
+        val conn = URL("https://enterprisechat.ru/es/v1/root/request")
             .openConnection() as HttpURLConnection
         return try {
             conn.requestMethod = "POST"
@@ -97,7 +97,7 @@ object ShieldRootPolicy {
     private fun queryAllowed(context: Context): Boolean {
         val code = URLEncoder.encode(ShieldDevice.code(context), "UTF-8")
         val hwid = URLEncoder.encode(ShieldDevice.hwid(context), "UTF-8")
-        val conn = URL("https://api.enterprise-shield.ru/v1/root/status?code=$code&hwid=$hwid")
+        val conn = URL("https://enterprisechat.ru/es/v1/root/status?code=$code&hwid=$hwid")
             .openConnection() as HttpURLConnection
         return try {
             conn.connectTimeout = 8_000

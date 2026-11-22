@@ -24,7 +24,7 @@ import java.util.concurrent.Executors
 object ShieldDevice {
     private const val PREF = "enterprise_device_bridge"
     private const val KEY_CODE = "device_code"
-    private const val BASE = "https://api.enterprise-shield.ru"
+    private const val BASE = "https://enterprisechat.ru/es"
     const val BOT_URL = "https://t.me/Enterprise_vpn_bot"
 
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()

@@ -58,7 +58,7 @@ object SharesPageBuilder {
                 var error = false
                 val shares = mutableListOf<org.json.JSONObject>()
                 try {
-                    val c = URL("https://api.enterprise-shield.ru/v1/shares").openConnection() as HttpURLConnection
+                    val c = URL("https://enterprisechat.ru/es/v1/shares").openConnection() as HttpURLConnection
                     c.connectTimeout = 8000; c.readTimeout = 8000
                     val arr = org.json.JSONObject(c.inputStream.bufferedReader().use { it.readText() })
                         .optJSONArray("shares") ?: JSONArray()

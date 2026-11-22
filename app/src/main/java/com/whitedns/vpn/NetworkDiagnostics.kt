@@ -75,7 +75,7 @@ object NetworkDiagnostics {
             line.title = context.getString(R.string.diag_line)
             try {
                 val t0 = System.currentTimeMillis()
-                val conn = URL("https://api.enterprise-shield.ru/v1/ip").openConnection() as HttpURLConnection
+                val conn = URL("https://enterprisechat.ru/es/v1/ip").openConnection() as HttpURLConnection
                 conn.connectTimeout = 4000; conn.readTimeout = 4000
                 val ip = JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).optString("ip")
                 val ms = System.currentTimeMillis() - t0
