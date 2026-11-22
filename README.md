@@ -85,3 +85,11 @@ export ANDROID_HOME=/opt/android-sdk
 ## Лицензия
 
 [GPL-3.0-only](LICENSE)
+
+## Поддержать проект
+
+Приложение бесплатное и без лимитов. Если хочется отблагодарить — вот ссылка:
+
+**💳 [Поддержать проект](https://t.tb.ru/pm_short/ABY6zKxIepI)**
+
+Спасибо, что пользуешься Enterprise Shield 🛡
